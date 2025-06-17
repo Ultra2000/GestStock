@@ -27,6 +27,9 @@ WORKDIR /var/www/html
 # Copier tous les fichiers de l'application
 COPY . .
 
+# Copier le fichier .env.example vers .env
+RUN cp .env.example .env
+
 # Installer les dépendances
 RUN composer install --no-dev --optimize-autoloader
 
