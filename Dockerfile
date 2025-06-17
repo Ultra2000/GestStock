@@ -1,4 +1,4 @@
-FROM php:8.2-apache
+FROM php:8.3-apache
 
 # Installer les dépendances système
 RUN apt-get update && apt-get install -y \
@@ -9,10 +9,11 @@ RUN apt-get update && apt-get install -y \
     libxml2-dev \
     zip \
     unzip \
-    libzip-dev
+    libzip-dev \
+    libicu-dev
 
 # Installer les extensions PHP nécessaires
-RUN docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd zip
+RUN docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd zip intl
 
 # Installer Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
