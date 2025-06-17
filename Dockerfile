@@ -10,7 +10,9 @@ RUN apt-get update && apt-get install -y \
     zip \
     unzip \
     libzip-dev \
-    libicu-dev
+    libicu-dev \
+    nodejs \
+    npm
 
 # Installer les extensions PHP nécessaires
 RUN docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd zip intl
@@ -33,6 +35,9 @@ RUN cp .env.example .env
 # Installer les dépendances
 RUN composer install --no-dev --optimize-autoloader
 
+# Installer et compiler les assets
+RUN npm install && npm run build
+
 # Configurer les permissions
 RUN chown -R www-data:www-data /var/www/html \
     && chmod -R 755 /var/www/html/storage \
@@ -40,6 +45,12 @@ RUN chown -R www-data:www-data /var/www/html \
 
 # Générer la clé d'application
 RUN php artisan key:generate
+
+# Publier les assets de Filament
+RUN php artisan filament:assets
+
+# Publier les assets
+RUN php artisan storage:link
 
 # Optimiser l'application
 RUN php artisan optimize
