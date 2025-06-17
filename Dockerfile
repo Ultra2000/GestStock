@@ -24,14 +24,11 @@ RUN a2enmod rewrite
 # Définir le répertoire de travail
 WORKDIR /var/www/html
 
-# Copier d'abord les fichiers de configuration Composer
-COPY composer.json composer.lock ./
+# Copier tous les fichiers de l'application
+COPY . .
 
 # Installer les dépendances
 RUN composer install --no-dev --optimize-autoloader
-
-# Copier le reste des fichiers de l'application
-COPY . .
 
 # Configurer les permissions
 RUN chown -R www-data:www-data /var/www/html \
