@@ -1,12 +1,12 @@
 <!DOCTYPE html>
 <html lang="fr">
-<head>
+    <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GestStock - Gestion de Stock Simplifiée</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-</head>
+    </head>
 <body class="bg-gray-50">
     <!-- Navigation -->
     <nav class="bg-white shadow-lg">
@@ -20,7 +20,7 @@
                 </div>
             </div>
         </div>
-    </nav>
+                </nav>
 
     <!-- Hero Section -->
     <div class="bg-white">
@@ -124,7 +124,7 @@
                 </div>
             </div>
         </div>
-    </div>
+        </div>
 
     <!-- Footer -->
     <footer class="bg-white">
@@ -147,5 +147,5 @@
             </div>
         </div>
     </footer>
-</body>
+    </body>
 </html>

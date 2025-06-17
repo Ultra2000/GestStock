@@ -54,6 +54,9 @@ RUN chown -R www-data:www-data /var/www/html \
 # Générer la clé d'application
 RUN php artisan key:generate
 
+# Exécuter les migrations
+RUN php artisan migrate --force
+
 # Publier les assets de Filament
 RUN php artisan filament:assets \
     && php artisan vendor:publish --tag=filament-assets --force \
@@ -65,7 +68,6 @@ RUN php artisan storage:link
 
 # Vider le cache
 RUN php artisan config:clear \
-    && php artisan cache:clear \
     && php artisan view:clear \
     && php artisan route:clear
 
