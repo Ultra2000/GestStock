@@ -38,19 +38,36 @@ RUN composer install --no-dev --optimize-autoloader
 # Installer et compiler les assets
 RUN npm install && npm run build
 
+# Créer le dossier database s'il n'existe pas
+RUN mkdir -p database
+
+# Créer le fichier SQLite s'il n'existe pas
+RUN touch database/database.sqlite
+
 # Configurer les permissions
 RUN chown -R www-data:www-data /var/www/html \
     && chmod -R 755 /var/www/html/storage \
-    && chmod -R 755 /var/www/html/bootstrap/cache
+    && chmod -R 755 /var/www/html/bootstrap/cache \
+    && chmod -R 755 /var/www/html/database \
+    && chmod 666 /var/www/html/database/database.sqlite
 
 # Générer la clé d'application
 RUN php artisan key:generate
 
 # Publier les assets de Filament
-RUN php artisan filament:assets
+RUN php artisan filament:assets \
+    && php artisan vendor:publish --tag=filament-assets --force \
+    && php artisan vendor:publish --tag=filament-config --force \
+    && php artisan vendor:publish --tag=filament-translations --force
 
 # Publier les assets
 RUN php artisan storage:link
+
+# Vider le cache
+RUN php artisan config:clear \
+    && php artisan cache:clear \
+    && php artisan view:clear \
+    && php artisan route:clear
 
 # Optimiser l'application
 RUN php artisan optimize
