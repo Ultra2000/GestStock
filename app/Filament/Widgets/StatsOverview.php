@@ -8,6 +8,8 @@ use App\Models\Customer;
 use Filament\Widgets\StatsOverviewWidget as BaseWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
 
+use Filament\Facades\Filament;
+
 class StatsOverview extends BaseWidget
 {
     protected function getStats(): array
@@ -16,9 +18,10 @@ class StatsOverview extends BaseWidget
         $totalProducts = Product::count();
         $lowStockProducts = Product::where('stock', '<', 10)->count();
         $totalCustomers = Customer::count();
+        $currency = Filament::getTenant()->currency ?? 'FCFA';
 
         return [
-            Stat::make('Chiffre d\'affaires', number_format($totalSales, 0, ',', ' ') . ' FCFA')
+            Stat::make('Chiffre d\'affaires', number_format($totalSales, 0, ',', ' ') . ' ' . $currency)
                 ->description('Total des ventes terminées')
                 ->descriptionIcon('heroicon-m-arrow-trending-up')
                 ->color('success'),

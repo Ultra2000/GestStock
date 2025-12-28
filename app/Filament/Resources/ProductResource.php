@@ -13,6 +13,8 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Support\Str;
+use Filament\Tables\Actions\Action;
+use App\Models\Product as ProductModel;
 
 class ProductResource extends Resource
 {
@@ -30,60 +32,96 @@ class ProductResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\TextInput::make('name')
-                    ->label('Nom')
-                    ->required()
-                    ->maxLength(255)
-                    ->live(onBlur: true)
-                    ->afterStateUpdated(function ($state, Forms\Set $set) {
-                        if ($state) {
-                            $set('code', 'PRD-' . strtoupper(Str::slug($state, '')));
-                        }
-                    }),
-                Forms\Components\TextInput::make('code')
-                    ->label('Code')
-                    ->required()
-                    ->unique(ignoreRecord: true)
-                    ->maxLength(255)
-                    ->readOnly(),
-                Forms\Components\Textarea::make('description')
-                    ->label('Description')
-                    ->maxLength(1000)
-                    ->columnSpanFull(),
-                Forms\Components\TextInput::make('purchase_price')
-                    ->label('Prix d\'achat')
-                    ->required()
-                    ->numeric()
-                    ->prefix('FCFA')
-                    ->suffix('F')
-                    ->formatStateUsing(fn ($state) => number_format($state, 0, ',', ' ')),
-                Forms\Components\TextInput::make('price')
-                    ->label('Prix de vente')
-                    ->required()
-                    ->numeric()
-                    ->prefix('FCFA')
-                    ->suffix('F')
-                    ->formatStateUsing(fn ($state) => number_format($state, 0, ',', ' ')),
-                Forms\Components\TextInput::make('stock')
-                    ->label('Stock')
-                    ->required()
-                    ->numeric()
-                    ->default(0),
-                Forms\Components\TextInput::make('unit')
-                    ->label('Unité')
-                    ->required()
-                    ->default('piece')
-                    ->maxLength(255),
-                Forms\Components\TextInput::make('min_stock')
-                    ->label('Stock minimum')
-                    ->required()
-                    ->numeric()
-                    ->default(0),
-                Forms\Components\Select::make('supplier_id')
-                    ->label('Fournisseur')
-                    ->relationship('supplier', 'name')
-                    ->searchable()
-                    ->preload(),
+                Forms\Components\Section::make('Informations générales')
+                    ->schema([
+                        Forms\Components\TextInput::make('name')
+                            ->label('Nom')
+                            ->required()
+                            ->maxLength(255),
+                        Forms\Components\TextInput::make('code')
+                            ->label('Code')
+                            ->maxLength(255)
+                            ->helperText('Généré automatiquement à la création')
+                            ->disabled()
+                            ->dehydrated(false)
+                            ->visibleOn('edit'),
+                        Forms\Components\Select::make('barcode_type')
+                            ->label('Type code-barres')
+                            ->options([
+                                'code128' => 'Code 128',
+                            ])
+                            ->default('code128')
+                            ->disabled()
+                            ->dehydrated(),
+                        Forms\Components\Textarea::make('description')
+                            ->label('Description')
+                            ->maxLength(1000)
+                            ->columnSpanFull(),
+                    ])->columns(2),
+
+                Forms\Components\Section::make('Prix')
+                    ->schema([
+                        Forms\Components\TextInput::make('purchase_price')
+                            ->label('Prix d\'achat')
+                            ->required()
+                            ->numeric()
+                            ->default(0)
+                            ->suffix(fn () => Filament::getTenant()->currency ?? 'FCFA'),
+                        Forms\Components\TextInput::make('price')
+                            ->label('Prix de vente')
+                            ->required()
+                            ->numeric()
+                            ->default(0)
+                            ->suffix(fn () => Filament::getTenant()->currency ?? 'FCFA'),
+                    ])->columns(2),
+
+                Forms\Components\Section::make('Stock')
+                    ->schema([
+                        Forms\Components\TextInput::make('stock')
+                            ->label('Stock initial')
+                            ->required()
+                            ->numeric()
+                            ->default(0)
+                            ->helperText('Stock initial assigné à l\'entrepôt par défaut')
+                            ->visibleOn('create'),
+                        Forms\Components\Placeholder::make('total_stock_display')
+                            ->label('Stock total (tous entrepôts)')
+                            ->content(fn ($record) => $record ? number_format($record->total_stock, 0, ',', ' ') . ' ' . ($record->unit ?? 'unités') : '-')
+                            ->visibleOn('edit'),
+                        Forms\Components\TextInput::make('unit')
+                            ->label('Unité')
+                            ->required()
+                            ->default('pièce')
+                            ->maxLength(255),
+                        Forms\Components\TextInput::make('min_stock')
+                            ->label('Stock minimum (alerte)')
+                            ->required()
+                            ->numeric()
+                            ->default(0),
+                    ])->columns(2),
+
+                Forms\Components\Section::make('Fournisseur')
+                    ->schema([
+                        Forms\Components\Select::make('supplier_id')
+                            ->label('Fournisseur')
+                            ->relationship(
+                                'supplier', 
+                                'name',
+                                fn ($query) => $query->where('company_id', \Filament\Facades\Filament::getTenant()?->id)
+                            )
+                            ->searchable()
+                            ->preload()
+                            ->createOptionForm([
+                                Forms\Components\TextInput::make('name')
+                                    ->label('Nom')
+                                    ->required(),
+                                Forms\Components\TextInput::make('email')
+                                    ->label('Email')
+                                    ->email(),
+                                Forms\Components\TextInput::make('phone')
+                                    ->label('Téléphone'),
+                            ]),
+                    ]),
             ]);
     }
 
@@ -97,18 +135,32 @@ class ProductResource extends Resource
                 Tables\Columns\TextColumn::make('code')
                     ->label('Code')
                     ->searchable(),
+                Tables\Columns\ViewColumn::make('barcode_preview')
+                    ->label('Aperçu')
+                    ->view('tables.columns.barcode-preview')
+                    ->toggleable(),
+                Tables\Columns\BadgeColumn::make('barcode_type')
+                    ->label('Type')
+                    ->colors([
+                        'primary' => 'code128',
+                        // 'success' => 'ean13',
+                    ])
+                    ->formatStateUsing(fn($state) => strtoupper($state)),
                 Tables\Columns\TextColumn::make('purchase_price')
                     ->label('Prix d\'achat')
-                    ->money('XOF')
+                    ->money(fn () => \Filament\Facades\Filament::getTenant()->currency)
                     ->sortable(),
                 Tables\Columns\TextColumn::make('price')
                     ->label('Prix de vente')
-                    ->money('XOF')
+                    ->money(fn () => \Filament\Facades\Filament::getTenant()->currency)
                     ->sortable(),
-                Tables\Columns\TextColumn::make('stock')
-                    ->label('Stock')
+                Tables\Columns\TextColumn::make('total_stock')
+                    ->label('Stock total')
                     ->numeric()
-                    ->sortable(),
+                    ->sortable()
+                    ->badge()
+                    ->color(fn ($record) => $record && $record->total_stock <= $record->min_stock ? 'danger' : 'success')
+                    ->tooltip(fn ($record) => $record && $record->total_stock <= $record->min_stock ? 'Stock faible!' : null),
                 Tables\Columns\TextColumn::make('unit')
                     ->label('Unité')
                     ->searchable(),
@@ -136,6 +188,55 @@ class ProductResource extends Resource
             ->actions([
                 Tables\Actions\EditAction::make()
                     ->label('Modifier'),
+                Action::make('regen_code')
+                    ->label('Régénérer code')
+                    ->icon('heroicon-o-arrow-path')
+                    ->requiresConfirmation()
+                    ->modalDescription('Cette action va générer un nouveau code unique pour ce produit. Cette opération est irréversible.')
+                    ->visible(fn ($record) => auth()->user()?->isAdmin())
+                    ->action(function ($record) {
+                        // Bypass model protection avec DB::table direct
+                        $newCode = ProductModel::generateInternalCode();
+                        \Illuminate\Support\Facades\DB::table('products')
+                            ->where('id', $record->id)
+                            ->update(['code' => $newCode]);
+                        $record->refresh();
+                    })
+                    ->after(function ($record) {
+                        \Filament\Notifications\Notification::make()
+                            ->title('Nouveau code: '.$record->code)
+                            ->success()
+                            ->send();
+                    }),
+                Action::make('print_labels_single')
+                    ->label('Imprimer étiquettes')
+                    ->icon('heroicon-o-printer')
+                    ->modalHeading('Imprimer étiquettes produit')
+                    ->form([
+                        Forms\Components\TextInput::make('quantity')
+                            ->label('Quantité')
+                            ->numeric()
+                            ->default(1)
+                            ->minValue(1),
+                        Forms\Components\Select::make('columns')
+                            ->label('Colonnes par ligne')
+                            ->options([2=>2,3=>3,4=>4])
+                            ->default(3),
+                        Forms\Components\Toggle::make('show_price')
+                            ->label('Afficher le prix')
+                            ->default(false),
+                    ])
+                    ->action(function($record, array $data){
+                        $qty = (int)($data['quantity'] ?? 1);
+                        if($qty < 1){ $qty = 1; }
+                        $params = [
+                            'ids' => $record->id,
+                            'q' => $record->id . ':' . $qty,
+                            'cols' => $data['columns'] ?? 3,
+                        ];
+                        if(!empty($data['show_price'])){ $params['price'] = 1; }
+                        return redirect()->route('products.labels.print', $params);
+                    }),
                 Tables\Actions\DeleteAction::make()
                     ->label('Supprimer'),
             ])
@@ -143,6 +244,38 @@ class ProductResource extends Resource
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make()
                         ->label('Supprimer la sélection'),
+                    Tables\Actions\BulkAction::make('print_labels')
+                        ->label('Imprimer étiquettes')
+                        ->icon('heroicon-o-printer')
+                        ->form([
+                            Forms\Components\TextInput::make('quantities')
+                                ->label('Quantités (ex: id:qty,id:qty)')
+                                ->helperText('Exemple: 5:3,8:2 pour 3 étiquettes produit 5 et 2 étiquettes produit 8')
+                                ->placeholder(''),
+                            Forms\Components\Select::make('columns')
+                                ->label('Colonnes')
+                                ->options([2=>2,3=>3,4=>4])
+                                ->default(3),
+                            Forms\Components\Toggle::make('show_price')
+                                ->label('Afficher le prix')
+                                ->default(false),
+                        ])
+                        ->action(function (\Illuminate\Support\Collection $records, array $data) {
+                            $ids = $records->pluck('id')->implode(',');
+                            $params = [
+                                'ids' => $ids,
+                                'cols' => $data['columns'] ?? 3,
+                            ];
+                            if (!empty($data['quantities'])) {
+                                $params['q'] = $data['quantities'];
+                            }
+                            if (!empty($data['show_price'])) {
+                                $params['price'] = 1;
+                            }
+                            $url = route('products.labels.print', $params);
+                            return redirect($url);
+                        })
+                        ->deselectRecordsAfterCompletion(),
                 ]),
             ]);
     }
@@ -150,7 +283,7 @@ class ProductResource extends Resource
     public static function getRelations(): array
     {
         return [
-            //
+            RelationManagers\WarehousesRelationManager::class,
         ];
     }
 

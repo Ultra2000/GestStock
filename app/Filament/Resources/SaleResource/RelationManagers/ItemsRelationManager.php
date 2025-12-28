@@ -51,7 +51,7 @@ class ItemsRelationManager extends RelationManager
                     ->label('Prix unitaire')
                     ->required()
                     ->numeric()
-                    ->prefix('FCFA')
+                    ->prefix(fn () => \Filament\Facades\Filament::getTenant()->currency)
                     ->suffix('F')
                     ->formatStateUsing(fn ($state) => number_format($state, 0, ',', ' '))
                     ->live()
@@ -62,7 +62,7 @@ class ItemsRelationManager extends RelationManager
                     ->label('Prix total')
                     ->required()
                     ->numeric()
-                    ->prefix('FCFA')
+                    ->prefix(fn () => \Filament\Facades\Filament::getTenant()->currency)
                     ->suffix('F')
                     ->formatStateUsing(fn ($state) => number_format($state, 0, ',', ' '))
                     ->disabled(),
@@ -82,10 +82,10 @@ class ItemsRelationManager extends RelationManager
                     ->numeric(),
                 Tables\Columns\TextColumn::make('unit_price')
                     ->label('Prix unitaire')
-                    ->money('XOF'),
+                    ->money(fn () => \Filament\Facades\Filament::getTenant()->currency),
                 Tables\Columns\TextColumn::make('total_price')
                     ->label('Prix total')
-                    ->money('XOF'),
+                    ->money(fn () => \Filament\Facades\Filament::getTenant()->currency),
             ])
             ->filters([
                 //

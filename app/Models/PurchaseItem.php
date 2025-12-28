@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use App\Models\Warehouse;
 
 class PurchaseItem extends Model
 {
@@ -38,27 +39,51 @@ class PurchaseItem extends Model
         // Mise à jour du stock uniquement si l'achat est terminé
         static::created(function ($item) {
             if ($item->purchase->status === 'completed') {
-                $product = $item->product;
-                $product->stock += $item->quantity;
-                $product->save();
+                $warehouse = $item->purchase->warehouse ?? Warehouse::getDefault($item->purchase->company_id);
+                if ($warehouse) {
+                    $warehouse->adjustStock(
+                        $item->product_id,
+                        $item->quantity,
+                        'purchase',
+                        "Ajout article achat {$item->purchase->invoice_number}",
+                        null
+                    );
+                }
             }
         });
 
         static::updated(function ($item) {
             if ($item->purchase->status === 'completed') {
-                $product = $item->product;
-                $oldQuantity = $item->getOriginal('quantity');
-                $newQuantity = $item->quantity;
-                $product->stock = $product->stock - $oldQuantity + $newQuantity;
-                $product->save();
+                $warehouse = $item->purchase->warehouse ?? Warehouse::getDefault($item->purchase->company_id);
+                if ($warehouse) {
+                    $oldQuantity = $item->getOriginal('quantity');
+                    $diff = $item->quantity - $oldQuantity;
+                    
+                    if ($diff != 0) {
+                        $warehouse->adjustStock(
+                            $item->product_id,
+                            $diff,
+                            'purchase_adjustment',
+                            "Modification quantité achat {$item->purchase->invoice_number}",
+                            null
+                        );
+                    }
+                }
             }
         });
 
         static::deleted(function ($item) {
             if ($item->purchase->status === 'completed') {
-                $product = $item->product;
-                $product->stock -= $item->quantity;
-                $product->save();
+                $warehouse = $item->purchase->warehouse ?? Warehouse::getDefault($item->purchase->company_id);
+                if ($warehouse) {
+                    $warehouse->adjustStock(
+                        $item->product_id,
+                        -$item->quantity,
+                        'purchase_cancellation',
+                        "Suppression article achat {$item->purchase->invoice_number}",
+                        null
+                    );
+                }
             }
         });
     }

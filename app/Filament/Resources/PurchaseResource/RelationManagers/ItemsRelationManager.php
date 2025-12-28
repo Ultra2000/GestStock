@@ -44,7 +44,7 @@ class ItemsRelationManager extends RelationManager
                     ->label('Prix unitaire')
                     ->required()
                     ->numeric()
-                    ->prefix('FCFA')
+                    ->prefix(fn () => \Filament\Facades\Filament::getTenant()->currency)
                     ->live()
                     ->afterStateUpdated(function ($state, Forms\Get $get, Forms\Set $set) {
                         $set('total_price', $state * $get('quantity'));
@@ -52,7 +52,7 @@ class ItemsRelationManager extends RelationManager
                 Forms\Components\TextInput::make('total_price')
                     ->label('Prix total')
                     ->numeric()
-                    ->prefix('FCFA')
+                    ->prefix(fn () => \Filament\Facades\Filament::getTenant()->currency)
                     ->disabled(),
             ]);
     }
@@ -69,10 +69,10 @@ class ItemsRelationManager extends RelationManager
                     ->numeric(),
                 Tables\Columns\TextColumn::make('unit_price')
                     ->label('Prix unitaire')
-                    ->money('FCFA'),
+                    ->money(fn () => \Filament\Facades\Filament::getTenant()->currency),
                 Tables\Columns\TextColumn::make('total_price')
                     ->label('Prix total')
-                    ->money('FCFA'),
+                    ->money(fn () => \Filament\Facades\Filament::getTenant()->currency),
             ])
             ->filters([
                 //
@@ -88,8 +88,7 @@ class ItemsRelationManager extends RelationManager
 
                         // Mettre à jour le total de l'achat
                         $purchase = $record->purchase;
-                        $purchase->total = $purchase->items->sum('total_price');
-                        $purchase->save();
+                        $purchase->recalculateTotals();
                     }),
             ])
             ->actions([
@@ -98,8 +97,7 @@ class ItemsRelationManager extends RelationManager
                     ->after(function ($record) {
                         // Mettre à jour le total de l'achat
                         $purchase = $record->purchase;
-                        $purchase->total = $purchase->items->sum('total_price');
-                        $purchase->save();
+                        $purchase->recalculateTotals();
                     }),
                 Tables\Actions\DeleteAction::make()
                     ->label('Supprimer')
@@ -129,8 +127,7 @@ class ItemsRelationManager extends RelationManager
 
                             // Mettre à jour le total de l'achat
                             $purchase = $records->first()->purchase;
-                            $purchase->total = $purchase->items->sum('total_price');
-                            $purchase->save();
+                            $purchase->recalculateTotals();
                         }),
                 ]),
             ]);

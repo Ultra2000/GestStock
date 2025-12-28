@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Traits\BelongsToCompany;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -10,59 +11,133 @@ use Illuminate\Support\Str;
 
 class Purchase extends Model
 {
-    use HasFactory;
+    use HasFactory, BelongsToCompany;
 
     protected $fillable = [
+        'company_id',
         'invoice_number',
         'supplier_id',
+        'warehouse_id',
+        'bank_account_id',
         'status',
+        'payment_method',
         'total',
         'notes',
+        'discount_percent',
+        'tax_percent',
     ];
 
     protected $casts = [
         'total' => 'decimal:2',
     ];
 
+    public function bankAccount(): BelongsTo
+    {
+        return $this->belongsTo(BankAccount::class);
+    }
+
     protected static function booted()
     {
         static::creating(function ($purchase) {
             if (empty($purchase->invoice_number)) {
-                $purchase->invoice_number = 'ACH-' . strtoupper(Str::random(8));
+                // Numérotation séquentielle par entreprise
+                $lastNumber = self::where('company_id', $purchase->company_id)
+                    ->selectRaw("MAX(CAST(SUBSTRING(invoice_number, 5) AS UNSIGNED)) as max_num")
+                    ->value('max_num') ?? 0;
+                $purchase->invoice_number = 'ACH-' . str_pad($lastNumber + 1, 6, '0', STR_PAD_LEFT);
+            }
+            
+            // Assigner l'entrepôt par défaut si non spécifié
+            if (empty($purchase->warehouse_id)) {
+                $defaultWarehouse = Warehouse::getDefault($purchase->company_id);
+                $purchase->warehouse_id = $defaultWarehouse?->id;
             }
         });
 
         static::updated(function ($purchase) {
+            // Si l'achat passe à "completed" et qu'un compte bancaire est lié
+            if ($purchase->wasChanged('status') && $purchase->status === 'completed' && $purchase->bank_account_id) {
+                // Vérifier si une transaction existe déjà pour éviter les doublons
+                $exists = BankTransaction::where('reference', $purchase->invoice_number)->exists();
+                
+                if (!$exists) {
+                    BankTransaction::create([
+                        'bank_account_id' => $purchase->bank_account_id,
+                        'date' => now(),
+                        'amount' => $purchase->total,
+                        'type' => 'debit',
+                        'label' => "Achat " . $purchase->invoice_number,
+                        'reference' => $purchase->invoice_number,
+                        'status' => 'pending',
+                        'metadata' => ['purchase_id' => $purchase->id],
+                    ]);
+                }
+            }
+
             if ($purchase->isDirty('status')) {
                 $oldStatus = $purchase->getOriginal('status');
                 $newStatus = $purchase->status;
 
                 if ($oldStatus === 'completed' && $newStatus !== 'completed') {
-                    foreach ($purchase->items as $item) {
-                        $product = $item->product;
-                        $product->stock -= $item->quantity;
-                        $product->save();
-                    }
+                    // Annuler la réception de stock
+                    $purchase->reverseStockReception();
                 }
                 elseif ($oldStatus !== 'completed' && $newStatus === 'completed') {
-                    foreach ($purchase->items as $item) {
-                        $product = $item->product;
-                        $product->stock += $item->quantity;
-                        $product->save();
-                    }
+                    // Ajouter au stock
+                    $purchase->processStockReception();
                 }
             }
         });
 
         static::deleting(function ($purchase) {
             if ($purchase->status === 'completed') {
-                foreach ($purchase->items as $item) {
-                    $product = $item->product;
-                    $product->stock -= $item->quantity;
-                    $product->save();
-                }
+                $purchase->reverseStockReception();
             }
         });
+    }
+
+    /**
+     * Ajouter le stock à l'entrepôt lors de la réception d'achat
+     */
+    public function processStockReception(): void
+    {
+        $warehouse = $this->warehouse ?? Warehouse::getDefault($this->company_id);
+        
+        if (!$warehouse) {
+            throw new \Exception("Aucun entrepôt disponible pour traiter l'achat.");
+        }
+
+        foreach ($this->items as $item) {
+            $warehouse->adjustStock(
+                $item->product_id,
+                $item->quantity,
+                'purchase',
+                "Achat {$this->invoice_number}",
+                null
+            );
+        }
+    }
+
+    /**
+     * Annuler la réception de stock
+     */
+    public function reverseStockReception(): void
+    {
+        $warehouse = $this->warehouse ?? Warehouse::getDefault($this->company_id);
+        
+        if (!$warehouse) {
+            return;
+        }
+
+        foreach ($this->items as $item) {
+            $warehouse->adjustStock(
+                $item->product_id,
+                -$item->quantity,
+                'return_out',
+                "Annulation achat {$this->invoice_number}",
+                null
+            );
+        }
     }
 
     public function supplier(): BelongsTo
@@ -70,8 +145,23 @@ class Purchase extends Model
         return $this->belongsTo(Supplier::class);
     }
 
+    public function warehouse(): BelongsTo
+    {
+        return $this->belongsTo(Warehouse::class);
+    }
+
     public function items(): HasMany
     {
         return $this->hasMany(PurchaseItem::class);
+    }
+
+    public function recalculateTotals(): void
+    {
+        $subtotal = $this->items()->sum('total_price');
+        $discount = $subtotal * ($this->discount_percent / 100);
+        $afterDiscount = $subtotal - $discount;
+        $tax = $afterDiscount * ($this->tax_percent / 100);
+        $this->total = round($afterDiscount + $tax, 2);
+        $this->save();
     }
 } 

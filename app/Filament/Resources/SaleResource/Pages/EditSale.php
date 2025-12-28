@@ -14,7 +14,8 @@ class EditSale extends EditRecord
     {
         return [
             Actions\DeleteAction::make()
-                ->label('Supprimer'),
+                ->label('Supprimer')
+                ->hidden(fn () => $this->record->status === 'completed'),
         ];
     }
 

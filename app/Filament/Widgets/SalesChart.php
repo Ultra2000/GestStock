@@ -6,6 +6,8 @@ use App\Models\Sale;
 use Filament\Widgets\ChartWidget;
 use Illuminate\Support\Facades\DB;
 
+use Filament\Facades\Filament;
+
 class SalesChart extends ChartWidget
 {
     protected static ?string $heading = 'Ventes des 7 derniers jours';
@@ -20,10 +22,12 @@ class SalesChart extends ChartWidget
             ->orderBy('date')
             ->get();
 
+        $currency = Filament::getTenant()->currency ?? 'FCFA';
+
         return [
             'datasets' => [
                 [
-                    'label' => 'Ventes (FCFA)',
+                    'label' => "Ventes ($currency)",
                     'data' => $data->pluck('total')->toArray(),
                     'borderColor' => '#10B981',
                 ],
