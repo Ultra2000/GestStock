@@ -3,9 +3,12 @@
 <head>
     <meta charset="utf-8">
     <title>Facture d'achat {{ $purchase->invoice_number }}</title>
+    @if(!empty($previewMode))
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    @endif
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-        
         :root {
             --primary: #7c3aed;
             --primary-light: #8b5cf6;
@@ -539,18 +542,54 @@
     $currency = 'FCFA';
     $status = $purchase->status;
     $statusClass = 'status-' . ($status ?: 'pending');
-    $computedTotal = $purchase->items->sum('total_price');
     $discountPercent = $purchase->discount_percent ?? 0;
-    $taxPercent = $purchase->tax_percent ?? 0;
-    $discountAmount = $computedTotal * ($discountPercent / 100);
-    $afterDiscount = $computedTotal - $discountAmount;
-    $taxAmount = $afterDiscount * ($taxPercent / 100);
-    $grandTotal = $purchase->total ?? ($afterDiscount + $taxAmount);
     
-    function amountToWordsFrPurchase($number) {
+    // Utiliser les valeurs TVA calculées par ligne et stockées dans Purchase
+    $totalHt = $purchase->total_ht ?? $purchase->items->sum('total_price_ht');
+    $totalVat = $purchase->total_vat ?? $purchase->items->sum('vat_amount');
+    $grandTotal = $purchase->total ?? ($totalHt + $totalVat);
+    
+    // Calculer le taux TVA effectif (moyenne pondérée)
+    $effectiveVatRate = $totalHt > 0 ? round(($totalVat / $totalHt) * 100, 1) : 0;
+    
+    // Calculer la remise si présente
+    $totalAvantRemise = $purchase->items->sum('total_price');
+    $discountAmount = $totalAvantRemise * ($discountPercent / 100);
+    
+    function amountToWordsFrPurchase($number, $currency = 'EUR') {
         $fmt = new \NumberFormatter('fr_FR', \NumberFormatter::SPELLOUT);
-        return ucfirst($fmt->format((int) $number));
+        $euros = floor($number);
+        $centimes = round(($number - $euros) * 100);
+        
+        // Noms des unités et sous-unités par devise
+        $units = [
+            'EUR' => ['euro', 'euros', 'centime', 'centimes'],
+            'FCFA' => ['franc CFA', 'francs CFA', 'centime', 'centimes'],
+            'XOF' => ['franc CFA', 'francs CFA', 'centime', 'centimes'],
+            'USD' => ['dollar', 'dollars', 'cent', 'cents'],
+            'GBP' => ['livre sterling', 'livres sterling', 'penny', 'pence'],
+        ];
+        $u = $units[$currency] ?? ['unité', 'unités', 'centime', 'centimes'];
+        
+        $euroWord = $euros == 1 ? $u[0] : $u[1];
+        $centimeWord = $centimes == 1 ? $u[2] : $u[3];
+        
+        $text = ucfirst($fmt->format($euros)) . ' ' . $euroWord;
+        if ($centimes > 0) {
+            $text .= ' et ' . $fmt->format($centimes) . ' ' . $centimeWord;
+        }
+        return $text;
     }
+    
+    // Nom de devise en lettres (pour affichage simple)
+    $currencyNames = [
+        'EUR' => 'euros',
+        'FCFA' => 'francs CFA',
+        'XOF' => 'francs CFA',
+        'USD' => 'dollars',
+        'GBP' => 'livres sterling',
+    ];
+    $currencyInWords = $currencyNames[$currency] ?? $currency;
     
     $statusLabels = [
         'completed' => 'Terminé',
@@ -642,10 +681,11 @@
         <table class="items-table">
             <thead>
                 <tr>
-                    <th style="width: 45%">Désignation</th>
-                    <th style="width: 15%">Quantité</th>
-                    <th style="width: 20%" class="text-right">Prix unitaire</th>
-                    <th style="width: 20%" class="text-right">Total</th>
+                    <th style="width: 40%">Désignation</th>
+                    <th style="width: 12%">Qté</th>
+                    <th style="width: 18%" class="text-right">P.U. HT</th>
+                    <th style="width: 10%" class="text-right">TVA</th>
+                    <th style="width: 20%" class="text-right">Total HT</th>
                 </tr>
             </thead>
             <tbody>
@@ -653,12 +693,13 @@
                     <tr>
                         <td><span class="product-name">{{ $item->product->name ?? 'Produit supprimé' }}</span></td>
                         <td>{{ $item->quantity }}</td>
-                        <td class="text-right text-muted">{{ number_format($item->unit_price, 0, ',', ' ') }} {{ $currency }}</td>
-                        <td class="text-right">{{ number_format($item->total_price, 0, ',', ' ') }} {{ $currency }}</td>
+                        <td class="text-right text-muted">{{ number_format($item->unit_price_ht ?? $item->unit_price, 2, ',', ' ') }} {{ $currency }}</td>
+                        <td class="text-right">{{ number_format($item->vat_rate ?? 0, 0) }}%</td>
+                        <td class="text-right">{{ number_format($item->total_price_ht ?? ($item->quantity * $item->unit_price), 2, ',', ' ') }} {{ $currency }}</td>
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="4" style="text-align: center; padding: 40px; color: var(--gray-400);">
+                        <td colspan="5" style="text-align: center; padding: 40px; color: var(--gray-400);">
                             Aucun article dans ce bon d'achat
                         </td>
                     </tr>
@@ -670,27 +711,25 @@
     <div class="totals-section">
         <div class="totals-card">
             <div class="totals-row">
-                <span class="label">Sous-total</span>
-                <span class="value">{{ number_format($computedTotal, 0, ',', ' ') }} {{ $currency }}</span>
+                <span class="label">Total HT</span>
+                <span class="value">{{ number_format($totalHt, 2, ',', ' ') }} {{ $currency }}</span>
             </div>
             @if($discountPercent > 0)
                 <div class="totals-row discount">
                     <span class="label">Remise ({{ number_format($discountPercent, 1, ',', ' ') }}%)</span>
-                    <span class="value">- {{ number_format($discountAmount, 0, ',', ' ') }} {{ $currency }}</span>
+                    <span class="value">- {{ number_format($discountAmount, 2, ',', ' ') }} {{ $currency }}</span>
                 </div>
             @endif
-            @if($taxPercent > 0)
-                <div class="totals-row">
-                    <span class="label">TVA ({{ number_format($taxPercent, 1, ',', ' ') }}%)</span>
-                    <span class="value">{{ number_format($taxAmount, 0, ',', ' ') }} {{ $currency }}</span>
-                </div>
-            @endif
+            <div class="totals-row">
+                <span class="label">TVA ({{ number_format($effectiveVatRate, 1, ',', ' ') }}%)</span>
+                <span class="value">{{ number_format($totalVat, 2, ',', ' ') }} {{ $currency }}</span>
+            </div>
             <div class="totals-row grand-total">
                 <span class="label">Total TTC</span>
-                <span class="value">{{ number_format($grandTotal, 0, ',', ' ') }} {{ $currency }}</span>
+                <span class="value">{{ number_format($grandTotal, 2, ',', ' ') }} {{ $currency }}</span>
             </div>
             <div class="amount-words">
-                {{ amountToWordsFrPurchase($grandTotal) }} francs CFA
+                {{ amountToWordsFrPurchase($grandTotal, $currency) }}
             </div>
         </div>
     </div>

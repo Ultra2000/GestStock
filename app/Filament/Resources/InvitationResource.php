@@ -23,7 +23,7 @@ class InvitationResource extends Resource
     protected static ?string $navigationIcon = 'heroicon-o-envelope';
 
     protected static ?string $navigationGroup = 'Administration';
-    protected static ?int $navigationSort = 12;
+    protected static ?int $navigationSort = 2;
     protected static ?string $navigationLabel = 'Invitations';
     protected static ?string $modelLabel = 'Invitation';
     protected static ?string $pluralModelLabel = 'Invitations';

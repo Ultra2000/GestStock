@@ -19,9 +19,9 @@ class SupplierResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-truck';
 
-    protected static ?string $navigationGroup = 'Gestion du stock';
+    protected static ?string $navigationGroup = 'Stocks & Achats';
 
-    protected static ?int $navigationSort = 3;
+    protected static ?int $navigationSort = 2;
 
     public static function form(Form $form): Form
     {
@@ -89,6 +89,10 @@ class SupplierResource extends Resource
             ->filters([
                 //
             ])
+            ->deferLoading() // Optimisation: Chargement différé via AJAX
+            ->defaultSort('name', 'asc')
+            ->paginated([10, 25, 50, 100])
+            ->defaultPaginationPageOption(25)
             ->actions([
                 Tables\Actions\EditAction::make(),
                 Tables\Actions\DeleteAction::make(),

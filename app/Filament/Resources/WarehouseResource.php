@@ -12,6 +12,7 @@ use Filament\Tables;
 use Filament\Tables\Table;
 use Filament\Infolists\Infolist;
 use Filament\Infolists\Components;
+use Filament\Facades\Filament;
 use Illuminate\Database\Eloquent\Builder;
 
 class WarehouseResource extends Resource
@@ -20,8 +21,13 @@ class WarehouseResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-building-storefront';
 
-    protected static ?string $navigationGroup = 'Multi-Entrepôts';
-    protected static ?int $navigationSort = 1;
+    protected static ?string $navigationGroup = 'Stocks & Achats';
+    protected static ?int $navigationSort = 4;
+
+    public static function shouldRegisterNavigation(): bool
+    {
+        return Filament::getTenant()?->isModuleEnabled('stock') ?? true;
+    }
     protected static ?string $navigationLabel = 'Entrepôts';
     protected static ?string $modelLabel = 'Entrepôt';
     protected static ?string $pluralModelLabel = 'Entrepôts';

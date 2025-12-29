@@ -17,7 +17,7 @@ class TimeTrackingPage extends Page
 {
     protected static ?string $navigationIcon = 'heroicon-o-clock';
 
-    protected static ?string $navigationGroup = 'Ressources Humaines';
+    protected static ?string $navigationGroup = 'RH';
 
     protected static ?string $navigationLabel = 'Pointage';
 
@@ -26,6 +26,11 @@ class TimeTrackingPage extends Page
     protected static ?int $navigationSort = 2;
 
     protected static string $view = 'filament.pages.hr.time-tracking';
+
+    public static function shouldRegisterNavigation(): bool
+    {
+        return Filament::getTenant()?->isModuleEnabled('hr') ?? true;
+    }
 
     public array $todayAttendances = [];
     public array $employees = [];

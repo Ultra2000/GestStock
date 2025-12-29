@@ -36,16 +36,16 @@ return [
     ],
 
     'ppf' => [
-        'url' => env('PISTE_BASE_URL', 'https://sandbox-api.piste.gouv.fr/cpro/factures/v1'),
-        'auth_url' => env('PISTE_AUTH_URL', 'https://sandbox-oauth.piste.gouv.fr/api/oauth/token'),
+        // Environnement global : 'sandbox' ou 'production'
+        'environment' => env('PISTE_ENVIRONMENT', 'sandbox'),
+        
+        // Credentials PISTE (compte GestStock mutualisé)
         'client_id' => env('PISTE_CLIENT_ID'),
         'client_secret' => env('PISTE_CLIENT_SECRET'),
         'api_key' => env('PISTE_API_KEY'),
-        'cpro_account_login' => env('CHORUS_TECH_LOGIN'),
-        'cpro_account_password' => env('CHORUS_TECH_PASSWORD'),
-        'syntaxe_flux' => env('CHORUS_SYNTAXE_FLUX', 'IN_DP_E1_UBL_INVOICE'),
-        'id_fournisseur' => env('CHORUS_ID_FOURNISSEUR'),
-        'id_service_fournisseur' => env('CHORUS_ID_SERVICE_FOURNISSEUR'),
+        
+        // Paramètres par défaut Chorus Pro
+        'syntaxe_flux' => env('CHORUS_SYNTAXE_FLUX', 'IN_DP_E1_CII_FACTURX'),
     ],
 
     'urssaf' => [

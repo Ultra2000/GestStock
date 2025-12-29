@@ -19,9 +19,9 @@ class CustomerResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-users';
 
-    protected static ?string $navigationGroup = 'Gestion du stock';
+    protected static ?string $navigationGroup = 'Ventes';
 
-    protected static ?int $navigationSort = 2;
+    protected static ?int $navigationSort = 1;
 
     protected static ?string $navigationLabel = 'Clients';
 
@@ -121,6 +121,10 @@ class CustomerResource extends Resource
             ->filters([
                 //
             ])
+            ->deferLoading() // Optimisation: Chargement différé via AJAX
+            ->defaultSort('name', 'asc')
+            ->paginated([10, 25, 50, 100])
+            ->defaultPaginationPageOption(25)
             ->actions([
                 Tables\Actions\EditAction::make()
                     ->label('Modifier'),

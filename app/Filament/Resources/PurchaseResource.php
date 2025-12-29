@@ -5,6 +5,7 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\PurchaseResource\Pages;
 use App\Filament\Resources\PurchaseResource\RelationManagers;
 use App\Models\Purchase;
+use App\Models\Product;
 use App\Models\Warehouse;
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -19,11 +20,20 @@ class PurchaseResource extends Resource
     protected static ?string $model = Purchase::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-shopping-bag';
-    protected static ?string $navigationGroup = 'Gestion du stock';
+    protected static ?string $navigationGroup = 'Stocks & Achats';
     protected static ?int $navigationSort = 3;
     protected static ?string $navigationLabel = 'Achats';
     protected static ?string $modelLabel = 'Achat';
     protected static ?string $pluralModelLabel = 'Achats';
+
+    /**
+     * Optimisation: Eager loading des relations pour éviter N+1
+     */
+    public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
+    {
+        return parent::getEloquentQuery()
+            ->with(['supplier', 'warehouse', 'bankAccount']);
+    }
 
     public static function form(Form $form): Form
     {
@@ -83,31 +93,127 @@ class PurchaseResource extends Resource
                 Forms\Components\Section::make('Paramètres financiers')
                     ->schema([
                         Forms\Components\TextInput::make('discount_percent')
-                            ->label('Remise %')
+                            ->label('Remise globale %')
                             ->numeric()
                             ->minValue(0)
                             ->maxValue(100)
                             ->default(0)
                             ->live(onBlur: true)
+                            ->helperText('Appliquée sur le total TTC')
                             ->afterStateUpdated(function ($state, $record) {
                                 if ($record) { $record->recalculateTotals(); }
                             }),
-                        Forms\Components\TextInput::make('tax_percent')
-                            ->label('TVA %')
-                            ->numeric()
-                            ->minValue(0)
-                            ->maxValue(100)
-                            ->default(0)
-                            ->live(onBlur: true)
-                            ->afterStateUpdated(function ($state, $record) {
-                                if ($record) { $record->recalculateTotals(); }
-                            }),
+                        Forms\Components\Placeholder::make('total_ht_display')
+                            ->label('Total HT')
+                            ->content(fn (?Purchase $record) => $record ? number_format($record->total_ht ?? 0, 2, ',', ' ') . ' ' . (Filament::getTenant()->currency ?? 'EUR') : '-'),
+                        Forms\Components\Placeholder::make('total_vat_display')
+                            ->label('TVA Déductible')
+                            ->content(fn (?Purchase $record) => $record ? number_format($record->total_vat ?? 0, 2, ',', ' ') . ' ' . (Filament::getTenant()->currency ?? 'EUR') : '-'),
                         Forms\Components\TextInput::make('total')
                             ->label('Total TTC')
                             ->numeric()
-                            ->suffix(fn () => Filament::getTenant()->currency ?? 'FCFA')
+                            ->suffix(fn () => Filament::getTenant()->currency ?? 'EUR')
                             ->disabled(),
-                    ])->columns(3),
+                    ])->columns(4),
+
+                // Section Articles - Repeater pour ajouter les produits
+                Forms\Components\Section::make('Articles')
+                    ->description('Ajoutez les produits achetés avec leur TVA')
+                    ->schema([
+                        Forms\Components\Repeater::make('items')
+                            ->relationship()
+                            ->label('')
+                            ->schema([
+                                Forms\Components\Select::make('product_id')
+                                    ->label('Produit')
+                                    ->options(fn () => Product::where('company_id', Filament::getTenant()?->id)
+                                        ->orderBy('name')
+                                        ->pluck('name', 'id'))
+                                    ->searchable()
+                                    ->preload()
+                                    ->required()
+                                    ->live()
+                                    ->afterStateUpdated(function ($state, Forms\Set $set) {
+                                        if ($state) {
+                                            $product = Product::find($state);
+                                            if ($product) {
+                                                $set('unit_price', $product->purchase_price ?? 0);
+                                                $set('vat_rate', $product->vat_rate_purchase ?? 20);
+                                                $set('quantity', 1);
+                                                
+                                                // Calculer le total
+                                                $vatRate = $product->vat_rate_purchase ?? 20;
+                                                $totalHt = $product->purchase_price ?? 0;
+                                                $vat = round($totalHt * ($vatRate / 100), 2);
+                                                $set('total_price', $totalHt + $vat);
+                                            }
+                                        }
+                                    })
+                                    ->columnSpan(2),
+                                Forms\Components\TextInput::make('quantity')
+                                    ->label('Qté')
+                                    ->required()
+                                    ->numeric()
+                                    ->default(1)
+                                    ->minValue(1)
+                                    ->live(onBlur: true)
+                                    ->afterStateUpdated(function ($state, Forms\Get $get, Forms\Set $set) {
+                                        $quantity = $state ?? 0;
+                                        $unitPrice = $get('unit_price') ?? 0;
+                                        $vatRate = $get('vat_rate') ?? 20;
+                                        $totalHt = $quantity * $unitPrice;
+                                        $vat = round($totalHt * ($vatRate / 100), 2);
+                                        $set('total_price', $totalHt + $vat);
+                                    })
+                                    ->columnSpan(1),
+                                Forms\Components\TextInput::make('unit_price')
+                                    ->label('P.U. HT')
+                                    ->required()
+                                    ->numeric()
+                                    ->prefix(fn () => Filament::getTenant()->currency ?? 'EUR')
+                                    ->live(onBlur: true)
+                                    ->afterStateUpdated(function ($state, Forms\Get $get, Forms\Set $set) {
+                                        $quantity = $get('quantity') ?? 0;
+                                        $unitPrice = $state ?? 0;
+                                        $vatRate = $get('vat_rate') ?? 20;
+                                        $totalHt = $quantity * $unitPrice;
+                                        $vat = round($totalHt * ($vatRate / 100), 2);
+                                        $set('total_price', $totalHt + $vat);
+                                    })
+                                    ->columnSpan(1),
+                                Forms\Components\Select::make('vat_rate')
+                                    ->label('TVA')
+                                    ->options(Product::getCommonVatRates())
+                                    ->default(20.00)
+                                    ->live()
+                                    ->afterStateUpdated(function ($state, Forms\Get $get, Forms\Set $set) {
+                                        $quantity = $get('quantity') ?? 0;
+                                        $unitPrice = $get('unit_price') ?? 0;
+                                        $vatRate = $state ?? 20;
+                                        $totalHt = $quantity * $unitPrice;
+                                        $vat = round($totalHt * ($vatRate / 100), 2);
+                                        $set('total_price', $totalHt + $vat);
+                                    })
+                                    ->columnSpan(1),
+                                Forms\Components\TextInput::make('total_price')
+                                    ->label('Total TTC')
+                                    ->numeric()
+                                    ->prefix(fn () => Filament::getTenant()->currency ?? 'EUR')
+                                    ->disabled()
+                                    ->dehydrated(true)
+                                    ->columnSpan(1),
+                            ])
+                            ->columns(6)
+                            ->addActionLabel('+ Ajouter un article')
+                            ->defaultItems(1)
+                            ->reorderable(false)
+                            ->collapsible()
+                            ->itemLabel(fn (array $state): ?string => 
+                                isset($state['product_id']) 
+                                    ? Product::find($state['product_id'])?->name . ' (x' . ($state['quantity'] ?? 1) . ')'
+                                    : null
+                            ),
+                    ]),
 
                 Forms\Components\Section::make('Notes')
                     ->schema([
@@ -163,6 +269,10 @@ class PurchaseResource extends Resource
                         'cancelled' => 'Annulé',
                     ]),
             ])
+            ->deferLoading() // Optimisation: Chargement différé via AJAX
+            ->defaultSort('created_at', 'desc')
+            ->paginated([10, 25, 50, 100])
+            ->defaultPaginationPageOption(25)
             ->actions([
                 Tables\Actions\EditAction::make()
                     ->label('Modifier'),

@@ -8,34 +8,36 @@
             <div class="flex items-center justify-center min-h-[70vh]">
                 <div class="relative">
                     {{-- Cercles décoratifs --}}
-                    <div class="absolute -top-20 -left-20 w-40 h-40 bg-gradient-to-br from-violet-500/20 to-purple-500/20 rounded-full blur-3xl"></div>
-                    <div class="absolute -bottom-20 -right-20 w-40 h-40 bg-gradient-to-br from-fuchsia-500/20 to-pink-500/20 rounded-full blur-3xl"></div>
+                    <div class="absolute -top-20 -left-20 w-40 h-40 rounded-full blur-3xl" style="background: linear-gradient(to bottom right, rgba(139, 92, 246, 0.2), rgba(168, 85, 247, 0.2));"></div>
+                    <div class="absolute -bottom-20 -right-20 w-40 h-40 rounded-full blur-3xl" style="background: linear-gradient(to bottom right, rgba(217, 70, 239, 0.2), rgba(236, 72, 153, 0.2));"></div>
                     
-                    <div class="relative bg-white dark:bg-gray-800 rounded-3xl shadow-2xl p-10 max-w-md border border-gray-100 dark:border-gray-700">
+                    <div class="relative rounded-3xl shadow-2xl p-10 max-w-md border" style="background-color: white; border-color: #f3f4f6;">
                         <div class="text-center">
                             {{-- Icône animée --}}
-                            <div class="mx-auto w-24 h-24 bg-gradient-to-br from-violet-500 to-purple-600 rounded-2xl flex items-center justify-center mb-6 shadow-lg shadow-violet-500/30 animate-pulse">
+                            <div class="mx-auto w-24 h-24 rounded-2xl flex items-center justify-center mb-6 animate-pulse" style="background: linear-gradient(to bottom right, #8b5cf6, #9333ea); box-shadow: 0 10px 15px -3px rgba(139, 92, 246, 0.3);">
                                 <svg class="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/>
                                 </svg>
                             </div>
                             
-                            <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">Ouvrir la Caisse</h2>
-                            <p class="text-gray-500 dark:text-gray-400 mb-8">Entrez le montant de départ pour commencer la journée</p>
+                            <h2 class="text-2xl font-bold mb-2" style="color: #111827;">Ouvrir la Caisse</h2>
+                            <p class="mb-8" style="color: #6b7280;">Entrez le montant de départ pour commencer la journée</p>
                             
                             <div class="relative mb-6">
                                 <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                                    <span class="text-gray-400 text-xl font-semibold">€</span>
+                                    <span class="text-xl font-semibold" style="color: #9ca3af;">€</span>
                                 </div>
                                 <input type="number" 
                                        x-model="openingAmount" 
                                        step="0.01"
-                                       class="w-full pl-10 pr-4 py-4 text-2xl font-bold text-center bg-gray-50 dark:bg-gray-700 border-2 border-gray-200 dark:border-gray-600 rounded-2xl focus:ring-4 focus:ring-violet-500/20 focus:border-violet-500 transition-all"
+                                       class="w-full pl-10 pr-4 py-4 text-2xl font-bold text-center rounded-2xl transition-all"
+                                       style="background-color: #f9fafb; border: 2px solid #e5e7eb; color: #111827;"
                                        placeholder="0.00">
                             </div>
                             
                             <button @click="openSession()" 
-                                    class="w-full py-4 px-6 bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 text-white font-bold text-lg rounded-2xl shadow-lg shadow-violet-500/30 hover:shadow-violet-500/50 transition-all duration-300 transform hover:scale-[1.02]">
+                                    class="w-full py-4 px-6 font-bold text-lg rounded-2xl transition-all duration-300 transform hover:scale-[1.02]"
+                                    style="background: linear-gradient(to right, #7c3aed, #9333ea); color: white; box-shadow: 0 10px 15px -3px rgba(139, 92, 246, 0.3);">
                                 <span class="flex items-center justify-center gap-3">
                                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
@@ -53,17 +55,17 @@
         <template x-if="sessionOpen">
             <div class="space-y-6">
                 {{-- Header avec stats --}}
-                <div class="bg-gradient-to-r from-violet-600 via-purple-600 to-fuchsia-600 rounded-3xl p-6 text-white shadow-xl shadow-purple-500/20">
+                <div class="bg-gradient-to-r from-violet-600 via-purple-600 to-fuchsia-600 rounded-3xl p-6 shadow-xl shadow-purple-500/20" style="background: linear-gradient(to right, #7c3aed, #9333ea, #c026d3);">
                     <div class="flex flex-wrap items-center justify-between gap-4">
                         <div class="flex items-center gap-4">
-                            <div class="w-14 h-14 bg-white/20 backdrop-blur rounded-2xl flex items-center justify-center">
-                                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <div class="w-14 h-14 rounded-2xl flex items-center justify-center" style="background: rgba(255,255,255,0.2);">
+                                <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
                                 </svg>
                             </div>
                             <div>
-                                <h1 class="text-2xl font-bold">Caisse Enregistreuse</h1>
-                                <div class="flex items-center gap-2 text-white/80">
+                                <h1 class="text-2xl font-bold text-white">Caisse Enregistreuse</h1>
+                                <div class="flex items-center gap-2" style="color: rgba(255,255,255,0.8);">
                                     <span class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
                                     Session active
                                 </div>
@@ -73,23 +75,23 @@
                         <div class="flex items-center gap-6">
                             {{-- Stats rapides --}}
                             <div class="hidden md:flex items-center gap-6">
-                                <div class="text-center px-4 py-2 bg-white/10 backdrop-blur rounded-xl">
-                                    <div class="text-2xl font-bold" x-text="formatPrice(sessionStats.total_sales)">0€</div>
-                                    <div class="text-xs text-white/70">Ventes</div>
+                                <div class="text-center px-4 py-2 rounded-xl" style="background: rgba(255,255,255,0.1);">
+                                    <div class="text-2xl font-bold text-white" x-text="formatPrice(sessionStats.total_sales)">0€</div>
+                                    <div class="text-xs" style="color: rgba(255,255,255,0.7);">Ventes</div>
                                 </div>
-                                <div class="text-center px-4 py-2 bg-white/10 backdrop-blur rounded-xl">
-                                    <div class="text-2xl font-bold" x-text="sessionStats.sales_count">0</div>
-                                    <div class="text-xs text-white/70">Tickets</div>
+                                <div class="text-center px-4 py-2 rounded-xl" style="background: rgba(255,255,255,0.1);">
+                                    <div class="text-2xl font-bold text-white" x-text="sessionStats.sales_count">0</div>
+                                    <div class="text-xs" style="color: rgba(255,255,255,0.7);">Tickets</div>
                                 </div>
-                                <div class="text-center px-4 py-2 bg-white/10 backdrop-blur rounded-xl">
-                                    <div class="text-2xl font-bold" x-text="formatPrice(sessionStats.cash_in_drawer)">0€</div>
-                                    <div class="text-xs text-white/70">En caisse</div>
+                                <div class="text-center px-4 py-2 rounded-xl" style="background: rgba(255,255,255,0.1);">
+                                    <div class="text-2xl font-bold text-white" x-text="formatPrice(sessionStats.cash_in_drawer)">0€</div>
+                                    <div class="text-xs" style="color: rgba(255,255,255,0.7);">En caisse</div>
                                 </div>
                             </div>
 
                             {{-- Bouton plein écran --}}
                             <button @click="toggleFullscreen()" 
-                                    class="p-3 bg-white/20 hover:bg-white/30 backdrop-blur rounded-xl transition-all"
+                                    class="p-3 rounded-xl transition-all text-white" style="background: rgba(255,255,255,0.2);"
                                     :title="isFullscreen ? 'Quitter plein écran' : 'Mode plein écran'">
                                 <svg x-show="!isFullscreen" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/>
@@ -101,7 +103,7 @@
 
                             {{-- Bouton son --}}
                             <button @click="toggleSound()" 
-                                    class="p-3 bg-white/20 hover:bg-white/30 backdrop-blur rounded-xl transition-all"
+                                    class="p-3 rounded-xl transition-all text-white" style="background: rgba(255,255,255,0.2);"
                                     :title="soundEnabled ? 'Désactiver les sons' : 'Activer les sons'">
                                 <svg x-show="soundEnabled" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"/>
@@ -114,7 +116,7 @@
 
                             {{-- Bouton Rapport --}}
                             <button @click="openReportModal()" 
-                                    class="p-3 bg-white/20 hover:bg-white/30 backdrop-blur rounded-xl transition-all"
+                                    class="p-3 rounded-xl transition-all text-white" style="background: rgba(255,255,255,0.2);"
                                     title="Rapport de caisse">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
@@ -122,7 +124,7 @@
                             </button>
                             
                             <button @click="showCloseModal = true" 
-                                    class="px-6 py-3 bg-white/20 hover:bg-white/30 backdrop-blur rounded-xl font-semibold transition-all flex items-center gap-2">
+                                    class="px-6 py-3 rounded-xl font-semibold transition-all flex items-center gap-2 text-white" style="background: rgba(255,255,255,0.2);">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                                 </svg>
@@ -149,7 +151,7 @@
                                            x-model="searchQuery" 
                                            @input.debounce.300ms="searchProducts()"
                                            @keydown.enter="handleBarcodeEnter()"
-                                           class="w-full pl-12 pr-4 py-3 bg-gray-50 dark:bg-gray-700 border-0 rounded-xl focus:ring-2 focus:ring-violet-500 text-lg"
+                                           class="w-full pl-12 pr-4 py-3 bg-gray-50 dark:bg-gray-700 border-0 rounded-xl focus:ring-2 focus:ring-violet-500 text-lg text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
                                            placeholder="Rechercher un produit ou scanner un code-barres...">
                                 </div>
                                 <button @click="toggleScanner()" 
@@ -182,7 +184,7 @@
                                     </svg>
                                     Produits
                                 </h3>
-                                <span class="text-sm text-gray-500" x-text="products.length + ' produit(s)'"></span>
+                                <span class="text-sm text-gray-500 dark:text-gray-400" x-text="products.length + ' produit(s)'"></span>
                             </div>
                             
                             <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 max-h-[50vh] overflow-y-auto pr-2">
@@ -210,12 +212,12 @@
                                 </template>
                                 
                                 <template x-if="products.length === 0">
-                                    <div class="col-span-full py-12 text-center text-gray-500">
-                                        <svg class="w-16 h-16 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <div class="col-span-full py-12 text-center">
+                                        <svg class="w-16 h-16 mx-auto mb-4 text-gray-300 dark:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
                                         </svg>
-                                        <p>Aucun produit trouvé</p>
-                                        <p class="text-sm">Tapez pour rechercher ou scannez un code-barres</p>
+                                        <p class="text-gray-500 dark:text-gray-400">Aucun produit trouvé</p>
+                                        <p class="text-sm text-gray-400 dark:text-gray-500">Tapez pour rechercher ou scannez un code-barres</p>
                                     </div>
                                 </template>
                             </div>
@@ -248,7 +250,7 @@
                                         <div class="flex items-start justify-between gap-3">
                                             <div class="flex-1 min-w-0">
                                                 <h4 class="font-medium text-gray-900 dark:text-white truncate" x-text="item.name"></h4>
-                                                <p class="text-sm text-gray-500" x-text="formatPrice(item.price) + ' × ' + item.quantity"></p>
+                                                <p class="text-sm text-gray-500 dark:text-gray-400" x-text="formatPrice(item.price) + ' × ' + item.quantity"></p>
                                             </div>
                                             <div class="text-right">
                                                 <p class="font-bold text-violet-600 dark:text-violet-400" x-text="formatPrice(item.price * item.quantity)"></p>
@@ -256,13 +258,13 @@
                                         </div>
                                         <div class="flex items-center justify-between mt-3">
                                             <div class="flex items-center gap-1">
-                                                <button @click="decrementItem(index)" class="w-8 h-8 bg-white dark:bg-gray-600 rounded-lg flex items-center justify-center hover:bg-gray-100 dark:hover:bg-gray-500 transition-colors shadow-sm">
+                                                <button @click="decrementItem(index)" class="w-8 h-8 bg-white dark:bg-gray-600 rounded-lg flex items-center justify-center hover:bg-gray-100 dark:hover:bg-gray-500 transition-colors shadow-sm text-gray-700 dark:text-gray-200">
                                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"/>
                                                     </svg>
                                                 </button>
-                                                <span class="w-10 text-center font-semibold" x-text="item.quantity"></span>
-                                                <button @click="incrementItem(index)" class="w-8 h-8 bg-white dark:bg-gray-600 rounded-lg flex items-center justify-center hover:bg-gray-100 dark:hover:bg-gray-500 transition-colors shadow-sm">
+                                                <span class="w-10 text-center font-semibold text-gray-900 dark:text-white" x-text="item.quantity"></span>
+                                                <button @click="incrementItem(index)" class="w-8 h-8 bg-white dark:bg-gray-600 rounded-lg flex items-center justify-center hover:bg-gray-100 dark:hover:bg-gray-500 transition-colors shadow-sm text-gray-700 dark:text-gray-200">
                                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
                                                     </svg>
@@ -278,12 +280,12 @@
                                 </template>
                                 
                                 <template x-if="cart.length === 0">
-                                    <div class="flex flex-col items-center justify-center h-full text-gray-400 py-8">
-                                        <svg class="w-20 h-20 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <div class="flex flex-col items-center justify-center h-full text-gray-400 dark:text-gray-500 py-8">
+                                        <svg class="w-20 h-20 mb-4 text-gray-300 dark:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/>
                                         </svg>
-                                        <p class="font-medium">Panier vide</p>
-                                        <p class="text-sm">Ajoutez des produits pour commencer</p>
+                                        <p class="font-medium text-gray-500 dark:text-gray-400">Panier vide</p>
+                                        <p class="text-sm text-gray-400 dark:text-gray-500">Ajoutez des produits pour commencer</p>
                                     </div>
                                 </template>
                             </div>
@@ -292,7 +294,7 @@
                             <div class="border-t border-gray-100 dark:border-gray-700 p-4 space-y-4 bg-gray-50 dark:bg-gray-700/30 rounded-b-2xl">
                                 {{-- Méthode de paiement --}}
                                 <div>
-                                    <label class="text-sm text-gray-500 mb-2 block">Mode de paiement</label>
+                                    <label class="text-sm text-gray-500 dark:text-gray-400 mb-2 block">Mode de paiement</label>
                                     <div class="grid grid-cols-4 gap-2">
                                         <button @click="paymentMethod = 'cash'" 
                                                 :class="paymentMethod === 'cash' ? 'bg-violet-500 text-white border-violet-500' : 'bg-white dark:bg-gray-600 text-gray-700 dark:text-gray-200 border-gray-200 dark:border-gray-500'"
@@ -415,7 +417,7 @@
                         <input type="number" 
                                x-model="closingAmount" 
                                step="0.01"
-                               class="w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:ring-4 focus:ring-violet-500/20 focus:border-violet-500 text-xl font-bold text-center"
+                               class="w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:ring-4 focus:ring-violet-500/20 focus:border-violet-500 text-xl font-bold text-center text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
                                placeholder="0.00">
                         
                         {{-- Différence --}}
@@ -430,12 +432,14 @@
                 
                 <div class="p-6 pt-0 flex gap-3">
                     <button @click="showCloseModal = false" 
-                            class="flex-1 py-3 px-4 bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-200 rounded-xl font-semibold hover:bg-gray-300 dark:hover:bg-gray-500 transition-all">
+                            class="flex-1 py-3 px-4 rounded-xl font-semibold transition-all"
+                            style="background-color: #e5e7eb; color: #374151;">
                         Annuler
                     </button>
                     <button @click="closeSession()" 
-                            class="flex-1 py-3 px-4 bg-gradient-to-r from-red-500 to-rose-600 text-white rounded-xl font-semibold hover:from-red-600 hover:to-rose-700 transition-all shadow-lg shadow-red-500/30">
-                        Confirmer
+                            class="flex-1 py-3 px-4 rounded-xl font-semibold transition-all"
+                            style="background: linear-gradient(to right, #ef4444, #e11d48); color: white; box-shadow: 0 10px 15px -3px rgba(239, 68, 68, 0.3);">
+                        Confirmer la fermeture
                     </button>
                 </div>
             </div>
@@ -643,7 +647,7 @@
                                             </template>
                                             <template x-if="!reportData.top_products || reportData.top_products.length === 0">
                                                 <tr>
-                                                    <td colspan="4" class="py-6 text-center text-gray-500">Aucune vente enregistrée</td>
+                                                    <td colspan="4" class="py-6 text-center text-gray-500 dark:text-gray-400">Aucune vente enregistrée</td>
                                                 </tr>
                                             </template>
                                         </tbody>
@@ -692,7 +696,7 @@
                                             </template>
                                             <template x-if="!reportData.sales || reportData.sales.length === 0">
                                                 <tr>
-                                                    <td colspan="5" class="py-6 text-center text-gray-500">Aucune vente</td>
+                                                    <td colspan="5" class="py-6 text-center text-gray-500 dark:text-gray-400">Aucune vente</td>
                                                 </tr>
                                             </template>
                                         </tbody>

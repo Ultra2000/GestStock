@@ -26,13 +26,15 @@ class ScheduleCalendar extends FullCalendarWidget
 
     protected static ?string $navigationIcon = 'heroicon-o-calendar-days';
 
-    protected static ?string $navigationGroup = 'Ressources Humaines';
+    protected static ?string $navigationGroup = 'RH';
 
     protected static ?string $navigationLabel = 'Planning Calendrier';
 
     protected static ?string $title = 'Planning des équipes';
 
-    protected static ?int $navigationSort = 5;
+    protected static ?int $navigationSort = 99;
+    
+    protected static bool $shouldRegisterNavigation = false; // Accessible via SchedulePlanning
 
     public static function canAccess(): bool
     {

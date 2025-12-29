@@ -17,11 +17,16 @@ class ConsolidatedStock extends Page implements HasTable
     use InteractsWithTable;
 
     protected static ?string $navigationIcon = 'heroicon-o-chart-bar-square';
-    protected static ?string $navigationGroup = 'Multi-Entrepôts';
-    protected static ?int $navigationSort = 4;
+    protected static ?string $navigationGroup = 'Stocks & Achats';
+    protected static ?int $navigationSort = 7;
     protected static ?string $navigationLabel = 'Stock consolidé';
     protected static ?string $title = 'Vue consolidée des stocks';
     protected static string $view = 'filament.pages.warehouse.consolidated-stock';
+
+    public static function shouldRegisterNavigation(): bool
+    {
+        return \Filament\Facades\Filament::getTenant()?->isModuleEnabled('stock') ?? true;
+    }
 
     public ?int $warehouseFilter = null;
 

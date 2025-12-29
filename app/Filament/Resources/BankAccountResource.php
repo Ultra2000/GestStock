@@ -10,6 +10,7 @@ use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Filament\Facades\Filament;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 
@@ -18,38 +19,61 @@ class BankAccountResource extends Resource
     protected static ?string $model = BankAccount::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-building-library';
+    protected static ?string $navigationLabel = 'Comptes bancaires';
+    protected static ?string $modelLabel = 'Compte bancaire';
+    protected static ?string $pluralModelLabel = 'Comptes bancaires';
     protected static ?string $navigationGroup = 'Comptabilité';
-    protected static ?int $navigationSort = 2;
+    protected static ?int $navigationSort = 1;
+
+    public static function shouldRegisterNavigation(): bool
+    {
+        $tenant = Filament::getTenant();
+        return ($tenant?->isModuleEnabled('accounting') || $tenant?->isModuleEnabled('banking')) ?? false;
+    }
+
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()
+            ->where('company_id', Filament::getTenant()?->id);
+    }
 
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
-                Forms\Components\Select::make('company_id')
-                    ->relationship('company', 'name')
-                    ->required(),
+                Forms\Components\Hidden::make('company_id')
+                    ->default(fn () => Filament::getTenant()?->id),
                 Forms\Components\TextInput::make('name')
+                    ->label('Nom du compte')
                     ->required()
                     ->maxLength(255),
                 Forms\Components\TextInput::make('bank_name')
+                    ->label('Banque')
                     ->maxLength(255),
                 Forms\Components\TextInput::make('account_number')
+                    ->label('Numéro de compte / IBAN')
                     ->maxLength(255),
                 Forms\Components\TextInput::make('currency')
+                    ->label('Devise')
                     ->required()
                     ->maxLength(255)
                     ->default('EUR'),
                 Forms\Components\TextInput::make('initial_balance')
+                    ->label('Solde initial')
                     ->required()
                     ->numeric()
+                    ->prefix('€')
                     ->default(0),
                 Forms\Components\TextInput::make('current_balance')
-                    ->required()
+                    ->label('Solde actuel')
                     ->numeric()
+                    ->prefix('€')
                     ->default(0)
-                    ->disabled(),
+                    ->disabled()
+                    ->dehydrated(false),
                 Forms\Components\Toggle::make('is_active')
-                    ->required(),
+                    ->label('Actif')
+                    ->default(true),
             ]);
     }
 

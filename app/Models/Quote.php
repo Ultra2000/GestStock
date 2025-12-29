@@ -24,6 +24,8 @@ class Quote extends Model
         'tax_amount',
         'discount_amount',
         'total',
+        'total_ht',
+        'total_vat',
         'notes',
         'terms',
         'converted_sale_id',
@@ -94,9 +96,23 @@ class Quote extends Model
 
     public function calculateTotals(): void
     {
-        $this->subtotal = $this->items->sum('total_price');
-        $this->tax_amount = ($this->subtotal - $this->discount_amount) * ($this->tax_rate / 100);
-        $this->total = $this->subtotal - $this->discount_amount + $this->tax_amount;
+        // Totaux calculés depuis les lignes (TVA par ligne)
+        $this->total_ht = $this->items->sum('total_price_ht');
+        $this->total_vat = $this->items->sum('vat_amount');
+        $this->subtotal = $this->total_ht; // Pour compatibilité
+        
+        // Appliquer la remise globale
+        $afterDiscount = ($this->total_ht + $this->total_vat) - ($this->discount_amount ?? 0);
+        
+        // Recalculer la TVA proportionnellement si remise globale
+        if ($this->discount_amount > 0 && ($this->total_ht + $this->total_vat) > 0) {
+            $discountRatio = 1 - ($this->discount_amount / ($this->total_ht + $this->total_vat));
+            $this->total_ht = round($this->total_ht * $discountRatio, 2);
+            $this->total_vat = round($this->total_vat * $discountRatio, 2);
+        }
+        
+        $this->tax_amount = $this->total_vat; // Pour compatibilité
+        $this->total = $afterDiscount;
         $this->save();
     }
 

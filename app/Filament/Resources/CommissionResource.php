@@ -19,15 +19,17 @@ class CommissionResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-currency-euro';
 
-    protected static ?string $navigationGroup = 'Ressources Humaines';
+    protected static ?string $navigationGroup = 'RH';
 
-    protected static ?int $navigationSort = 4;
+    protected static ?int $navigationSort = 99;
 
     protected static ?string $navigationLabel = 'Commissions';
 
     protected static ?string $modelLabel = 'Commission';
 
     protected static ?string $pluralModelLabel = 'Commissions';
+    
+    protected static bool $shouldRegisterNavigation = false;
 
     public static function form(Form $form): Form
     {

@@ -22,11 +22,20 @@ class SaleResource extends Resource
     protected static ?string $model = Sale::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-shopping-cart';
-    protected static ?string $navigationGroup = 'Gestion du stock';
-    protected static ?int $navigationSort = 4;
+    protected static ?string $navigationGroup = 'Ventes';
+    protected static ?int $navigationSort = 5;
     protected static ?string $navigationLabel = 'Ventes';
     protected static ?string $modelLabel = 'Vente';
     protected static ?string $pluralModelLabel = 'Ventes';
+
+    /**
+     * Optimisation: Eager loading des relations pour éviter N+1
+     */
+    public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
+    {
+        return parent::getEloquentQuery()
+            ->with(['customer', 'warehouse', 'bankAccount']);
+    }
 
     public static function form(Form $form): Form
     {
@@ -89,18 +98,21 @@ class SaleResource extends Resource
                 Forms\Components\Section::make('Paramètres financiers')
                     ->schema([
                         Forms\Components\TextInput::make('discount_percent')
-                            ->label('Remise %')
+                            ->label('Remise globale %')
                             ->numeric()->minValue(0)->maxValue(100)->default(0)
-                            ->live(onBlur: true),
-                        Forms\Components\TextInput::make('tax_percent')
-                            ->label('TVA %')
-                            ->numeric()->minValue(0)->maxValue(100)->default(0)
-                            ->live(onBlur: true),
+                            ->live(onBlur: true)
+                            ->helperText('Appliquée sur le total TTC'),
+                        Forms\Components\Placeholder::make('total_ht_display')
+                            ->label('Total HT')
+                            ->content(fn (?Sale $record) => $record ? number_format($record->total_ht ?? 0, 2, ',', ' ') . ' ' . (Filament::getTenant()->currency ?? 'EUR') : '-'),
+                        Forms\Components\Placeholder::make('total_vat_display')
+                            ->label('Total TVA')
+                            ->content(fn (?Sale $record) => $record ? number_format($record->total_vat ?? 0, 2, ',', ' ') . ' ' . (Filament::getTenant()->currency ?? 'EUR') : '-'),
                         Forms\Components\TextInput::make('total')
                             ->label('Total TTC')
                             ->disabled()
-                            ->prefix(fn () => Filament::getTenant()->currency ?? 'FCFA'),
-                    ])->columns(3),
+                            ->prefix(fn () => Filament::getTenant()->currency ?? 'EUR'),
+                    ])->columns(4),
 
                 Forms\Components\Section::make('Articles')
                     ->schema([
@@ -132,8 +144,17 @@ class SaleResource extends Resource
                                         if ($state) {
                                             $product = Product::find($state);
                                             if ($product) {
+                                                // Utiliser le prix de vente HT du produit
                                                 $set('unit_price', $product->price);
+                                                $set('vat_rate', $product->vat_rate_sale ?? 20);
+                                                $set('vat_category', $product->vat_category ?? 'S');
                                                 $set('quantity', 1);
+                                                
+                                                // Calculer le total
+                                                $vatRate = $product->vat_rate_sale ?? 20;
+                                                $totalHt = $product->price;
+                                                $vat = round($totalHt * ($vatRate / 100), 2);
+                                                $set('total_price', $totalHt + $vat);
                                                 
                                                 // Récupérer le stock disponible dans l'entrepôt
                                                 $warehouseId = $get('../../warehouse_id');
@@ -148,11 +169,11 @@ class SaleResource extends Resource
                                         }
                                     }),
                                 Forms\Components\TextInput::make('available_stock')
-                                    ->label('Disponible')
+                                    ->label('Dispo.')
                                     ->disabled()
                                     ->dehydrated(false),
                                 Forms\Components\TextInput::make('quantity')
-                                    ->label('Quantité')
+                                    ->label('Qté')
                                     ->required()
                                     ->numeric()
                                     ->default(1)
@@ -172,31 +193,57 @@ class SaleResource extends Resource
                                     ->afterStateUpdated(function ($state, Forms\Set $set, Forms\Get $get) {
                                         $quantity = $state;
                                         $unitPrice = $get('unit_price');
+                                        $vatRate = $get('vat_rate') ?? 20;
                                         if ($quantity && $unitPrice) {
-                                            $set('total_price', $quantity * $unitPrice);
+                                            $totalHt = $quantity * $unitPrice;
+                                            $vat = round($totalHt * ($vatRate / 100), 2);
+                                            $set('total_price', $totalHt + $vat);
                                         }
                                     }),
                                 Forms\Components\TextInput::make('unit_price')
-                                    ->label('Prix unitaire')
+                                    ->label('P.U. HT')
                                     ->required()
                                     ->numeric()
-                                    ->suffix(fn () => Filament::getTenant()->currency ?? 'FCFA')
+                                    ->suffix(fn () => Filament::getTenant()->currency ?? 'EUR')
                                     ->live()
                                     ->afterStateUpdated(function ($state, Forms\Set $set, Forms\Get $get) {
                                         $quantity = $get('quantity');
                                         $unitPrice = $state;
+                                        $vatRate = $get('vat_rate') ?? 20;
                                         if ($quantity && $unitPrice) {
-                                            $set('total_price', $quantity * $unitPrice);
+                                            $totalHt = $quantity * $unitPrice;
+                                            $vat = round($totalHt * ($vatRate / 100), 2);
+                                            $set('total_price', $totalHt + $vat);
                                         }
                                     }),
+                                Forms\Components\Select::make('vat_rate')
+                                    ->label('TVA')
+                                    ->options(Product::getCommonVatRates())
+                                    ->default(20.00)
+                                    ->live()
+                                    ->afterStateUpdated(function ($state, Forms\Set $set, Forms\Get $get) {
+                                        $quantity = $get('quantity');
+                                        $unitPrice = $get('unit_price');
+                                        $vatRate = $state ?? 20;
+                                        if ($quantity && $unitPrice) {
+                                            $totalHt = $quantity * $unitPrice;
+                                            $vat = round($totalHt * ($vatRate / 100), 2);
+                                            $set('total_price', $totalHt + $vat);
+                                        }
+                                    }),
+                                Forms\Components\Select::make('vat_category')
+                                    ->label('Cat.')
+                                    ->options(Product::getVatCategories())
+                                    ->default('S')
+                                    ->visible(false), // Caché mais transmis
                                 Forms\Components\TextInput::make('total_price')
-                                    ->label('Prix total')
+                                    ->label('Total TTC')
                                     ->required()
                                     ->numeric()
-                                    ->suffix(fn () => Filament::getTenant()->currency ?? 'FCFA')
+                                    ->suffix(fn () => Filament::getTenant()->currency ?? 'EUR')
                                     ->disabled(),
                             ])
-                            ->columns(5)
+                            ->columns(6)
                             ->defaultItems(1)
                             ->reorderable(false)
                             ->columnSpanFull()
@@ -295,6 +342,10 @@ class SaleResource extends Resource
             ->filters([
                 //
             ])
+            ->deferLoading() // Optimisation: Chargement différé via AJAX
+            ->defaultSort('created_at', 'desc')
+            ->paginated([10, 25, 50, 100])
+            ->defaultPaginationPageOption(25)
             ->actions([
                 Tables\Actions\EditAction::make()
                     ->label('Modifier')

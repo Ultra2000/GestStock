@@ -20,6 +20,7 @@ class AccountingCategoryResource extends Resource
     protected static ?string $navigationIcon = 'heroicon-o-tag';
     protected static ?string $navigationGroup = 'Comptabilité';
     protected static ?int $navigationSort = 1;
+    protected static bool $shouldRegisterNavigation = false;
 
     public static function form(Form $form): Form
     {

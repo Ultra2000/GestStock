@@ -16,9 +16,10 @@ use Livewire\Attributes\On;
 class EmployeeClockIn extends Page
 {
     protected static ?string $navigationIcon = 'heroicon-o-finger-print';
-    protected static ?string $navigationLabel = 'Pointage';
-    protected static ?string $navigationGroup = 'Ressources Humaines';
-    protected static ?int $navigationSort = 0;
+    protected static ?string $navigationLabel = 'Pointage Employé';
+    protected static ?string $navigationGroup = 'RH';
+    protected static ?int $navigationSort = 99;
+    protected static bool $shouldRegisterNavigation = false; // Accessible via lien direct
 
     protected static string $view = 'filament.pages.h-r.employee-clock-in';
 

@@ -21,7 +21,7 @@ class SchedulePlanning extends Page implements HasForms
 
     protected static ?string $navigationIcon = 'heroicon-o-calendar-days';
 
-    protected static ?string $navigationGroup = 'Ressources Humaines';
+    protected static ?string $navigationGroup = 'RH';
 
     protected static ?string $navigationLabel = 'Planning';
 
@@ -29,7 +29,7 @@ class SchedulePlanning extends Page implements HasForms
 
     protected static string $view = 'filament.pages.schedule-planning';
 
-    protected static ?int $navigationSort = 2;
+    protected static ?int $navigationSort = 1;
 
     public $weekStart;
     public $selectedEmployee;
@@ -37,8 +37,18 @@ class SchedulePlanning extends Page implements HasForms
     public $schedules = [];
     public $weekDays = [];
 
+    public static function shouldRegisterNavigation(): bool
+    {
+        return Filament::getTenant()?->isModuleEnabled('hr') ?? true;
+    }
+
     public static function canAccess(): bool
     {
+        $tenant = Filament::getTenant();
+        if (!$tenant?->isModuleEnabled('hr')) {
+            return false;
+        }
+        
         $user = auth()->user();
         if (!$user) return false;
         

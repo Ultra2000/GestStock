@@ -22,11 +22,16 @@ class StockTransferResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-truck';
 
-    protected static ?string $navigationGroup = 'Multi-Entrepôts';
-    protected static ?int $navigationSort = 2;
+    protected static ?string $navigationGroup = 'Stocks & Achats';
+    protected static ?int $navigationSort = 5;
     protected static ?string $navigationLabel = 'Transferts';
     protected static ?string $modelLabel = 'Transfert';
     protected static ?string $pluralModelLabel = 'Transferts';
+
+    public static function shouldRegisterNavigation(): bool
+    {
+        return \Filament\Facades\Filament::getTenant()?->isModuleEnabled('stock') ?? true;
+    }
 
     public static function getNavigationBadge(): ?string
     {

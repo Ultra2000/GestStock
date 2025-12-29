@@ -20,9 +20,9 @@ class RecurringOrderResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-arrow-path';
 
-    protected static ?string $navigationGroup = 'Commandes';
+    protected static ?string $navigationGroup = 'Ventes';
 
-    protected static ?string $navigationLabel = 'Commandes récurrentes';
+    protected static ?string $navigationLabel = 'Commandes';
 
     protected static ?string $modelLabel = 'Commande récurrente';
 

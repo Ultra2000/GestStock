@@ -16,6 +16,7 @@
         "milon/barcode": "^11.0",
         "saade/filament-fullcalendar": "^3.2",
         "simplesoftwareio/simple-qrcode": "^4.2",
+        "spatie/browsershot": "^5.2",
         "tiime/factur-x": "^0.1.0"
     },
     "require-dev": {

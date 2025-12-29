@@ -24,7 +24,10 @@ use App\Policies\RolePolicy;
 use App\Policies\SalePolicy;
 use App\Policies\SupplierPolicy;
 use App\Policies\UserPolicy;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -42,6 +45,31 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // ==========================================
+        // OPTIMISATIONS DE PERFORMANCE
+        // ==========================================
+        
+        // Désactiver le lazy loading en développement pour détecter les problèmes N+1
+        // Model::preventLazyLoading(!app()->isProduction());
+        
+        // Monitoring des requêtes lentes (> 100ms)
+        if (config('app.debug')) {
+            DB::listen(function ($query) {
+                if ($query->time > 100) { // Plus de 100ms
+                    Log::channel('slow-queries')->warning('Slow Query Detected', [
+                        'sql' => $query->sql,
+                        'bindings' => $query->bindings,
+                        'time_ms' => $query->time,
+                        'connection' => $query->connectionName,
+                    ]);
+                }
+            });
+        }
+
+        // ==========================================
+        // OBSERVERS
+        // ==========================================
+        
         // Enregistrer les observers
         Company::observe(CompanyObserver::class);
         
@@ -53,6 +81,15 @@ class AppServiceProvider extends ServiceProvider
         Quote::observe(AuditObserver::class);
         Inventory::observe(AuditObserver::class);
 
+        // Observer pour invalider le cache du stock produit
+        StockMovement::created(function ($movement) {
+            Product::clearStockCacheForProducts([$movement->product_id]);
+        });
+
+        // ==========================================
+        // POLICIES
+        // ==========================================
+        
         // Enregistrer les policies
         Gate::policy(Product::class, ProductPolicy::class);
         Gate::policy(Customer::class, CustomerPolicy::class);

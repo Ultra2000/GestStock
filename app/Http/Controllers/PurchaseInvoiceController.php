@@ -17,11 +17,13 @@ class PurchaseInvoiceController extends Controller
         $this->authorize('view', $purchase);
 
         $company = $purchase->company;
+        $purchase->load(['items.product', 'supplier']);
+        
         $verificationUrl = URL::signedRoute('purchases.invoice.verify', ['purchase' => $purchase->id]);
         $verificationCode = substr(sha1($purchase->id . '|' . $purchase->invoice_number . '|' . ($purchase->total ?? $purchase->items->sum('total_price')) . '|' . $purchase->created_at), 0, 12);
         
         $pdf = PDF::loadView('purchases.invoice-pdf', [
-            'purchase' => $purchase->load(['items.product', 'supplier']),
+            'purchase' => $purchase,
             'company' => $company,
             'verificationUrl' => $verificationUrl,
             'verificationCode' => $verificationCode,

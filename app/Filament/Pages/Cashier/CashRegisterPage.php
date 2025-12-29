@@ -18,11 +18,16 @@ class CashRegisterPage extends Page
     protected static string $view = 'filament.pages.cashier.cash-register';
     protected static ?string $navigationLabel = 'Caisse';
     protected static ?string $title = 'Point de vente';
-    protected static ?string $navigationGroup = 'Point de vente';
+    protected static ?string $navigationGroup = 'Point de Vente';
     protected static ?int $navigationSort = 1;
 
     public static function shouldRegisterNavigation(): bool
     {
+        $tenant = Filament::getTenant();
+        if (!$tenant?->isModuleEnabled('pos')) {
+            return false;
+        }
+        
         $user = auth()->user();
         if (!$user) return false;
         

@@ -105,18 +105,22 @@ Route::get('/delivery-notes/{deliveryNote}/pdf/preview', [DeliveryNotePdfControl
     ->name('delivery-notes.pdf.preview');
 
 // API légère pour la caisse (panel caisse ou admin) - protégée auth
+// OPTIMISÉ: Sélection uniquement des champs nécessaires + index utilisés
 Route::middleware('auth')->group(function () {
     Route::get('/admin/api/products', function (\Illuminate\Http\Request $request) {
         $q = $request->query('q');
         if(!$q){ return []; }
+        
+        // Optimisation: Utiliser select explicite et limit strict
         return \App\Models\Product::query()
+            ->select(['id', 'name', 'code', 'price', 'stock', 'min_stock']) // Sélection explicite
             ->where(function($w) use ($q){
-                $w->where('name','like',"%$q%")
-                  ->orWhere('code','like',"%$q%" );
+                $w->where('name', 'like', "%$q%")
+                  ->orWhere('code', 'like', "%$q%");
             })
             ->orderBy('name')
-            ->limit(25)
-            ->get(['id','name','price','stock','min_stock']);
+            ->limit(20) // Limite réduite pour performance
+            ->get();
     });
 
     Route::post('/admin/api/cash-sale', function (\Illuminate\Http\Request $request) {
@@ -147,21 +151,19 @@ Route::middleware('auth')->group(function () {
     });
 
     // Recherche directe par code barre / code produit (pour scan)
+    // OPTIMISÉ: Utilise l'index sur code + sélection minimale
     Route::get('/admin/api/product-code/{code}', function (string $code) {
-        $product = \App\Models\Product::where('code', $code)->first();
+        $product = \App\Models\Product::query()
+            ->select(['id', 'name', 'code', 'price', 'stock', 'min_stock'])
+            ->where('code', $code)
+            ->first();
+            
         if(!$product){
             return response()->json(['success'=>false,'message'=>'Produit introuvable'], 404);
         }
         return [
             'success' => true,
-            'data' => [
-                'id' => $product->id,
-                'name' => $product->name,
-                'price' => $product->price,
-                'stock' => $product->stock,
-                'min_stock' => $product->min_stock,
-                'code' => $product->code,
-            ]
+            'data' => $product->toArray()
         ];
     });
 
@@ -210,4 +212,22 @@ Route::middleware('auth')->group(function () {
     Route::get('/inventories/{inventory}/print', function (\App\Models\Inventory $inventory) {
         return view('prints.inventory', ['inventory' => $inventory->load(['warehouse', 'items.product', 'createdByUser', 'validatedByUser'])]);
     })->name('inventories.print');
+});
+
+// Routes pour les rapports PDF
+use App\Http\Controllers\StockReportController;
+use App\Http\Controllers\AccountingReportController;
+
+Route::middleware('auth')->prefix('reports')->group(function () {
+    // Rapports de stock
+    Route::get('/stock-status/{companyId?}', [StockReportController::class, 'stockStatus'])->name('reports.stock-status');
+    Route::get('/stock-status-preview/{companyId?}', [StockReportController::class, 'stockStatusPreview'])->name('reports.stock-status.preview');
+    Route::get('/stock-movements/{companyId?}', [StockReportController::class, 'stockMovements'])->name('reports.stock-movements');
+    Route::get('/inventory-export/{companyId?}', [StockReportController::class, 'exportInventory'])->name('reports.inventory-export');
+    
+    // Rapports comptables
+    Route::get('/financial/{companyId?}', [AccountingReportController::class, 'financialReport'])->name('reports.financial');
+    Route::get('/financial-preview/{companyId?}', [AccountingReportController::class, 'financialReportPreview'])->name('reports.financial.preview');
+    Route::get('/sales-journal/{companyId?}', [AccountingReportController::class, 'salesJournal'])->name('reports.sales-journal');
+    Route::get('/purchases-journal/{companyId?}', [AccountingReportController::class, 'purchasesJournal'])->name('reports.purchases-journal');
 });

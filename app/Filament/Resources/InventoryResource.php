@@ -21,11 +21,16 @@ class InventoryResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-clipboard-document-check';
 
-    protected static ?string $navigationGroup = 'Multi-Entrepôts';
-    protected static ?int $navigationSort = 3;
+    protected static ?string $navigationGroup = 'Stocks & Achats';
+    protected static ?int $navigationSort = 6;
     protected static ?string $navigationLabel = 'Inventaires';
     protected static ?string $modelLabel = 'Inventaire';
     protected static ?string $pluralModelLabel = 'Inventaires';
+
+    public static function shouldRegisterNavigation(): bool
+    {
+        return \Filament\Facades\Filament::getTenant()?->isModuleEnabled('stock') ?? true;
+    }
 
     public static function form(Form $form): Form
     {

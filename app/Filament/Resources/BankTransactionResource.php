@@ -10,6 +10,7 @@ use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Filament\Facades\Filament;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Support\Collection;
@@ -19,41 +20,70 @@ class BankTransactionResource extends Resource
     protected static ?string $model = BankTransaction::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-banknotes';
+    protected static ?string $navigationLabel = 'Transactions';
+    protected static ?string $modelLabel = 'Transaction';
+    protected static ?string $pluralModelLabel = 'Transactions';
     protected static ?string $navigationGroup = 'Comptabilité';
-    protected static ?int $navigationSort = 3;
+    protected static ?int $navigationSort = 2;
+
+    public static function shouldRegisterNavigation(): bool
+    {
+        $tenant = Filament::getTenant();
+        return ($tenant?->isModuleEnabled('accounting') || $tenant?->isModuleEnabled('banking')) ?? false;
+    }
+
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()
+            ->whereHas('bankAccount', function ($q) {
+                $q->where('company_id', Filament::getTenant()?->id);
+            });
+    }
 
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
                 Forms\Components\Select::make('bank_account_id')
-                    ->relationship('bankAccount', 'name')
-                    ->required(),
-                Forms\Components\DatePicker::make('date')
-                    ->required(),
-                Forms\Components\TextInput::make('amount')
+                    ->label('Compte bancaire')
+                    ->relationship('bankAccount', 'name', fn ($query) => 
+                        $query->where('company_id', Filament::getTenant()?->id)
+                    )
                     ->required()
-                    ->numeric(),
+                    ->searchable()
+                    ->preload(),
+                Forms\Components\DatePicker::make('date')
+                    ->label('Date')
+                    ->required()
+                    ->default(now()),
+                Forms\Components\TextInput::make('amount')
+                    ->label('Montant')
+                    ->required()
+                    ->numeric()
+                    ->prefix('€'),
                 Forms\Components\Select::make('type')
+                    ->label('Type')
                     ->options([
                         'credit' => 'Crédit (Entrée)',
                         'debit' => 'Débit (Sortie)',
                     ])
                     ->required(),
                 Forms\Components\TextInput::make('label')
+                    ->label('Libellé')
                     ->required()
                     ->maxLength(255),
                 Forms\Components\TextInput::make('reference')
+                    ->label('Référence')
                     ->maxLength(255),
                 Forms\Components\Select::make('accounting_category_id')
-                    ->relationship('category', 'name')
+                    ->label('Catégorie comptable')
+                    ->relationship('category', 'name', fn ($query) => 
+                        $query->where('company_id', Filament::getTenant()?->id)
+                    )
                     ->searchable()
-                    ->preload()
-                    ->createOptionForm([
-                        Forms\Components\TextInput::make('name')->required(),
-                        Forms\Components\Select::make('type')->options(['income'=>'Recette','expense'=>'Dépense'])->required(),
-                    ]),
+                    ->preload(),
                 Forms\Components\Select::make('status')
+                    ->label('Statut')
                     ->options([
                         'pending' => 'En attente',
                         'reconciled' => 'Lettré',

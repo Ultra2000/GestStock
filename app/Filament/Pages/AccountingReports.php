@@ -3,14 +3,20 @@
 namespace App\Filament\Pages;
 
 use App\Models\BankTransaction;
+use App\Models\Sale;
+use App\Models\Purchase;
 use Carbon\Carbon;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Section;
+use Filament\Forms\Components\Select;
 use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Forms\Contracts\HasForms;
 use Filament\Forms\Form;
 use Filament\Pages\Page;
+use Filament\Facades\Filament;
 use Illuminate\Support\Facades\DB;
+use Filament\Actions\Action;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class AccountingReports extends Page implements HasForms
 {
@@ -19,9 +25,14 @@ class AccountingReports extends Page implements HasForms
     protected static ?string $navigationIcon = 'heroicon-o-document-chart-bar';
     protected static ?string $navigationGroup = 'Comptabilité';
     protected static ?string $title = 'Rapports & TVA';
-    protected static ?int $navigationSort = 5;
+    protected static ?int $navigationSort = 3;
 
     protected static string $view = 'filament.pages.accounting-reports';
+
+    public static function shouldRegisterNavigation(): bool
+    {
+        return \Filament\Facades\Filament::getTenant()?->isModuleEnabled('accounting') ?? false;
+    }
 
     public static function canAccess(): bool
     {
@@ -33,6 +44,7 @@ class AccountingReports extends Page implements HasForms
     public function mount(): void
     {
         $this->form->fill([
+            'period' => 'month',
             'start_date' => Carbon::now()->startOfMonth()->format('Y-m-d'),
             'end_date' => Carbon::now()->endOfMonth()->format('Y-m-d'),
         ]);
@@ -44,45 +56,188 @@ class AccountingReports extends Page implements HasForms
             ->schema([
                 Section::make('Période')
                     ->schema([
+                        Select::make('period')
+                            ->label('Période prédéfinie')
+                            ->options([
+                                'month' => 'Mois en cours',
+                                'quarter' => 'Trimestre en cours',
+                                'year' => 'Année en cours',
+                                'custom' => 'Personnalisée',
+                            ])
+                            ->default('month')
+                            ->live()
+                            ->afterStateUpdated(fn ($state) => $this->updatePeriod($state)),
                         DatePicker::make('start_date')
                             ->label('Date de début')
-                            ->required(),
+                            ->required()
+                            ->visible(fn ($get) => $get('period') === 'custom'),
                         DatePicker::make('end_date')
                             ->label('Date de fin')
-                            ->required(),
-                    ])->columns(2),
+                            ->required()
+                            ->visible(fn ($get) => $get('period') === 'custom'),
+                    ])->columns(3),
             ])
             ->statePath('data');
     }
 
+    public function updatePeriod(string $period): void
+    {
+        switch ($period) {
+            case 'month':
+                $this->data['start_date'] = Carbon::now()->startOfMonth()->format('Y-m-d');
+                $this->data['end_date'] = Carbon::now()->endOfMonth()->format('Y-m-d');
+                break;
+            case 'quarter':
+                $this->data['start_date'] = Carbon::now()->startOfQuarter()->format('Y-m-d');
+                $this->data['end_date'] = Carbon::now()->endOfQuarter()->format('Y-m-d');
+                break;
+            case 'year':
+                $this->data['start_date'] = Carbon::now()->startOfYear()->format('Y-m-d');
+                $this->data['end_date'] = Carbon::now()->endOfYear()->format('Y-m-d');
+                break;
+        }
+    }
+
     public function getReportData()
     {
+        $companyId = Filament::getTenant()?->id;
         $startDate = $this->data['start_date'];
-        $endDate = $this->data['end_date'];
+        $endDate = $this->data['end_date'] . ' 23:59:59';
 
-        // Recettes (Crédits)
+        // Recettes (Crédits bancaires)
         $income = BankTransaction::whereBetween('date', [$startDate, $endDate])
             ->where('type', 'credit')
             ->sum('amount');
 
-        // Dépenses (Débits)
+        // Dépenses (Débits bancaires)
         $expenses = BankTransaction::whereBetween('date', [$startDate, $endDate])
             ->where('type', 'debit')
             ->sum('amount');
 
-        // TVA Estimée (Simplifiée à 20% pour l'exemple, à affiner selon les catégories)
-        // Dans un vrai système, on sommerait la TVA de chaque ligne si elle était stockée
-        $estimatedVatCollected = $income * 0.20; // 20% sur les recettes
-        $estimatedVatDeductible = $expenses * 0.20; // 20% sur les dépenses
-        $vatToPay = $estimatedVatCollected - $estimatedVatDeductible;
+        // TVA Collectée réelle (depuis les ventes)
+        $salesData = Sale::where('company_id', $companyId)
+            ->where('status', 'completed')
+            ->whereBetween('created_at', [$startDate, $endDate])
+            ->selectRaw('COALESCE(SUM(total_ht), 0) as total_ht, COALESCE(SUM(total_vat), 0) as total_vat, COALESCE(SUM(total), 0) as total')
+            ->first();
+
+        // TVA Déductible réelle (depuis les achats)
+        $purchasesData = Purchase::where('company_id', $companyId)
+            ->where('status', 'completed')
+            ->whereBetween('created_at', [$startDate, $endDate])
+            ->selectRaw('COALESCE(SUM(total_ht), 0) as total_ht, COALESCE(SUM(total_vat), 0) as total_vat, COALESCE(SUM(total), 0) as total')
+            ->first();
+
+        $vatCollected = (float) ($salesData->total_vat ?? 0);
+        $vatDeductible = (float) ($purchasesData->total_vat ?? 0);
+        $vatToPay = $vatCollected - $vatDeductible;
 
         return [
             'income' => $income,
             'expenses' => $expenses,
             'balance' => $income - $expenses,
-            'vat_collected' => $estimatedVatCollected,
-            'vat_deductible' => $estimatedVatDeductible,
+            // Données ventes
+            'sales_ht' => (float) ($salesData->total_ht ?? 0),
+            'sales_ttc' => (float) ($salesData->total ?? 0),
+            'vat_collected' => $vatCollected,
+            // Données achats
+            'purchases_ht' => (float) ($purchasesData->total_ht ?? 0),
+            'purchases_ttc' => (float) ($purchasesData->total ?? 0),
+            'vat_deductible' => $vatDeductible,
+            // Solde TVA
             'vat_to_pay' => $vatToPay,
+            'vat_status' => $vatToPay >= 0 ? 'à_reverser' : 'crédit',
+        ];
+    }
+
+    /**
+     * Ventilation TVA Collectée par taux
+     */
+    public function getVatCollectedBreakdown(): array
+    {
+        $companyId = Filament::getTenant()?->id;
+        $startDate = $this->data['start_date'];
+        $endDate = $this->data['end_date'] . ' 23:59:59';
+
+        return Sale::where('company_id', $companyId)
+            ->where('status', 'completed')
+            ->whereBetween('created_at', [$startDate, $endDate])
+            ->with('items')
+            ->get()
+            ->flatMap(fn ($sale) => $sale->getVatBreakdown())
+            ->groupBy('rate')
+            ->map(function ($items, $rate) {
+                return [
+                    'rate' => (float) $rate,
+                    'category' => $items->first()['category'] ?? 'S',
+                    'base' => $items->sum('base'),
+                    'amount' => $items->sum('amount'),
+                ];
+            })
+            ->sortByDesc('rate')
+            ->values()
+            ->toArray();
+    }
+
+    /**
+     * Ventilation TVA Déductible par taux
+     */
+    public function getVatDeductibleBreakdown(): array
+    {
+        $companyId = Filament::getTenant()?->id;
+        $startDate = $this->data['start_date'];
+        $endDate = $this->data['end_date'] . ' 23:59:59';
+
+        return Purchase::where('company_id', $companyId)
+            ->where('status', 'completed')
+            ->whereBetween('created_at', [$startDate, $endDate])
+            ->with('items')
+            ->get()
+            ->flatMap(fn ($purchase) => $purchase->getVatBreakdown())
+            ->groupBy('rate')
+            ->map(function ($items, $rate) {
+                return [
+                    'rate' => (float) $rate,
+                    'base' => $items->sum('base'),
+                    'amount' => $items->sum('amount'),
+                ];
+            })
+            ->sortByDesc('rate')
+            ->values()
+            ->toArray();
+    }
+
+    public function getCurrency(): string
+    {
+        return Filament::getTenant()->currency ?? 'EUR';
+    }
+
+    protected function getHeaderActions(): array
+    {
+        return [
+            Action::make('export_pdf')
+                ->label('Exporter PDF')
+                ->icon('heroicon-o-document-arrow-down')
+                ->action(function () {
+                    $data = [
+                        'company' => Filament::getTenant(),
+                        'period' => [
+                            'start' => Carbon::parse($this->data['start_date'])->translatedFormat('d F Y'),
+                            'end' => Carbon::parse($this->data['end_date'])->translatedFormat('d F Y'),
+                        ],
+                        'report' => $this->getReportData(),
+                        'collected' => $this->getVatCollectedBreakdown(),
+                        'deductible' => $this->getVatDeductibleBreakdown(),
+                        'currency' => $this->getCurrency(),
+                    ];
+                    
+                    $pdf = Pdf::loadView('reports.vat-report', $data);
+                    
+                    return response()->streamDownload(
+                        fn () => print($pdf->output()),
+                        'rapport-tva-' . $this->data['start_date'] . '-' . $this->data['end_date'] . '.pdf'
+                    );
+                }),
         ];
     }
 }

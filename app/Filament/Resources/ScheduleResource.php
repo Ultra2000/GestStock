@@ -19,7 +19,7 @@ class ScheduleResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-clock';
 
-    protected static ?string $navigationGroup = 'Ressources Humaines';
+    protected static ?string $navigationGroup = 'RH';
 
     protected static ?string $navigationLabel = 'Horaires';
 
@@ -27,7 +27,9 @@ class ScheduleResource extends Resource
 
     protected static ?string $pluralModelLabel = 'Horaires';
 
-    protected static ?int $navigationSort = 3;
+    protected static ?int $navigationSort = 99;
+    
+    protected static bool $shouldRegisterNavigation = false;
 
     public static function canAccess(): bool
     {

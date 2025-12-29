@@ -18,7 +18,7 @@ class LeaveRequestResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-calendar';
 
-    protected static ?string $navigationGroup = 'Ressources Humaines';
+    protected static ?string $navigationGroup = 'RH';
 
     protected static ?string $navigationLabel = 'Congés';
 
@@ -26,7 +26,20 @@ class LeaveRequestResource extends Resource
 
     protected static ?string $pluralModelLabel = 'Demandes de congés';
 
-    protected static ?int $navigationSort = 3;
+    protected static ?int $navigationSort = 5;
+    
+    public static function shouldRegisterNavigation(): bool
+    {
+        $tenant = Filament::getTenant();
+        if (!$tenant?->isModuleEnabled('hr')) {
+            return false;
+        }
+        
+        $user = auth()->user();
+        if (!$user) return false;
+        
+        return $user->isAdmin() || $user->hasPermission('leave_requests.view') || $user->hasPermission('leave_requests.*');
+    }
 
     public static function form(Form $form): Form
     {

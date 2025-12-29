@@ -21,7 +21,7 @@ class EmployeeResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-user-group';
 
-    protected static ?string $navigationGroup = 'Ressources Humaines';
+    protected static ?string $navigationGroup = 'RH';
 
     protected static ?string $navigationLabel = 'Employés';
 
@@ -29,7 +29,20 @@ class EmployeeResource extends Resource
 
     protected static ?string $pluralModelLabel = 'Employés';
 
-    protected static ?int $navigationSort = 1;
+    protected static ?int $navigationSort = 4;
+    
+    public static function shouldRegisterNavigation(): bool
+    {
+        $tenant = Filament::getTenant();
+        if (!$tenant?->isModuleEnabled('hr')) {
+            return false;
+        }
+        
+        $user = auth()->user();
+        if (!$user) return false;
+        
+        return $user->isAdmin() || $user->hasPermission('employees.view') || $user->hasPermission('employees.*');
+    }
 
     public static function form(Form $form): Form
     {

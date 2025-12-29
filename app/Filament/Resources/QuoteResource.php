@@ -31,6 +31,15 @@ class QuoteResource extends Resource
 
     protected static ?int $navigationSort = 2;
 
+    /**
+     * Helper pour calculer le total d'une ligne
+     */
+    protected static function calculateLineTotal(Forms\Get $get, Forms\Set $set): void
+    {
+        // Cette méthode est appelée pour recalculer les totaux affichés
+        // Les calculs réels sont faits dans les Placeholders
+    }
+
     public static function form(Form $form): Form
     {
         return $form
@@ -104,49 +113,95 @@ class QuoteResource extends Resource
                                             if ($product) {
                                                 $set('unit_price', $product->price);
                                                 $set('description', $product->name);
+                                                $set('vat_rate', $product->vat_rate_sale ?? 20);
+                                                $set('vat_category', $product->vat_category ?? 'S');
                                             }
                                         }
                                     })
-                                    ->columnSpan(3),
+                                    ->columnSpan(2),
                                 Forms\Components\TextInput::make('description')
                                     ->label('Description')
-                                    ->columnSpan(3),
+                                    ->columnSpan(2),
                                 Forms\Components\TextInput::make('quantity')
                                     ->label('Qté')
                                     ->numeric()
                                     ->default(1)
                                     ->required()
                                     ->minValue(0.01)
+                                    ->live(onBlur: true)
+                                    ->afterStateUpdated(function ($state, Forms\Get $get, Forms\Set $set) {
+                                        self::calculateLineTotal($get, $set);
+                                    })
                                     ->columnSpan(1),
                                 Forms\Components\TextInput::make('unit_price')
-                                    ->label('Prix unit.')
+                                    ->label('P.U. HT')
                                     ->numeric()
                                     ->required()
-                                    ->prefix('€')
-                                    ->columnSpan(2),
+                                    ->prefix(fn () => Filament::getTenant()->currency ?? '€')
+                                    ->live(onBlur: true)
+                                    ->afterStateUpdated(function ($state, Forms\Get $get, Forms\Set $set) {
+                                        self::calculateLineTotal($get, $set);
+                                    })
+                                    ->columnSpan(1),
+                                Forms\Components\Select::make('vat_rate')
+                                    ->label('TVA')
+                                    ->options(Product::getCommonVatRates())
+                                    ->default(20.00)
+                                    ->live()
+                                    ->afterStateUpdated(function ($state, Forms\Get $get, Forms\Set $set) {
+                                        self::calculateLineTotal($get, $set);
+                                    })
+                                    ->columnSpan(1),
                                 Forms\Components\TextInput::make('discount_percent')
-                                    ->label('Remise %')
+                                    ->label('Rem. %')
                                     ->numeric()
                                     ->default(0)
                                     ->suffix('%')
+                                    ->live(onBlur: true)
+                                    ->afterStateUpdated(function ($state, Forms\Get $get, Forms\Set $set) {
+                                        self::calculateLineTotal($get, $set);
+                                    })
                                     ->columnSpan(1),
-                                Forms\Components\Placeholder::make('line_total')
-                                    ->label('Total')
-                                    ->content(function ($get) {
+                                Forms\Components\Hidden::make('vat_category')
+                                    ->default('S'),
+                                Forms\Components\Placeholder::make('line_total_ht')
+                                    ->label('Total HT')
+                                    ->content(function (Forms\Get $get) {
                                         $qty = floatval($get('quantity') ?? 0);
                                         $price = floatval($get('unit_price') ?? 0);
                                         $discount = floatval($get('discount_percent') ?? 0);
                                         $subtotal = $qty * $price;
                                         $total = $subtotal - ($subtotal * $discount / 100);
-                                        return number_format($total, 2, ',', ' ') . ' €';
+                                        $currency = Filament::getTenant()->currency ?? '€';
+                                        return number_format($total, 2, ',', ' ') . ' ' . $currency;
                                     })
-                                    ->columnSpan(2),
+                                    ->columnSpan(1),
+                                Forms\Components\Placeholder::make('line_total_ttc')
+                                    ->label('Total TTC')
+                                    ->content(function (Forms\Get $get) {
+                                        $qty = floatval($get('quantity') ?? 0);
+                                        $price = floatval($get('unit_price') ?? 0);
+                                        $discount = floatval($get('discount_percent') ?? 0);
+                                        $vatRate = floatval($get('vat_rate') ?? 20);
+                                        $subtotal = $qty * $price;
+                                        $totalHt = $subtotal - ($subtotal * $discount / 100);
+                                        $vat = $totalHt * ($vatRate / 100);
+                                        $totalTtc = $totalHt + $vat;
+                                        $currency = Filament::getTenant()->currency ?? '€';
+                                        return number_format($totalTtc, 2, ',', ' ') . ' ' . $currency;
+                                    })
+                                    ->columnSpan(1),
                             ])
-                            ->columns(12)
+                            ->columns(10)
                             ->defaultItems(1)
                             ->addActionLabel('Ajouter un article')
                             ->reorderable()
-                            ->collapsible(),
+                            ->collapsible()
+                            ->itemLabel(fn (array $state): ?string => 
+                                isset($state['description']) && $state['description'] 
+                                    ? $state['description'] . ' (x' . ($state['quantity'] ?? 1) . ')'
+                                    : null
+                            ),
                     ]),
 
                 Forms\Components\Section::make('Totaux')
@@ -157,18 +212,23 @@ class QuoteResource extends Resource
                                     ->label('Remise globale')
                                     ->numeric()
                                     ->default(0)
-                                    ->prefix('€'),
-                                Forms\Components\TextInput::make('tax_rate')
-                                    ->label('TVA %')
-                                    ->numeric()
-                                    ->default(20)
-                                    ->suffix('%'),
-                                Forms\Components\Placeholder::make('calculated_total')
+                                    ->prefix(fn () => Filament::getTenant()->currency ?? '€')
+                                    ->helperText('Appliquée sur le total'),
+                                Forms\Components\Placeholder::make('calculated_total_ht')
                                     ->label('Total HT')
-                                    ->content(fn ($record) => $record ? number_format($record->subtotal, 2, ',', ' ') . ' €' : '-'),
+                                    ->content(fn ($record) => $record 
+                                        ? number_format($record->total_ht ?? $record->subtotal ?? 0, 2, ',', ' ') . ' ' . (Filament::getTenant()->currency ?? '€')
+                                        : '-'),
+                                Forms\Components\Placeholder::make('calculated_total_vat')
+                                    ->label('Total TVA')
+                                    ->content(fn ($record) => $record 
+                                        ? number_format($record->total_vat ?? $record->tax_amount ?? 0, 2, ',', ' ') . ' ' . (Filament::getTenant()->currency ?? '€')
+                                        : '-'),
                                 Forms\Components\Placeholder::make('total_display')
                                     ->label('Total TTC')
-                                    ->content(fn ($record) => $record ? number_format($record->total, 2, ',', ' ') . ' €' : '-'),
+                                    ->content(fn ($record) => $record 
+                                        ? number_format($record->total ?? 0, 2, ',', ' ') . ' ' . (Filament::getTenant()->currency ?? '€')
+                                        : '-'),
                             ]),
                     ])
                     ->columns(1),

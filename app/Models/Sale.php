@@ -22,6 +22,8 @@ class Sale extends Model
         'warehouse_id',
         'bank_account_id',
         'total',
+        'total_ht',
+        'total_vat',
         'status',
         'payment_method',
         'payment_details',
@@ -211,12 +213,53 @@ class Sale extends Model
 
     public function calculateTotal(): void
     {
-        $subtotal = $this->items()->sum('total_price');
+        // Calculer les totaux à partir des lignes (TVA gérée par ligne)
+        $totalHt = $this->items()->sum('total_price_ht');
+        $totalVat = $this->items()->sum('vat_amount');
+        $subtotal = $totalHt + $totalVat; // Total TTC avant remise
+        
+        // Appliquer la remise globale (sur TTC)
         $discount = $subtotal * ($this->discount_percent / 100);
         $afterDiscount = $subtotal - $discount;
-        $tax = $afterDiscount * ($this->tax_percent / 100);
-        $this->total = round($afterDiscount + $tax, 2);
+        
+        // Note: tax_percent est maintenant obsolète car la TVA est gérée par ligne
+        // On le garde pour compatibilité mais il ne devrait plus être utilisé
+        
+        $this->total_ht = round($totalHt * (1 - $this->discount_percent / 100), 2);
+        $this->total_vat = round($totalVat * (1 - $this->discount_percent / 100), 2);
+        $this->total = round($afterDiscount, 2);
         $this->save();
+    }
+
+    /**
+     * Retourne la ventilation TVA par taux (pour Chorus Pro)
+     * @return array [['rate' => 20, 'base' => 100, 'amount' => 20, 'category' => 'S'], ...]
+     */
+    public function getVatBreakdown(): array
+    {
+        $breakdown = [];
+        
+        foreach ($this->items as $item) {
+            $rate = (string) $item->vat_rate;
+            $category = $item->vat_category ?? 'S';
+            $key = $rate . '_' . $category;
+            
+            if (!isset($breakdown[$key])) {
+                $breakdown[$key] = [
+                    'rate' => (float) $rate,
+                    'category' => $category,
+                    'base' => 0,
+                    'amount' => 0,
+                ];
+            }
+            
+            // Appliquer la remise proportionnellement
+            $discountFactor = 1 - ($this->discount_percent / 100);
+            $breakdown[$key]['base'] += round($item->total_price_ht * $discountFactor, 2);
+            $breakdown[$key]['amount'] += round($item->vat_amount * $discountFactor, 2);
+        }
+        
+        return array_values($breakdown);
     }
 
     /**

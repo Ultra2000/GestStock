@@ -14,11 +14,12 @@ class AttendanceLogResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-clipboard-document-list';
 
-    protected static ?string $navigationGroup = 'Ressources Humaines';
-    protected static ?int $navigationSort = 6;
+    protected static ?string $navigationGroup = 'RH';
+    protected static ?int $navigationSort = 99;
     protected static ?string $navigationLabel = 'Logs Pointage';
     protected static ?string $modelLabel = 'Log Pointage';
     protected static ?string $pluralModelLabel = 'Logs Pointage';
+    protected static bool $shouldRegisterNavigation = false;
 
     public static function canCreate(): bool
     {

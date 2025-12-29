@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
 
 class Company extends Model
@@ -50,6 +51,55 @@ class Company extends Model
                 $company->country_code = $location['country_code'];
             }
         });
+
+        // Invalider le cache lors de la mise à jour
+        static::updated(function ($company) {
+            $company->clearCache();
+        });
+
+        static::deleted(function ($company) {
+            $company->clearCache();
+        });
+    }
+
+    /**
+     * Récupère les settings avec mise en cache
+     */
+    public function getCachedSettings(): array
+    {
+        return Cache::remember(
+            "company.{$this->id}.settings",
+            now()->addHours(24),
+            fn() => $this->settings ?? []
+        );
+    }
+
+    /**
+     * Invalide tous les caches de cette entreprise
+     */
+    public function clearCache(): void
+    {
+        Cache::forget("company.{$this->id}.settings");
+        Cache::forget("company.{$this->id}.modules");
+        Cache::forget("company.{$this->id}.stats");
+    }
+
+    /**
+     * Récupère les statistiques de base avec mise en cache
+     */
+    public function getCachedStats(): array
+    {
+        return Cache::remember(
+            "company.{$this->id}.stats",
+            now()->addMinutes(15),
+            fn() => [
+                'products_count' => $this->products()->count(),
+                'customers_count' => $this->customers()->count(),
+                'suppliers_count' => $this->suppliers()->count(),
+                'sales_count' => $this->sales()->where('status', 'completed')->count(),
+                'purchases_count' => $this->purchases()->whereIn('status', ['completed', 'received'])->count(),
+            ]
+        );
     }
 
     public function users(): BelongsToMany

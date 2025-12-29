@@ -12,8 +12,8 @@ class AttendanceQrDisplay extends Page
 {
     protected static ?string $navigationIcon = 'heroicon-o-qr-code';
     protected static ?string $navigationLabel = 'QR Code Pointage';
-    protected static ?string $navigationGroup = 'Ressources Humaines';
-    protected static ?int $navigationSort = 5;
+    protected static ?string $navigationGroup = 'RH';
+    protected static ?int $navigationSort = 3;
 
     protected static string $view = 'filament.pages.h-r.attendance-qr-display';
 
@@ -92,6 +92,11 @@ class AttendanceQrDisplay extends Page
 
     public static function shouldRegisterNavigation(): bool
     {
+        $tenant = \Filament\Facades\Filament::getTenant();
+        if (!$tenant?->isModuleEnabled('hr')) {
+            return false;
+        }
+        
         // Afficher uniquement pour les admins/managers
         return auth()->user()?->isAdmin() || auth()->user()?->isManager();
     }

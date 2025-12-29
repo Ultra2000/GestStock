@@ -19,8 +19,8 @@ class SaleItemResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-shopping-bag';
 
-    protected static ?string $navigationGroup = 'Gestion du Stock';
-
+    // Ce Resource n'est pas destiné à être visible dans le menu
+    // Les SaleItems sont gérés via SaleResource (relation)
     protected static bool $shouldRegisterNavigation = false;
 
     public static function form(Form $form): Form

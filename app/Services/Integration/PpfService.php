@@ -19,12 +19,12 @@ class PpfService implements IntegrationServiceInterface
     }
 
     /**
-     * Retourne les URLs en fonction de l'environnement
+     * Retourne les URLs en fonction de l'environnement global
      */
     protected function getUrls(CompanyIntegration $integration): array
     {
-        $settings = $integration->settings ?? [];
-        $environment = $settings['environment'] ?? 'sandbox';
+        // Utilise l'environnement global défini dans .env
+        $environment = config('services.ppf.environment', 'sandbox');
 
         if ($environment === 'production') {
             return [
@@ -40,7 +40,7 @@ class PpfService implements IntegrationServiceInterface
     }
 
     /**
-     * Authentification OAuth
+     * Authentification OAuth avec credentials PISTE globaux
      */
     public function authenticate(CompanyIntegration $integration, string $role = 'fournisseur'): bool
     {
@@ -50,16 +50,23 @@ class PpfService implements IntegrationServiceInterface
             return true;
         }
 
-        $settings = $integration->settings ?? [];
         $urls = $this->getUrls($integration);
 
-        // Credentials OAuth PISTE
-        $clientId = $settings['client_id'] ?? config('services.ppf.client_id');
-        $clientSecret = $settings['client_secret'] ?? config('services.ppf.client_secret');
+        // Credentials OAuth PISTE depuis la config globale (votre compte)
+        $clientId = config('services.ppf.client_id');
+        $clientSecret = config('services.ppf.client_secret');
 
         if (!$clientId || !$clientSecret) {
-            Log::error("PPF Integration: Missing PISTE client credentials for integration {$integration->id}");
-            $integration->update(['last_error' => 'Credentials PISTE manquants (client_id/client_secret)']);
+            Log::error("PPF Integration: Missing global PISTE credentials in .env");
+            $integration->update(['last_error' => 'Credentials PISTE non configurés. Contactez l\'administrateur.']);
+            return false;
+        }
+
+        // Vérifier que l'entreprise a configuré son compte technique
+        $settings = $integration->settings ?? [];
+        if (empty($settings['fournisseur_login']) || empty($settings['fournisseur_password'])) {
+            Log::error("PPF Integration: Missing Chorus Pro technical account for integration {$integration->id}");
+            $integration->update(['last_error' => 'Compte technique Chorus Pro non configuré']);
             return false;
         }
 
@@ -100,15 +107,18 @@ class PpfService implements IntegrationServiceInterface
     }
 
     /**
-     * Construit les headers pour l'API
+     * Construit les headers pour l'API (API Key globale + compte technique de l'entreprise)
      */
     protected function buildHeaders(CompanyIntegration $integration): array
     {
         $settings = $integration->settings ?? [];
         
-        $apiKey = $settings['api_key'] ?? config('services.ppf.api_key');
-        $login = $settings['fournisseur_login'] ?? config('services.ppf.cpro_account_login');
-        $password = $settings['fournisseur_password'] ?? config('services.ppf.cpro_account_password');
+        // API Key depuis la config globale (votre compte PISTE)
+        $apiKey = config('services.ppf.api_key');
+        
+        // Compte technique Chorus Pro de l'entreprise
+        $login = $settings['fournisseur_login'] ?? '';
+        $password = $settings['fournisseur_password'] ?? '';
 
         $headers = [
             'Accept' => 'application/json;charset=utf-8',
