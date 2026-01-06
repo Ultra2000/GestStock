@@ -9,6 +9,12 @@ use Filament\Facades\Filament;
 
 class UrssafOverviewWidget extends BaseWidget
 {
+    // Masquer le widget temporairement
+    public static function canView(): bool
+    {
+        return false;
+    }
+
     protected static ?int $sort = -1;
 
     protected function getStats(): array

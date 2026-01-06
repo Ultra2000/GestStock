@@ -155,8 +155,8 @@
                                            placeholder="Rechercher un produit ou scanner un code-barres...">
                                 </div>
                                 <button @click="toggleScanner()" 
-                                        :class="scannerActive ? 'bg-red-500 hover:bg-red-600' : 'bg-violet-500 hover:bg-violet-600'"
-                                        class="px-5 py-3 text-white rounded-xl transition-all flex items-center gap-2 font-medium">
+                                        class="px-5 py-3 rounded-xl transition-all flex items-center gap-2 font-medium"
+                                        :style="scannerActive ? 'background: #ef4444; color: white;' : 'background: #8b5cf6; color: white;'">
                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"/>
                                     </svg>
@@ -164,12 +164,14 @@
                                 </button>
                             </div>
                             
-                            {{-- Scanner vidéo --}}
+                            {{-- Scanner vidéo avec html5-qrcode --}}
                             <div x-show="scannerActive" x-transition class="mt-4">
-                                <div class="relative rounded-xl overflow-hidden bg-black aspect-video max-w-md mx-auto">
-                                    <video id="scanner-video" class="w-full h-full object-cover"></video>
-                                    <div class="absolute inset-0 border-4 border-violet-500/50 rounded-xl pointer-events-none">
-                                        <div class="absolute top-1/2 left-4 right-4 h-0.5 bg-red-500 animate-pulse"></div>
+                                <div class="relative rounded-xl overflow-hidden bg-gray-900 max-w-md mx-auto">
+                                    <div id="scanner-video" class="w-full" style="min-height: 250px;"></div>
+                                    <div class="absolute bottom-2 left-2 right-2 text-center">
+                                        <span class="px-3 py-1 bg-black/70 text-white text-xs rounded-full">
+                                            Placez le code-barres devant la caméra
+                                        </span>
                                     </div>
                                 </div>
                             </div>
@@ -225,52 +227,64 @@
                     </div>
 
                     {{-- Colonne droite - Panier --}}
-                    <div class="space-y-6">
+                    <div class="space-y-0">
                         {{-- Panier --}}
-                        <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-100 dark:border-gray-700 flex flex-col h-[calc(100vh-380px)] min-h-[400px]">
-                            {{-- Header panier --}}
-                            <div class="p-4 border-b border-gray-100 dark:border-gray-700">
+                        <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-2xl border border-gray-200/50 dark:border-gray-700/50 flex flex-col h-[calc(100vh-280px)] min-h-[500px] overflow-hidden">
+                            {{-- Header panier avec dégradé --}}
+                            <div class="relative p-4" style="background: linear-gradient(to right, #1e293b, #334155, #1e293b);">
                                 <div class="flex items-center justify-between">
-                                    <h3 class="font-bold text-gray-900 dark:text-white flex items-center gap-2">
-                                        <span class="w-8 h-8 bg-gradient-to-br from-violet-500 to-purple-600 rounded-lg flex items-center justify-center">
-                                            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background: linear-gradient(to bottom right, #34d399, #14b8a6); box-shadow: 0 4px 14px rgba(52, 211, 153, 0.4);">
+                                            <svg class="w-5 h-5" style="color: white;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/>
                                             </svg>
-                                        </span>
-                                        Panier
-                                    </h3>
-                                    <span class="px-3 py-1 bg-violet-100 dark:bg-violet-900/30 text-violet-600 dark:text-violet-400 rounded-full text-sm font-semibold" x-text="cart.length + ' article(s)'"></span>
+                                        </div>
+                                        <div>
+                                            <h3 class="font-bold text-base" style="color: white;">Panier</h3>
+                                            <p class="text-xs" style="color: #94a3b8;">Ticket en cours</p>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center">
+                                        <span class="px-3 py-1.5 rounded-lg text-sm font-bold" style="background: rgba(255,255,255,0.15); color: white; border: 1px solid rgba(255,255,255,0.2);" x-text="cart.length + ' article(s)'"></span>
+                                    </div>
                                 </div>
                             </div>
                             
-                            {{-- Liste des articles --}}
-                            <div class="flex-1 overflow-y-auto p-4 space-y-3">
+                            {{-- Liste des articles avec scroll custom --}}
+                            <div class="flex-1 overflow-y-auto p-4 space-y-2 bg-gradient-to-b from-gray-50 to-white dark:from-gray-800 dark:to-gray-900 custom-scrollbar">
                                 <template x-for="(item, index) in cart" :key="index">
-                                    <div class="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-3 animate-fade-in">
-                                        <div class="flex items-start justify-between gap-3">
-                                            <div class="flex-1 min-w-0">
-                                                <h4 class="font-medium text-gray-900 dark:text-white truncate" x-text="item.name"></h4>
-                                                <p class="text-sm text-gray-500 dark:text-gray-400" x-text="formatPrice(item.price) + ' × ' + item.quantity"></p>
+                                    <div class="group bg-white dark:bg-gray-800 rounded-2xl p-4 shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100 dark:border-gray-700 hover:border-violet-200 dark:hover:border-violet-800">
+                                        <div class="flex items-center gap-4">
+                                            {{-- Avatar produit --}}
+                                            <div class="w-14 h-14 bg-gradient-to-br from-violet-500 to-purple-600 rounded-xl flex items-center justify-center shadow-md flex-shrink-0">
+                                                <span class="text-white font-bold text-lg" x-text="item.name.charAt(0).toUpperCase()"></span>
                                             </div>
-                                            <div class="text-right">
-                                                <p class="font-bold text-violet-600 dark:text-violet-400" x-text="formatPrice(item.price * item.quantity)"></p>
+                                            {{-- Infos produit --}}
+                                            <div class="flex-1 min-w-0">
+                                                <h4 class="font-semibold text-gray-900 dark:text-white truncate text-sm" x-text="item.name"></h4>
+                                                <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5" x-text="formatPrice(item.price) + ' / unité'"></p>
+                                            </div>
+                                            {{-- Prix total --}}
+                                            <div class="text-right flex-shrink-0">
+                                                <p class="font-black text-lg text-violet-600 dark:text-violet-400" x-text="formatPrice(item.price * item.quantity)"></p>
                                             </div>
                                         </div>
-                                        <div class="flex items-center justify-between mt-3">
-                                            <div class="flex items-center gap-1">
-                                                <button @click="decrementItem(index)" class="w-8 h-8 bg-white dark:bg-gray-600 rounded-lg flex items-center justify-center hover:bg-gray-100 dark:hover:bg-gray-500 transition-colors shadow-sm text-gray-700 dark:text-gray-200">
+                                        {{-- Contrôles quantité --}}
+                                        <div class="flex items-center justify-between mt-3 pt-3 border-t border-gray-100 dark:border-gray-700">
+                                            <div class="flex items-center gap-2 bg-gray-100 dark:bg-gray-700 rounded-xl p-1">
+                                                <button @click="decrementItem(index)" class="w-9 h-9 bg-white dark:bg-gray-600 rounded-lg flex items-center justify-center hover:bg-red-50 dark:hover:bg-red-900/30 hover:text-red-500 transition-all shadow-sm text-gray-600 dark:text-gray-300">
                                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"/>
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M20 12H4"/>
                                                     </svg>
                                                 </button>
-                                                <span class="w-10 text-center font-semibold text-gray-900 dark:text-white" x-text="item.quantity"></span>
-                                                <button @click="incrementItem(index)" class="w-8 h-8 bg-white dark:bg-gray-600 rounded-lg flex items-center justify-center hover:bg-gray-100 dark:hover:bg-gray-500 transition-colors shadow-sm text-gray-700 dark:text-gray-200">
+                                                <span class="w-12 text-center font-bold text-gray-900 dark:text-white text-lg" x-text="item.quantity"></span>
+                                                <button @click="incrementItem(index)" class="w-9 h-9 bg-white dark:bg-gray-600 rounded-lg flex items-center justify-center hover:bg-green-50 dark:hover:bg-green-900/30 hover:text-green-500 transition-all shadow-sm text-gray-600 dark:text-gray-300">
                                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/>
                                                     </svg>
                                                 </button>
                                             </div>
-                                            <button @click="removeItem(index)" class="text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 p-2 rounded-lg transition-colors">
+                                            <button @click="removeItem(index)" class="w-9 h-9 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all flex items-center justify-center">
                                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
                                                 </svg>
@@ -279,84 +293,141 @@
                                     </div>
                                 </template>
                                 
+                                {{-- Panier vide --}}
                                 <template x-if="cart.length === 0">
-                                    <div class="flex flex-col items-center justify-center h-full text-gray-400 dark:text-gray-500 py-8">
-                                        <svg class="w-20 h-20 mb-4 text-gray-300 dark:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/>
-                                        </svg>
-                                        <p class="font-medium text-gray-500 dark:text-gray-400">Panier vide</p>
-                                        <p class="text-sm text-gray-400 dark:text-gray-500">Ajoutez des produits pour commencer</p>
+                                    <div class="flex flex-col items-center justify-center h-full py-12">
+                                        <div class="w-24 h-24 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center mb-4">
+                                            <svg class="w-12 h-12 text-gray-300 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/>
+                                            </svg>
+                                        </div>
+                                        <p class="font-semibold text-gray-500 dark:text-gray-400 text-lg">Panier vide</p>
+                                        <p class="text-sm text-gray-400 dark:text-gray-500 mt-1">Scannez ou cliquez sur un produit</p>
                                     </div>
                                 </template>
                             </div>
                             
-                            {{-- Footer panier - Total et paiement --}}
-                            <div class="border-t border-gray-100 dark:border-gray-700 p-4 space-y-4 bg-gray-50 dark:bg-gray-700/30 rounded-b-2xl">
-                                {{-- Méthode de paiement --}}
-                                <div>
-                                    <label class="text-sm text-gray-500 dark:text-gray-400 mb-2 block">Mode de paiement</label>
-                                    <div class="grid grid-cols-4 gap-2">
-                                        <button @click="paymentMethod = 'cash'" 
-                                                :class="paymentMethod === 'cash' ? 'bg-violet-500 text-white border-violet-500' : 'bg-white dark:bg-gray-600 text-gray-700 dark:text-gray-200 border-gray-200 dark:border-gray-500'"
-                                                class="p-2 rounded-xl border-2 transition-all text-center">
-                                            <svg class="w-5 h-5 mx-auto mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/>
-                                            </svg>
-                                            <span class="text-xs font-medium">Cash</span>
+                            {{-- Section Paiement - Design moderne --}}
+                            <div class="border-t border-gray-200 dark:border-gray-700">
+                                {{-- Modes de paiement --}}
+                                <div class="px-4 py-3 bg-gray-50 dark:bg-gray-800/50">
+                                    <div class="flex items-center gap-3 mb-2">
+                                        <span class="text-[10px] font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500">Paiement</span>
+                                        <div class="h-px flex-1 bg-gray-200 dark:bg-gray-700"></div>
+                                    </div>
+                                    <div class="flex gap-2">
+                                        {{-- Cash --}}
+                                        <button type="button" @click="paymentMethod = 'cash'; receivedAmount = ''; playAddToCart()" 
+                                                class="flex-1 py-2 px-1 rounded-lg border transition-all duration-200 flex flex-col items-center justify-center gap-1"
+                                                :style="paymentMethod === 'cash' ? 'background: #10b981; color: white; border-color: #10b981;' : ''"
+                                                :class="paymentMethod !== 'cash' ? 'bg-white dark:bg-gray-700 text-gray-500 dark:text-gray-400 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 border-gray-200 dark:border-gray-600' : ''">
+                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                                            <span class="text-[9px] font-bold uppercase">Cash</span>
                                         </button>
-                                        <button @click="paymentMethod = 'card'" 
-                                                :class="paymentMethod === 'card' ? 'bg-violet-500 text-white border-violet-500' : 'bg-white dark:bg-gray-600 text-gray-700 dark:text-gray-200 border-gray-200 dark:border-gray-500'"
-                                                class="p-2 rounded-xl border-2 transition-all text-center">
-                                            <svg class="w-5 h-5 mx-auto mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
-                                            </svg>
-                                            <span class="text-xs font-medium">Carte</span>
+                                        {{-- Carte --}}
+                                        <button type="button" @click="paymentMethod = 'card'; receivedAmount = ''; playAddToCart()" 
+                                                class="flex-1 py-2 px-1 rounded-lg border transition-all duration-200 flex flex-col items-center justify-center gap-1"
+                                                :style="paymentMethod === 'card' ? 'background: #3b82f6; color: white; border-color: #3b82f6;' : ''"
+                                                :class="paymentMethod !== 'card' ? 'bg-white dark:bg-gray-700 text-gray-500 dark:text-gray-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 border-gray-200 dark:border-gray-600' : ''">
+                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
+                                            <span class="text-[9px] font-bold uppercase">Carte</span>
                                         </button>
-                                        <button @click="paymentMethod = 'mobile'" 
-                                                :class="paymentMethod === 'mobile' ? 'bg-violet-500 text-white border-violet-500' : 'bg-white dark:bg-gray-600 text-gray-700 dark:text-gray-200 border-gray-200 dark:border-gray-500'"
-                                                class="p-2 rounded-xl border-2 transition-all text-center">
-                                            <svg class="w-5 h-5 mx-auto mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"/>
-                                            </svg>
-                                            <span class="text-xs font-medium">Mobile</span>
+                                        {{-- Mobile --}}
+                                        <button type="button" @click="paymentMethod = 'mobile'; receivedAmount = ''; playAddToCart()" 
+                                                class="flex-1 py-2 px-1 rounded-lg border transition-all duration-200 flex flex-col items-center justify-center gap-1"
+                                                :style="paymentMethod === 'mobile' ? 'background: #f97316; color: white; border-color: #f97316;' : ''"
+                                                :class="paymentMethod !== 'mobile' ? 'bg-white dark:bg-gray-700 text-gray-500 dark:text-gray-400 hover:bg-orange-50 dark:hover:bg-orange-900/20 border-gray-200 dark:border-gray-600' : ''">
+                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+                                            <span class="text-[9px] font-bold uppercase">Mobile</span>
                                         </button>
-                                        <button @click="paymentMethod = 'mixed'" 
-                                                :class="paymentMethod === 'mixed' ? 'bg-violet-500 text-white border-violet-500' : 'bg-white dark:bg-gray-600 text-gray-700 dark:text-gray-200 border-gray-200 dark:border-gray-500'"
-                                                class="p-2 rounded-xl border-2 transition-all text-center">
-                                            <svg class="w-5 h-5 mx-auto mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/>
-                                            </svg>
-                                            <span class="text-xs font-medium">Mixte</span>
+                                        {{-- Mixte --}}
+                                        <button type="button" @click="paymentMethod = 'mixed'; receivedAmount = ''; playAddToCart()" 
+                                                class="flex-1 py-2 px-1 rounded-lg border transition-all duration-200 flex flex-col items-center justify-center gap-1"
+                                                :style="paymentMethod === 'mixed' ? 'background: #8b5cf6; color: white; border-color: #8b5cf6;' : ''"
+                                                :class="paymentMethod !== 'mixed' ? 'bg-white dark:bg-gray-700 text-gray-500 dark:text-gray-400 hover:bg-violet-50 dark:hover:bg-violet-900/20 border-gray-200 dark:border-gray-600' : ''">
+                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg>
+                                            <span class="text-[9px] font-bold uppercase">Mixte</span>
                                         </button>
                                     </div>
+                                    
+                                    {{-- Montant reçu et Relicat (Cash uniquement) --}}
+                                    <template x-if="paymentMethod === 'cash' && cart.length > 0">
+                                        <div class="mt-3 p-3 bg-emerald-50 dark:bg-emerald-900/20 rounded-xl border border-emerald-200 dark:border-emerald-800" 
+                                             x-transition:enter="transition ease-out duration-200" 
+                                             x-transition:enter-start="opacity-0 transform -translate-y-2" 
+                                             x-transition:enter-end="opacity-100 transform translate-y-0">
+                                            <div class="flex items-center gap-3">
+                                                <div class="flex-1">
+                                                    <label class="text-[10px] font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 mb-1 block">Reçu</label>
+                                                    <div class="relative">
+                                                        <input type="number" 
+                                                               x-model="receivedAmount" 
+                                                               class="w-full bg-white dark:bg-gray-800 text-gray-900 dark:text-white border border-emerald-300 dark:border-emerald-700 rounded-lg py-2 pl-3 pr-8 text-right text-lg font-bold focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all" 
+                                                               placeholder="0.00"
+                                                               step="0.01">
+                                                        <span class="absolute right-3 top-1/2 -translate-y-1/2 text-emerald-500 font-bold">€</span>
+                                                    </div>
+                                                </div>
+                                                <div class="flex-1">
+                                                    <label class="text-[10px] font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 mb-1 block">À rendre</label>
+                                                    <div class="h-[42px] rounded-lg flex items-center justify-end px-3 border transition-all"
+                                                         :class="changeAmount >= 0 ? 'bg-green-100 dark:bg-green-900/30 border-green-300 dark:border-green-700' : 'bg-red-100 dark:bg-red-900/30 border-red-300 dark:border-red-700'">
+                                                        <span class="font-black text-xl" 
+                                                              :class="changeAmount >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'"
+                                                              x-text="receivedAmount ? formatPrice(Math.abs(changeAmount)) : '0,00 €'">
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            {{-- Boutons raccourcis --}}
+                                            <div class="flex gap-1.5 mt-2">
+                                                <template x-for="amount in [5, 10, 20, 50, 100]" :key="amount">
+                                                    <button type="button" 
+                                                            @click="receivedAmount = amount"
+                                                            class="flex-1 py-1.5 text-[10px] font-bold rounded-md bg-white dark:bg-gray-700 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800 hover:bg-emerald-100 dark:hover:bg-emerald-900/40 transition-all"
+                                                            x-text="amount + '€'">
+                                                    </button>
+                                                </template>
+                                            </div>
+                                        </div>
+                                    </template>
                                 </div>
-                                
-                                {{-- Total --}}
-                                <div class="bg-gradient-to-r from-violet-600 to-purple-600 rounded-xl p-4 text-white">
-                                    <div class="flex items-center justify-between">
-                                        <span class="text-lg font-medium text-white/80">Total</span>
-                                        <span class="text-3xl font-bold" x-text="formatPrice(cartTotal)"></span>
+
+                                {{-- Section Total --}}
+                                <div class="p-4 bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 relative overflow-hidden">
+                                    <div class="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4wMyI+PHBhdGggZD0iTTM2IDM0djItSDI0di0yaDEyek0zNiAyNHYySDI0di0yaDEyeiIvPjwvZz48L2c+PC9zdmc+')] opacity-30"></div>
+                                    <div class="relative flex items-center justify-between">
+                                        <div>
+                                            <span class="text-xs font-bold uppercase tracking-widest text-slate-400">Total</span>
+                                            <p class="text-sm text-slate-500" x-text="cart.length + ' produit(s)'"></p>
+                                        </div>
+                                        <div class="text-right">
+                                            <span class="text-4xl font-black text-white tracking-tight" x-text="formatPrice(cartTotal)">0,00 €</span>
+                                        </div>
                                     </div>
                                 </div>
-                                
-                                {{-- Boutons d'action --}}
-                                <div class="grid grid-cols-2 gap-3">
+
+                                {{-- Actions finales --}}
+                                <div class="p-4 bg-white dark:bg-gray-800 grid grid-cols-5 gap-3 rounded-b-3xl">
                                     <button @click="clearCart()" 
                                             :disabled="cart.length === 0"
-                                            class="py-3 px-4 bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-200 rounded-xl font-semibold hover:bg-gray-300 dark:hover:bg-gray-500 transition-all disabled:opacity-50 disabled:cursor-not-allowed">
-                                        Annuler
+                                            class="col-span-1 py-4 rounded-xl font-bold text-sm uppercase tracking-wider transition-all bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-red-500 hover:text-white disabled:opacity-30 disabled:hover:bg-gray-100 dark:disabled:hover:bg-gray-700 disabled:hover:text-gray-600 border border-gray-200 dark:border-gray-600 flex items-center justify-center">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                                     </button>
                                     <button @click="processSale()" 
-                                            :disabled="cart.length === 0 || processing"
-                                            class="py-3 px-4 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-xl font-semibold hover:from-green-600 hover:to-emerald-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-lg shadow-green-500/30">
-                                        <svg x-show="!processing" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                                        </svg>
-                                        <svg x-show="processing" class="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
-                                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                        </svg>
-                                        <span x-text="processing ? 'Traitement...' : 'Encaisser'"></span>
+                                            :disabled="cart.length === 0 || processing || (paymentMethod === 'cash' && receivedAmount && changeAmount < 0)"
+                                            class="col-span-4 py-4 rounded-xl font-bold text-sm uppercase tracking-wider transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3"
+                                            style="background: linear-gradient(to right, #10b981, #14b8a6); color: white; box-shadow: 0 10px 15px -3px rgba(16, 185, 129, 0.3);"
+                                            onmouseover="this.style.background='linear-gradient(to right, #059669, #0d9488)'"
+                                            onmouseout="this.style.background='linear-gradient(to right, #10b981, #14b8a6)'"
+                                            >
+                                        <template x-if="!processing">
+                                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                                        </template>
+                                        <template x-if="processing">
+                                            <svg class="w-6 h-6 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                                        </template>
+                                        <span x-text="processing ? 'Traitement...' : 'Valider le paiement'"></span>
                                     </button>
                                 </div>
                             </div>
@@ -432,8 +503,7 @@
                 
                 <div class="p-6 pt-0 flex gap-3">
                     <button @click="showCloseModal = false" 
-                            class="flex-1 py-3 px-4 rounded-xl font-semibold transition-all"
-                            style="background-color: #e5e7eb; color: #374151;">
+                            class="flex-1 py-3 px-4 rounded-xl font-semibold transition-all bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-500">
                         Annuler
                     </button>
                     <button @click="closeSession()" 
@@ -787,11 +857,6 @@
         }
     </style>
 
-    @push('scripts')
-    <script src="https://unpkg.com/@aspect-build/aspect-ratio"></script>
-    <script src="https://unpkg.com/@aspect-build/aspect-ratio"></script>
-    @endpush
-
     <script>
         function cashRegister(companyId) {
             return {
@@ -831,11 +896,12 @@
                 // Panier
                 cart: [],
                 paymentMethod: 'cash',
+                receivedAmount: '',
                 processing: false,
                 
                 // Scanner
                 scannerActive: false,
-                codeReader: null,
+                html5QrCode: null,
                 
                 // Modals
                 showCloseModal: false,
@@ -1085,33 +1151,92 @@
                     }
                 },
                 
-                // Démarrer le scanner
+                // Démarrer le scanner avec html5-qrcode
                 async startScanner() {
                     try {
-                        const { BrowserMultiFormatReader } = await import('https://unpkg.com/@aspect-build/aspect-ratio/dist/esm/index.js');
-                        this.codeReader = new BrowserMultiFormatReader();
-                        const videoElement = document.getElementById('scanner-video');
+                        // Charger la librairie html5-qrcode si pas déjà chargée
+                        if (!window.Html5Qrcode) {
+                            await this.loadScript('https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js');
+                        }
+
+                        // Créer l'instance du scanner
+                        this.html5QrCode = new Html5Qrcode("scanner-video");
                         
-                        this.codeReader.decodeFromVideoDevice(null, videoElement, async (result, error) => {
-                            if (result) {
-                                const barcode = result.getText();
-                                this.searchQuery = barcode;
+                        const config = {
+                            fps: 10,
+                            qrbox: { width: 250, height: 100 },
+                            aspectRatio: 1.777778,
+                            formatsToSupport: [
+                                Html5QrcodeSupportedFormats.EAN_13,
+                                Html5QrcodeSupportedFormats.EAN_8,
+                                Html5QrcodeSupportedFormats.UPC_A,
+                                Html5QrcodeSupportedFormats.UPC_E,
+                                Html5QrcodeSupportedFormats.CODE_128,
+                                Html5QrcodeSupportedFormats.CODE_39,
+                                Html5QrcodeSupportedFormats.CODE_93,
+                                Html5QrcodeSupportedFormats.CODABAR,
+                                Html5QrcodeSupportedFormats.ITF,
+                                Html5QrcodeSupportedFormats.QR_CODE
+                            ]
+                        };
+
+                        await this.html5QrCode.start(
+                            { facingMode: "environment" },
+                            config,
+                            async (decodedText, decodedResult) => {
+                                // Code-barres détecté !
+                                this.playScan();
+                                this.searchQuery = decodedText;
                                 await this.handleBarcodeEnter();
+                                
+                                // Pause courte pour éviter les scans multiples
+                                this.html5QrCode.pause(true);
+                                setTimeout(() => {
+                                    if (this.html5QrCode && this.scannerActive) {
+                                        this.html5QrCode.resume();
+                                    }
+                                }, 1500);
+                            },
+                            (errorMessage) => {
+                                // Ignorer les erreurs de scan (pas de code détecté)
                             }
-                        });
+                        );
                         
                         this.scannerActive = true;
+                        
                     } catch (error) {
                         console.error('Erreur scanner:', error);
-                        // Fallback si ZXing n'est pas disponible
-                        alert('Scanner non disponible. Utilisez la saisie manuelle.');
+                        if (error.includes && error.includes('NotAllowedError')) {
+                            alert('Accès à la caméra refusé. Veuillez autoriser l\'accès à la caméra dans les paramètres de votre navigateur.');
+                        } else if (error.includes && error.includes('NotFoundError')) {
+                            alert('Aucune caméra détectée sur cet appareil.');
+                        } else {
+                            alert('Scanner non disponible : ' + (error.message || error) + '\nUtilisez la saisie manuelle du code-barres.');
+                        }
                     }
+                },
+
+                // Charger un script externe
+                loadScript(src) {
+                    return new Promise((resolve, reject) => {
+                        const script = document.createElement('script');
+                        script.src = src;
+                        script.onload = resolve;
+                        script.onerror = reject;
+                        document.head.appendChild(script);
+                    });
                 },
                 
                 // Arrêter le scanner
-                stopScanner() {
-                    if (this.codeReader) {
-                        this.codeReader.reset();
+                async stopScanner() {
+                    try {
+                        if (this.html5QrCode) {
+                            await this.html5QrCode.stop();
+                            this.html5QrCode.clear();
+                            this.html5QrCode = null;
+                        }
+                    } catch (error) {
+                        console.error('Erreur arrêt scanner:', error);
                     }
                     this.scannerActive = false;
                 },
@@ -1162,11 +1287,18 @@
                 // Vider le panier
                 clearCart() {
                     this.cart = [];
+                    this.receivedAmount = '';
                 },
                 
                 // Total du panier
                 get cartTotal() {
                     return this.cart.reduce((total, item) => total + (item.price * item.quantity), 0);
+                },
+
+                // Calcul du rendu monnaie (Relicat)
+                get changeAmount() {
+                    if (!this.receivedAmount) return 0;
+                    return parseFloat(this.receivedAmount) - this.cartTotal;
                 },
                 
                 // Enregistrer la vente
@@ -1195,6 +1327,7 @@
                             this.lastSaleAmount = this.cartTotal;
                             this.showSuccessModal = true;
                             this.cart = [];
+                            this.receivedAmount = '';
                             this.sessionStats = data.session;
                             await this.loadProducts(); // Rafraîchir les stocks
                         } else {
