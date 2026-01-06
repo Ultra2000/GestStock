@@ -5,16 +5,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bon de Transfert - {{ $transfer->reference }}</title>
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Inter', 'DejaVu Sans', Helvetica, Arial, sans-serif;
             font-size: 12px;
             line-height: 1.4;
-            color: #333;
+            color: #1e293b;
+            letter-spacing: 0.01em;
             padding: 20px;
         }
         .header {
@@ -185,7 +188,7 @@
 
     <div class="warehouses">
         <div class="warehouse-box">
-            <h3>📦 ENTREPÔT SOURCE</h3>
+            <h3>ENTREPÔT SOURCE</h3>
             <strong>{{ $transfer->sourceWarehouse->name }}</strong><br>
             <small>Code: {{ $transfer->sourceWarehouse->code }}</small><br>
             @if($transfer->sourceWarehouse->address)
@@ -194,7 +197,7 @@
         </div>
         <div class="arrow">→</div>
         <div class="warehouse-box">
-            <h3>🏪 ENTREPÔT DESTINATION</h3>
+            <h3>ENTREPÔT DESTINATION</h3>
             <strong>{{ $transfer->destinationWarehouse->name }}</strong><br>
             <small>Code: {{ $transfer->destinationWarehouse->code }}</small><br>
             @if($transfer->destinationWarehouse->address)
@@ -283,7 +286,7 @@
             </tr>
             <tr class="total-row">
                 <td>Valeur totale:</td>
-                <td class="text-right">{{ number_format($transfer->total_value, 0, ',', ' ') }} FCFA</td>
+                <td class="text-right">{{ number_format($transfer->total_value, 2, ',', ' ') }} €</td>
             </tr>
         </table>
     </div>

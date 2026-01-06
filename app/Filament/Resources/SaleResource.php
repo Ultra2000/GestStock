@@ -81,9 +81,10 @@ class SaleResource extends Resource
                             ->options([
                                 'cash' => 'Espèces',
                                 'card' => 'Carte bancaire',
-                                'transfer' => 'Virement',
+                                'transfer' => 'Virement SEPA',
                                 'check' => 'Chèque',
-                                'mobile_money' => 'Mobile Money',
+                                'sepa_debit' => 'Prélèvement SEPA',
+                                'paypal' => 'PayPal',
                             ])
                             ->required(),
                         Forms\Components\Select::make('bank_account_id')

@@ -31,10 +31,12 @@ class StockReportController extends Controller
         $lowStockOnly = $request->boolean('low_stock_only');
         
         $query = Product::where('company_id', $companyId)
-            ->with(['warehouse', 'supplier']);
+            ->with(['warehouses', 'supplier']);
         
         if ($warehouseId) {
-            $query->where('warehouse_id', $warehouseId);
+            $query->whereHas('warehouses', function ($q) use ($warehouseId) {
+                $q->where('warehouses.id', $warehouseId);
+            });
         }
         
         if ($lowStockOnly) {
@@ -56,7 +58,7 @@ class StockReportController extends Controller
         $productsBySupplier = $products->groupBy(fn($p) => $p->supplier?->name ?? 'Sans fournisseur');
         
         // Grouper par entrepôt
-        $productsByWarehouse = $products->groupBy(fn($p) => $p->warehouse?->name ?? 'Entrepôt principal');
+        $productsByWarehouse = $products->groupBy(fn($p) => $p->warehouses->first()?->name ?? 'Entrepôt principal');
         
         $warehouses = Warehouse::where('company_id', $companyId)->get();
         
@@ -96,10 +98,12 @@ class StockReportController extends Controller
         $lowStockOnly = $request->boolean('low_stock_only');
         
         $query = Product::where('company_id', $companyId)
-            ->with(['warehouse', 'supplier']);
+            ->with(['warehouses', 'supplier']);
         
         if ($warehouseId) {
-            $query->where('warehouse_id', $warehouseId);
+            $query->whereHas('warehouses', function ($q) use ($warehouseId) {
+                $q->where('warehouses.id', $warehouseId);
+            });
         }
         
         if ($lowStockOnly) {
@@ -117,7 +121,7 @@ class StockReportController extends Controller
         ];
         
         $productsBySupplier = $products->groupBy(fn($p) => $p->supplier?->name ?? 'Sans fournisseur');
-        $productsByWarehouse = $products->groupBy(fn($p) => $p->warehouse?->name ?? 'Entrepôt principal');
+        $productsByWarehouse = $products->groupBy(fn($p) => $p->warehouses->first()?->name ?? 'Entrepôt principal');
         $warehouses = Warehouse::where('company_id', $companyId)->get();
         
         return view('reports.stock-status', [
@@ -204,7 +208,7 @@ class StockReportController extends Controller
         }
 
         $products = Product::where('company_id', $companyId)
-            ->with(['warehouse', 'supplier'])
+            ->with(['warehouses', 'supplier'])
             ->orderBy('name')
             ->get();
 
@@ -250,7 +254,7 @@ class StockReportController extends Controller
                     $product->barcode ?? '-',
                     $product->name,
                     $product->supplier?->name ?? '-',
-                    $product->warehouse?->name ?? 'Principal',
+                    $product->warehouses->first()?->name ?? 'Principal',
                     $product->stock ?? 0,
                     $product->min_stock ?? 0,
                     number_format($product->purchase_price ?? 0, 2, ',', ''),

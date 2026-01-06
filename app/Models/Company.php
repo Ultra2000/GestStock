@@ -262,6 +262,11 @@ class Company extends Model
         return $this->hasMany(AccountingRule::class);
     }
 
+    public function accountingSettings(): HasMany
+    {
+        return $this->hasMany(AccountingSetting::class);
+    }
+
     public function bankTransactions(): HasMany
     {
         return $this->hasMany(BankTransaction::class);

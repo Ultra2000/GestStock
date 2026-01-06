@@ -3,8 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        
         @page { margin: 14mm; }
-        body { font-family: DejaVu Sans, sans-serif; font-size: 11px; }
+        body { font-family: 'Inter', 'DejaVu Sans', Helvetica, Arial, sans-serif; font-size: 11px; color: #1e293b; letter-spacing: 0.01em; }
         .grid { display: flex; flex-wrap: wrap; }
         .label { width: calc(100% / {{ $columns }}); padding:4px 6px; box-sizing: border-box; border:1px dashed #ddd; margin-bottom:6px; text-align:center; }
         .name { font-weight:600; font-size:11px; line-height:1.1; }
@@ -18,7 +20,7 @@
     <div class="label">
         <div class="name">{{ Str::limit($product->name, 24) }}</div>
         @if($showPrice)
-            <div class="price">{{ number_format($product->price, 0, ',', ' ') }} F</div>
+            <div class="price">{{ number_format($product->price, 2, ',', ' ') }} €</div>
         @endif
         <div class="barcode">
             {!! DNS1D::getBarcodeHTML($product->code, 'C128', 1, 36) !!}

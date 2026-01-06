@@ -8,7 +8,7 @@
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
         
         @page {
-            margin: 20mm 18mm 25mm 18mm;
+            margin: 25mm 22mm 30mm 22mm;
         }
         
         * {
@@ -141,30 +141,17 @@
         }
         
         .info-card-header {
-            border-bottom: 1px solid #e2e8f0;
+            border-bottom: 2px solid #7c3aed;
             padding-bottom: 8px;
-            margin-bottom: 8px;
-        }
-        
-        .info-card-icon {
-            display: inline-block;
-            width: 22px;
-            height: 22px;
-            background-color: #7c3aed;
-            color: #ffffff;
-            text-align: center;
-            line-height: 22px;
-            border-radius: 4px;
-            font-size: 12px;
-            margin-right: 6px;
+            margin-bottom: 10px;
         }
         
         .info-card-title {
-            font-size: 8px;
+            font-size: 9px;
             font-weight: bold;
             text-transform: uppercase;
-            color: #64748b;
-            letter-spacing: 0.5px;
+            color: #7c3aed;
+            letter-spacing: 0.8px;
         }
         
         .info-card-name {
@@ -422,7 +409,7 @@
 </head>
 <body>
 @php
-    $currency = $company->currency ?? 'EUR';
+    $currency = 'EUR';
     $status = $purchase->status;
     $statusClass = 'status-' . ($status ?: 'pending');
     $discountPercent = $purchase->discount_percent ?? 0;
@@ -504,7 +491,6 @@
             <td>
                 <div class="info-card">
                     <div class="info-card-header">
-                        <span class="info-card-icon">🏢</span>
                         <span class="info-card-title">Fournisseur</span>
                     </div>
                     <div class="info-card-name">{{ $purchase->supplier->name ?? 'Fournisseur non défini' }}</div>
@@ -520,7 +506,6 @@
             <td>
                 <div class="info-card">
                     <div class="info-card-header">
-                        <span class="info-card-icon">📋</span>
                         <span class="info-card-title">Détails</span>
                     </div>
                     <div class="info-card-name">Informations de paiement</div>

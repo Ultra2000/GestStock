@@ -539,7 +539,7 @@
 </head>
 <body>
 @php
-    $currency = 'FCFA';
+    $currency = 'EUR';
     $status = $purchase->status;
     $statusClass = 'status-' . ($status ?: 'pending');
     $discountPercent = $purchase->discount_percent ?? 0;

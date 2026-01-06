@@ -17,6 +17,7 @@
         "saade/filament-fullcalendar": "^3.2",
         "simplesoftwareio/simple-qrcode": "^4.2",
         "spatie/browsershot": "^5.2",
+        "spatie/laravel-activitylog": "^4.10",
         "tiime/factur-x": "^0.1.0"
     },
     "require-dev": {

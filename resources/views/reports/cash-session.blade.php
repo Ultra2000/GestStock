@@ -5,16 +5,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Rapport de Caisse - {{ $session->opened_at->format('d/m/Y') }}</title>
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
         body {
-            font-family: 'DejaVu Sans', Arial, sans-serif;
+            font-family: 'Inter', 'DejaVu Sans', Helvetica, Arial, sans-serif;
             font-size: 11px;
-            color: #333;
+            color: #1e293b;
             line-height: 1.4;
+            letter-spacing: 0.01em;
         }
         .container {
             padding: 20px;
@@ -230,7 +233,7 @@
             <tr>
                 <td>
                     <div class="section">
-                        <div class="section-title">📋 Informations Session</div>
+                        <div class="section-title">Informations Session</div>
                         <div class="info-grid">
                             <div class="info-row">
                                 <div class="info-label">Ouverture</div>
@@ -265,7 +268,7 @@
                 </td>
                 <td>
                     <div class="section">
-                        <div class="section-title">💰 Situation de Caisse</div>
+                        <div class="section-title">Situation de Caisse</div>
                         <div class="info-grid">
                             <div class="info-row highlight">
                                 <div class="info-label">Fond de caisse</div>
@@ -298,7 +301,7 @@
         </table>
 
         <div class="section">
-            <div class="section-title">💳 Répartition par Mode de Paiement</div>
+            <div class="section-title">Répartition par Mode de Paiement</div>
             <table class="payment-grid">
                 <thead>
                     <tr>
@@ -310,26 +313,26 @@
                 </thead>
                 <tbody>
                     <tr>
-                        <td>💵 Espèces</td>
+                        <td>Espèces</td>
                         <td class="count">{{ $paymentStats->get('cash')->count ?? 0 }}</td>
                         <td class="amount">{{ number_format($paymentStats->get('cash')->total ?? 0, 2, ',', ' ') }} €</td>
                         <td class="amount">{{ $session->total_sales > 0 ? number_format((($paymentStats->get('cash')->total ?? 0) / $session->total_sales) * 100, 1) : 0 }}%</td>
                     </tr>
                     <tr>
-                        <td>💳 Carte bancaire</td>
+                        <td>Carte bancaire</td>
                         <td class="count">{{ $paymentStats->get('card')->count ?? 0 }}</td>
                         <td class="amount">{{ number_format($paymentStats->get('card')->total ?? 0, 2, ',', ' ') }} €</td>
                         <td class="amount">{{ $session->total_sales > 0 ? number_format((($paymentStats->get('card')->total ?? 0) / $session->total_sales) * 100, 1) : 0 }}%</td>
                     </tr>
                     <tr>
-                        <td>📱 Paiement mobile</td>
+                        <td>Paiement mobile</td>
                         <td class="count">{{ $paymentStats->get('mobile')->count ?? 0 }}</td>
                         <td class="amount">{{ number_format($paymentStats->get('mobile')->total ?? 0, 2, ',', ' ') }} €</td>
                         <td class="amount">{{ $session->total_sales > 0 ? number_format((($paymentStats->get('mobile')->total ?? 0) / $session->total_sales) * 100, 1) : 0 }}%</td>
                     </tr>
                     @if(($paymentStats->get('mixed')->count ?? 0) > 0)
                     <tr>
-                        <td>🔀 Mixte</td>
+                        <td>Mixte</td>
                         <td class="count">{{ $paymentStats->get('mixed')->count ?? 0 }}</td>
                         <td class="amount">{{ number_format($paymentStats->get('mixed')->total ?? 0, 2, ',', ' ') }} €</td>
                         <td class="amount">{{ $session->total_sales > 0 ? number_format((($paymentStats->get('mixed')->total ?? 0) / $session->total_sales) * 100, 1) : 0 }}%</td>
@@ -341,7 +344,7 @@
 
         @if($topProducts->count() > 0)
         <div class="section">
-            <div class="section-title">🏆 Top 10 Produits Vendus</div>
+            <div class="section-title">Top 10 Produits Vendus</div>
             <ul class="top-products">
                 @foreach($topProducts as $product)
                 <li>
@@ -356,7 +359,7 @@
 
         @if($sales->count() > 0)
         <div class="section">
-            <div class="section-title">📝 Liste des Ventes ({{ $sales->count() }} tickets)</div>
+            <div class="section-title">Liste des Ventes ({{ $sales->count() }} tickets)</div>
             <table class="sales">
                 <thead>
                     <tr>
@@ -374,10 +377,10 @@
                         <td>{{ $sale->created_at->format('H:i') }}</td>
                         <td class="center">
                             @switch($sale->payment_method)
-                                @case('cash') 💵 @break
-                                @case('card') 💳 @break
-                                @case('mobile') 📱 @break
-                                @default 🔀
+                                @case('cash') ESP @break
+                                @case('card') CB @break
+                                @case('mobile') MOB @break
+                                @default MIX
                             @endswitch
                         </td>
                         <td class="center">{{ $sale->items->sum('quantity') }}</td>

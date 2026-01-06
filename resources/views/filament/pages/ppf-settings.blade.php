@@ -88,9 +88,9 @@
                             <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
                                 @foreach($recentSales as $sale)
                                     <tr class="hover:bg-gray-50 dark:hover:bg-gray-800">
-                                        <td class="px-4 py-2 font-medium">{{ $sale->reference }}</td>
-                                        <td class="px-4 py-2">{{ $sale->customer?->company_name ?? $sale->customer?->name ?? '-' }}</td>
-                                        <td class="px-4 py-2">{{ number_format($sale->total_amount, 2, ',', ' ') }} €</td>
+                                        <td class="px-4 py-2 font-medium">{{ $sale->invoice_number }}</td>
+                                        <td class="px-4 py-2">{{ $sale->customer?->name ?? '-' }}</td>
+                                        <td class="px-4 py-2">{{ number_format($sale->total, 2, ',', ' ') }} €</td>
                                         <td class="px-4 py-2">
                                             @php
                                                 $statusColors = [
@@ -108,7 +108,7 @@
                                             </span>
                                         </td>
                                         <td class="px-4 py-2 text-gray-500">
-                                            {{ $sale->ppf_sent_at?->format('d/m/Y H:i') ?? '-' }}
+                                            {{ $sale->ppf_synced_at ? \Carbon\Carbon::parse($sale->ppf_synced_at)->format('d/m/Y H:i') : '-' }}
                                         </td>
                                     </tr>
                                 @endforeach

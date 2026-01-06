@@ -5,6 +5,8 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
     <title>État des Stocks - {{ $generatedAt->format('d/m/Y H:i') }}</title>
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        
         @page {
             margin: 15mm;
             size: A4 landscape;
@@ -15,10 +17,11 @@
             box-sizing: border-box;
         }
         body {
-            font-family: 'DejaVu Sans', Arial, sans-serif;
+            font-family: 'Inter', 'DejaVu Sans', Helvetica, Arial, sans-serif;
             font-size: 9px;
-            color: #333;
+            color: #1e293b;
             line-height: 1.3;
+            letter-spacing: 0.01em;
         }
         .header {
             text-align: center;
@@ -234,7 +237,7 @@
                         <td>{{ $product->code ?? '-' }}</td>
                         <td>{{ $product->barcode ?? '-' }}</td>
                         <td>{{ Str::limit($product->name, 35) }}</td>
-                        <td>{{ $product->warehouse?->name ?? 'Principal' }}</td>
+                        <td>{{ $product->warehouses->first()?->name ?? 'Principal' }}</td>
                         <td class="center {{ $stockClass }}">{{ number_format($stock) }}</td>
                         <td class="center">{{ number_format($minStock) }}</td>
                         <td class="right">{{ number_format($product->purchase_price ?? 0, 2, ',', ' ') }} €</td>

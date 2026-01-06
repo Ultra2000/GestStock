@@ -7,10 +7,12 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Spatie\Activitylog\Traits\LogsActivity;
+use Spatie\Activitylog\LogOptions;
 
 class Sale extends Model
 {
-    use HasFactory, BelongsToCompany;
+    use HasFactory, BelongsToCompany, LogsActivity;
 
     protected $fillable = [
         'company_id',
@@ -49,6 +51,17 @@ class Sale extends Model
         return $this->belongsTo(Sale::class, 'parent_id');
     }
 
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logOnly(['invoice_number', 'customer_id', 'total', 'status', 'payment_method'])
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs()
+            ->useLogName('sales')
+            ->setDescriptionForEvent(fn(string $eventName) => "Vente {$eventName}")
+            ->dontLogIfAttributesChangedOnly(['updated_at']);
+    }
+
     public function creditNotes(): HasMany
     {
         return $this->hasMany(Sale::class, 'parent_id')->where('type', 'credit_note');
@@ -65,14 +78,16 @@ class Sale extends Model
 
         static::creating(function ($sale) {
             if (empty($sale->invoice_number)) {
-                // Numérotation séquentielle par entreprise
-                $prefix = $sale->type === 'credit_note' ? 'AVR-' : 'FAC-';
+                // Numérotation séquentielle par entreprise avec Année (Format FAC-YYYY-XXXXX)
+                $year = date('Y');
+                $prefix = ($sale->type === 'credit_note' ? 'AVR-' : 'FAC-') . $year . '-';
                 
                 $lastNumber = self::where('company_id', $sale->company_id)
                     ->where('invoice_number', 'like', $prefix . '%')
-                    ->selectRaw("MAX(CAST(SUBSTRING(invoice_number, 5) AS UNSIGNED)) as max_num")
+                    ->selectRaw("MAX(CAST(SUBSTRING(invoice_number, 10) AS UNSIGNED)) as max_num")
                     ->value('max_num') ?? 0;
-                $sale->invoice_number = $prefix . str_pad($lastNumber + 1, 6, '0', STR_PAD_LEFT);
+                
+                $sale->invoice_number = $prefix . str_pad($lastNumber + 1, 5, '0', STR_PAD_LEFT);
             }
             
             // Assigner l'entrepôt par défaut si non spécifié

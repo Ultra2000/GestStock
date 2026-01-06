@@ -5,16 +5,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Inventaire - {{ $inventory->reference }}</title>
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Inter', 'DejaVu Sans', Helvetica, Arial, sans-serif;
             font-size: 11px;
             line-height: 1.4;
-            color: #333;
+            color: #1e293b;
+            letter-spacing: 0.01em;
             padding: 20px;
         }
         .header {
@@ -267,13 +270,13 @@
                     </td>
                     <td class="text-center">
                         @if(!$item->is_counted)
-                            ⏳
+                            --
                         @elseif($item->quantity_difference == 0)
-                            ✅
+                            OK
                         @elseif($item->quantity_difference > 0)
-                            📈
+                            +
                         @else
-                            📉
+                            -
                         @endif
                     </td>
                     <td class="text-right">
@@ -294,16 +297,16 @@
         <table>
             <tr>
                 <td>Valeur attendue:</td>
-                <td class="text-right">{{ number_format($inventory->total_value_expected, 0, ',', ' ') }} FCFA</td>
+                <td class="text-right">{{ number_format($inventory->total_value_expected, 2, ',', ' ') }} €</td>
             </tr>
             <tr>
                 <td>Valeur comptée:</td>
-                <td class="text-right">{{ number_format($inventory->total_value_counted, 0, ',', ' ') }} FCFA</td>
+                <td class="text-right">{{ number_format($inventory->total_value_counted, 2, ',', ' ') }} €</td>
             </tr>
             <tr class="total-row">
                 <td>Différence:</td>
                 <td class="text-right" style="color: {{ $inventory->value_difference >= 0 ? '#059669' : '#dc2626' }};">
-                    {{ $inventory->value_difference >= 0 ? '+' : '' }}{{ number_format($inventory->value_difference, 0, ',', ' ') }} FCFA
+                    {{ $inventory->value_difference >= 0 ? '+' : '' }}{{ number_format($inventory->value_difference, 2, ',', ' ') }} €
                 </td>
             </tr>
         </table>
@@ -311,7 +314,7 @@
 
     <div style="margin-top: 20px; font-size: 10px;">
         <strong>Légende:</strong> 
-        ⏳ En attente | ✅ Conforme | 📈 Excédent | 📉 Manquant
+        -- En attente | OK Conforme | + Excédent | - Manquant
     </div>
 
     @if($inventory->notes)

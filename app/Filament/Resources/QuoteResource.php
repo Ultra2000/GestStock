@@ -315,12 +315,68 @@ class QuoteResource extends Resource
                 Tables\Actions\ActionGroup::make([
                     Tables\Actions\ViewAction::make(),
                     Tables\Actions\EditAction::make(),
+                    Tables\Actions\Action::make('copyPublicLink')
+                        ->label('Copier le lien client')
+                        ->icon('heroicon-o-link')
+                        ->color('info')
+                        ->action(function (Quote $record) {
+                            if (!$record->public_token) {
+                                $record->public_token = \Illuminate\Support\Str::uuid()->toString();
+                                $record->save();
+                            }
+                            
+                            $url = $record->getPublicUrl();
+                            
+                            return \Filament\Notifications\Notification::make()
+                                ->title('Lien copié !')
+                                ->body($url)
+                                ->success()
+                                ->send();
+                        })
+                        ->requiresConfirmation(false)
+                        ->modalHeading('Lien de partage')
+                        ->modalContent(fn (Quote $record) => new \Illuminate\Support\HtmlString(
+                            '<div style="padding: 16px; background: #f8fafc; border-radius: 8px; margin-top: 8px;">' .
+                            '<p style="margin-bottom: 8px; font-weight: 600;">Lien à envoyer au client :</p>' .
+                            '<input type="text" value="' . ($record->public_token ? $record->getPublicUrl() : 'Cliquez sur Confirmer pour générer le lien') . '" ' .
+                            'readonly onclick="this.select(); document.execCommand(\'copy\');" ' .
+                            'style="width: 100%; padding: 8px; border: 1px solid #e2e8f0; border-radius: 4px; font-family: monospace; font-size: 13px;">' .
+                            '</div>'
+                        ))
+                        ->visible(fn (Quote $record) => in_array($record->status, ['draft', 'sent'])),
                     Tables\Actions\Action::make('send')
-                        ->label('Envoyer')
+                        ->label('Envoyer par email')
                         ->icon('heroicon-o-paper-airplane')
                         ->color('info')
-                        ->requiresConfirmation()
-                        ->action(fn (Quote $record) => $record->markAsSent())
+                        ->form([
+                            \Filament\Forms\Components\Textarea::make('message')
+                                ->label('Message personnalisé (optionnel)')
+                                ->placeholder('Ajoutez un message personnel qui sera affiché dans l\'email...')
+                                ->rows(4)
+                                ->maxLength(1000),
+                        ])
+                        ->action(function (Quote $record, array $data) {
+                            if (!$record->customer || !$record->customer->email) {
+                                \Filament\Notifications\Notification::make()
+                                    ->title('Email manquant')
+                                    ->body('Le client n\'a pas d\'adresse email renseignée.')
+                                    ->danger()
+                                    ->send();
+                                return;
+                            }
+
+                            $record->markAsSent();
+
+                            // Envoyer l'email
+                            \Illuminate\Support\Facades\Mail::to($record->customer->email)
+                                ->send(new \App\Mail\QuoteMail($record, $data['message'] ?? null));
+
+                            \Filament\Notifications\Notification::make()
+                                ->title('Devis envoyé')
+                                ->body("Le devis a été envoyé à {$record->customer->email}")
+                                ->success()
+                                ->send();
+                        })
                         ->visible(fn (Quote $record) => $record->status === 'draft'),
                     Tables\Actions\Action::make('accept')
                         ->label('Accepter')
@@ -342,9 +398,21 @@ class QuoteResource extends Resource
                         ->color('primary')
                         ->requiresConfirmation()
                         ->modalHeading('Convertir en vente')
-                        ->modalDescription('Voulez-vous créer une vente à partir de ce devis ?')
-                        ->action(fn (Quote $record) => $record->convertToSale())
-                        ->visible(fn (Quote $record) => $record->status === 'accepted'),
+                        ->modalDescription('Voulez-vous créer une vente à partir de ce devis accepté ? Cela créera une nouvelle facture et impactera le stock.')
+                        ->action(function (Quote $record) {
+                            $sale = $record->convertToSale();
+                            
+                            if ($sale) {
+                                \Filament\Notifications\Notification::make()
+                                    ->title('Vente créée')
+                                    ->body("La vente {$sale->invoice_number} a été créée avec succès.")
+                                    ->success()
+                                    ->send();
+                                
+                                return redirect()->to(\App\Filament\Resources\SaleResource::getUrl('edit', ['record' => $sale]));
+                            }
+                        })
+                        ->visible(fn (Quote $record) => $record->status === 'accepted' && !$record->converted_sale_id),
                     Tables\Actions\Action::make('pdf')
                         ->label('PDF')
                         ->icon('heroicon-o-document-arrow-down')
@@ -358,12 +426,15 @@ class QuoteResource extends Resource
                         ->action(function (Quote $record) {
                             $newQuote = $record->replicate();
                             $newQuote->quote_number = null;
+                            $newQuote->public_token = null;
                             $newQuote->status = 'draft';
                             $newQuote->quote_date = now();
                             $newQuote->valid_until = now()->addDays(30);
+                            $newQuote->expires_at = null;
                             $newQuote->sent_at = null;
                             $newQuote->accepted_at = null;
                             $newQuote->rejected_at = null;
+                            $newQuote->refusal_reason = null;
                             $newQuote->converted_sale_id = null;
                             $newQuote->save();
 

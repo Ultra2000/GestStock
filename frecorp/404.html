@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="fr" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Page non trouvée - FRECORP ERP Gratuit</title>
+    <meta name="description" content="Page non trouvée sur FRECORP ERP. Retournez à l'accueil pour découvrir notre ERP 100% gratuit avec tous les modules inclus.">
+    <meta name="robots" content="noindex, nofollow">
+    
+    <!-- External Resources -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'sans': ['Inter', '-apple-system', 'BlinkMacSystemFont', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white overflow-x-hidden">
+    
+    <!-- Navigation -->
+    <nav class="fixed top-0 w-full z-50 glass-nav">
+        <div class="max-w-7xl mx-auto px-6 py-4">
+            <div class="flex items-center justify-between">
+                <a href="/" class="flex items-center space-x-2">
+                    <img src="logo.svg" alt="FRECORP" class="w-8 h-8">
+                    <span class="text-xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">FRECORP</span>
+                </a>
+                
+                <div class="hidden md:flex items-center space-x-8">
+                    <a href="index.html" class="nav-link">Accueil</a>
+                    <a href="fonctionnalites.html" class="nav-link">Fonctionnalités</a>
+                    <a href="tarifs.html" class="nav-link">Tarifs</a>
+                    <a href="demo.html" class="nav-link">Démo</a>
+                </div>
+                
+                <div class="flex items-center space-x-4">
+                    <a href="connexion.html" class="hidden sm:block text-gray-300 hover:text-white transition-colors">
+                        Connexion
+                    </a>
+                    <a href="inscription.html" class="glass-button-primary px-6 py-2 rounded-full text-sm font-medium">
+                        Créer un compte gratuit
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Page Content -->
+    <main class="pt-24 min-h-screen flex items-center">
+        <div class="max-w-4xl mx-auto px-6 py-16 text-center">
+            
+            <!-- 404 Error -->
+            <div class="glass-card p-12 rounded-3xl">
+                <div class="w-24 h-24 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center mx-auto mb-8">
+                    <span class="text-4xl font-bold">404</span>
+                </div>
+                
+                <h1 class="text-4xl font-bold mb-4">Page non trouvée</h1>
+                <p class="text-xl text-gray-300 mb-8">
+                    Désolé, la page que vous recherchez n'existe pas ou a été déplacée.
+                </p>
+                
+                <!-- CTA Buttons -->
+                <div class="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12">
+                    <a href="index.html" class="glass-button-primary px-8 py-4 rounded-full font-semibold">
+                        <i class="fas fa-home mr-2"></i>
+                        Retour à l'accueil
+                    </a>
+                    <a href="demo.html" class="glass-button px-8 py-4 rounded-full font-semibold">
+                        <i class="fas fa-play mr-2"></i>
+                        Essayer la démo
+                    </a>
+                </div>
+                
+                <!-- Popular Links -->
+                <div class="pt-8 border-t border-white/10">
+                    <h2 class="text-lg font-semibold mb-6 text-gray-300">Pages populaires :</h2>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-lg mx-auto">
+                        <a href="fonctionnalites.html" class="flex items-center justify-center p-4 rounded-xl bg-white/5 hover:bg-white/10 transition-colors">
+                            <i class="fas fa-cogs text-blue-400 mr-2"></i>
+                            <span>Fonctionnalités</span>
+                        </a>
+                        <a href="tarifs.html" class="flex items-center justify-center p-4 rounded-xl bg-white/5 hover:bg-white/10 transition-colors">
+                            <i class="fas fa-tag text-green-400 mr-2"></i>
+                            <span>Tarifs (Gratuit !)</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Quick Links -->
+            <div class="glass-card p-6 rounded-2xl mt-8">
+                <h3 class="text-lg font-semibold mb-4">Vous cherchiez peut-être :</h3>
+                <ul class="space-y-2">
+                    <li><a href="fonctionnalites.html#pos" class="text-blue-400 hover:text-blue-300 transition-colors">→ Module Point de Vente</a></li>
+                    <li><a href="fonctionnalites.html#stock" class="text-blue-400 hover:text-blue-300 transition-colors">→ Module Gestion de Stock</a></li>
+                    <li><a href="fonctionnalites.html#facturation" class="text-blue-400 hover:text-blue-300 transition-colors">→ Module Facturation</a></li>
+                    <li><a href="fonctionnalites.html#rh" class="text-blue-400 hover:text-blue-300 transition-colors">→ Module Ressources Humaines</a></li>
+                </ul>
+            </div>
+        </div>
+    </main>
+    
+    <script src="script.js"></script>
+</body>
+</html>

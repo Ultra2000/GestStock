@@ -87,15 +87,18 @@ class CashReportController extends Controller
             ->limit(10)
             ->get();
 
+        $isSqlite = DB::connection()->getDriverName() === 'sqlite';
+        $hourSql = $isSqlite ? "strftime('%H', created_at)" : "HOUR(created_at)";
+
         // Ventes par heure
         $salesByHour = Sale::where('cash_session_id', $session->id)
             ->where('status', 'completed')
             ->select(
-                DB::raw('HOUR(created_at) as hour'),
+                DB::raw("$hourSql as hour"),
                 DB::raw('COUNT(*) as count'),
                 DB::raw('SUM(total) as total')
             )
-            ->groupBy(DB::raw('HOUR(created_at)'))
+            ->groupBy(DB::raw($hourSql))
             ->orderBy('hour')
             ->get();
 

@@ -8,10 +8,12 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Str;
+use Spatie\Activitylog\Traits\LogsActivity;
+use Spatie\Activitylog\LogOptions;
 
 class Purchase extends Model
 {
-    use HasFactory, BelongsToCompany;
+    use HasFactory, BelongsToCompany, LogsActivity;
 
     protected $fillable = [
         'company_id',
@@ -34,6 +36,17 @@ class Purchase extends Model
         'total_ht' => 'decimal:2',
         'total_vat' => 'decimal:2',
     ];
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logOnly(['invoice_number', 'supplier_id', 'total', 'status', 'payment_method'])
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs()
+            ->useLogName('purchases')
+            ->setDescriptionForEvent(fn(string $eventName) => "Achat {$eventName}")
+            ->dontLogIfAttributesChangedOnly(['updated_at']);
+    }
 
     public function bankAccount(): BelongsTo
     {

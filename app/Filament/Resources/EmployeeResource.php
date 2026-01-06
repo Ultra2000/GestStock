@@ -78,7 +78,8 @@ class EmployeeResource extends Resource
                                     ->schema([
                                         Forms\Components\TextInput::make('email')
                                             ->label('Email')
-                                            ->email(),
+                                            ->email()
+                                            ->required(fn (Forms\Get $get) => $get('create_user')),
                                         Forms\Components\TextInput::make('phone')
                                             ->label('Téléphone')
                                             ->tel(),
@@ -173,12 +174,41 @@ class EmployeeResource extends Resource
                                             ->default('active')
                                             ->required(),
                                     ]),
-                                Forms\Components\Select::make('user_id')
-                                    ->label('Compte utilisateur lié')
-                                    ->relationship('user', 'name')
-                                    ->searchable()
-                                    ->preload()
-                                    ->helperText('Lier à un compte pour le pointage automatique'),
+                                
+                                Forms\Components\Section::make('Accès Système')
+                                    ->description('Création de compte utilisateur')
+                                    ->schema([
+                                        Forms\Components\Toggle::make('create_user')
+                                            ->label('Créer un compte utilisateur')
+                                            ->helperText('Permet à cet employé de se connecter à l\'application')
+                                            ->live()
+                                            ->dehydrated(false)
+                                            ->visible(fn ($livewire) => $livewire instanceof Pages\CreateEmployee),
+                                            
+                                        Forms\Components\Grid::make(2)
+                                            ->visible(fn (Forms\Get $get) => $get('create_user'))
+                                            ->schema([
+                                                Forms\Components\TextInput::make('password')
+                                                    ->label('Mot de passe')
+                                                    ->password()
+                                                    ->revealable()
+                                                    ->required(fn (Forms\Get $get) => $get('create_user'))
+                                                    ->dehydrated(false),
+                                                    
+                                                Forms\Components\Select::make('role_id')
+                                                    ->label('Rôle')
+                                                    ->options(fn () => \App\Models\Role::where('company_id', Filament::getTenant()->id)->pluck('name', 'id'))
+                                                    ->required(fn (Forms\Get $get) => $get('create_user'))
+                                                    ->searchable()
+                                                    ->preload()
+                                                    ->dehydrated(false),
+                                            ]),
+                                            
+                                        Forms\Components\Placeholder::make('user_info')
+                                            ->label('Compte utilisateur')
+                                            ->content(fn (?Employee $record) => $record && $record->user ? $record->user->name . ' (' . $record->user->email . ')' : 'Aucun compte lié')
+                                            ->visible(fn ($livewire) => $livewire instanceof Pages\EditEmployee),
+                                    ]),
                             ]),
                         Forms\Components\Tabs\Tab::make('Contact urgence & Banque')
                             ->icon('heroicon-o-phone')

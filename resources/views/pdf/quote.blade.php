@@ -5,16 +5,19 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
     <title>Devis {{ $quote->reference }}</title>
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
         body {
-            font-family: DejaVu Sans, sans-serif;
+            font-family: 'Inter', 'DejaVu Sans', Helvetica, Arial, sans-serif;
             font-size: 10px;
             line-height: 1.4;
-            color: #333;
+            color: #1e293b;
+            letter-spacing: 0.01em;
         }
         .container {
             padding: 20px;

@@ -511,7 +511,7 @@
 </head>
 <body>
 @php
-    $currency = $company->currency ?? 'FCFA';
+    $currency = $company->currency ?? 'EUR';
     $status = $sale->status;
     $statusClass = 'status-' . ($status ?: 'pending');
     $discountPercent = $sale->discount_percent ?? 0;

@@ -31,6 +31,10 @@ class AccountingReportController extends Controller
         $startDate = $request->query('start_date', now()->startOfYear()->toDateString());
         $endDate = $request->query('end_date', now()->toDateString());
         
+        $isSqlite = DB::connection()->getDriverName() === 'sqlite';
+        $yearSql = $isSqlite ? "strftime('%Y', created_at)" : "DATE_FORMAT(created_at, '%Y')";
+        $monthSql = $isSqlite ? "strftime('%m', created_at)" : "DATE_FORMAT(created_at, '%m')";
+        
         // Ventes de la période
         $salesData = Sale::where('company_id', $companyId)
             ->where('status', 'completed')
@@ -59,12 +63,12 @@ class AccountingReportController extends Controller
         $salesByMonth = Sale::where('company_id', $companyId)
             ->where('status', 'completed')
             ->whereBetween('created_at', [$startDate . ' 00:00:00', $endDate . ' 23:59:59'])
-            ->selectRaw('
-                strftime(\'%Y\', created_at) as year,
-                strftime(\'%m\', created_at) as month,
+            ->selectRaw("
+                $yearSql as year,
+                $monthSql as month,
                 COUNT(*) as count,
                 SUM(total) as total
-            ')
+            ")
             ->groupBy('year', 'month')
             ->orderBy('year')
             ->orderBy('month')
@@ -74,12 +78,12 @@ class AccountingReportController extends Controller
         $purchasesByMonth = Purchase::where('company_id', $companyId)
             ->whereIn('status', ['received', 'completed', 'paid'])
             ->whereBetween('created_at', [$startDate . ' 00:00:00', $endDate . ' 23:59:59'])
-            ->selectRaw('
-                strftime(\'%Y\', created_at) as year,
-                strftime(\'%m\', created_at) as month,
+            ->selectRaw("
+                $yearSql as year,
+                $monthSql as month,
                 COUNT(*) as count,
                 SUM(total) as total
-            ')
+            ")
             ->groupBy('year', 'month')
             ->orderBy('year')
             ->orderBy('month')
@@ -193,6 +197,10 @@ class AccountingReportController extends Controller
         $startDate = $request->query('start_date', now()->startOfYear()->toDateString());
         $endDate = $request->query('end_date', now()->toDateString());
         
+        $isSqlite = DB::connection()->getDriverName() === 'sqlite';
+        $yearSql = $isSqlite ? "strftime('%Y', created_at)" : "DATE_FORMAT(created_at, '%Y')";
+        $monthSql = $isSqlite ? "strftime('%m', created_at)" : "DATE_FORMAT(created_at, '%m')";
+        
         // Même logique que financialReport...
         $salesData = Sale::where('company_id', $companyId)
             ->where('status', 'completed')
@@ -219,7 +227,7 @@ class AccountingReportController extends Controller
         $salesByMonth = Sale::where('company_id', $companyId)
             ->where('status', 'completed')
             ->whereBetween('created_at', [$startDate . ' 00:00:00', $endDate . ' 23:59:59'])
-            ->selectRaw('strftime(\'%Y\', created_at) as year, strftime(\'%m\', created_at) as month, COUNT(*) as count, SUM(total) as total')
+            ->selectRaw("$yearSql as year, $monthSql as month, COUNT(*) as count, SUM(total) as total")
             ->groupBy('year', 'month')
             ->orderBy('year')->orderBy('month')
             ->get();
@@ -227,7 +235,7 @@ class AccountingReportController extends Controller
         $purchasesByMonth = Purchase::where('company_id', $companyId)
             ->whereIn('status', ['received', 'completed', 'paid'])
             ->whereBetween('created_at', [$startDate . ' 00:00:00', $endDate . ' 23:59:59'])
-            ->selectRaw('strftime(\'%Y\', created_at) as year, strftime(\'%m\', created_at) as month, COUNT(*) as count, SUM(total) as total')
+            ->selectRaw("$yearSql as year, $monthSql as month, COUNT(*) as count, SUM(total) as total")
             ->groupBy('year', 'month')
             ->orderBy('year')->orderBy('month')
             ->get();

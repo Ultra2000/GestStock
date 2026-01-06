@@ -21,11 +21,23 @@
         <x-filament::section>
             <x-slot name="heading">
                 <div class="flex items-center gap-2">
-                    <x-heroicon-o-arrow-trending-up class="w-5 h-5 text-success-600" />
-                    Recettes bancaires
+                    <x-heroicon-o-banknotes class="w-5 h-5 text-warning-600" />
+                    Ventes Cash
                 </div>
             </x-slot>
-            <div class="text-2xl font-bold text-success-600">
+            <div class="text-xl font-bold text-warning-600">
+                {{ number_format($report['cash_income'], 2, ',', ' ') }} {{ $currency }}
+            </div>
+        </x-filament::section>
+
+        <x-filament::section>
+            <x-slot name="heading">
+                <div class="flex items-center gap-2">
+                    <x-heroicon-o-credit-card class="w-5 h-5 text-success-600" />
+                    Ventes Bancaires (CB/Virement/Chèque)
+                </div>
+            </x-slot>
+            <div class="text-xl font-bold text-success-600">
                 {{ number_format($report['income'], 2, ',', ' ') }} {{ $currency }}
             </div>
         </x-filament::section>
@@ -33,12 +45,44 @@
         <x-filament::section>
             <x-slot name="heading">
                 <div class="flex items-center gap-2">
+                    <x-heroicon-o-globe-alt class="w-5 h-5 text-info-600" />
+                    Autres (SEPA/PayPal)
+                </div>
+            </x-slot>
+            <div class="text-xl font-bold text-info-600">
+                {{ number_format($report['other_income'], 2, ',', ' ') }} {{ $currency }}
+            </div>
+        </x-filament::section>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+        <x-filament::section>
+            <x-slot name="heading">
+                <div class="flex items-center gap-2">
+                    <x-heroicon-o-arrow-trending-up class="w-5 h-5 text-success-600" />
+                    Total Recettes (CA)
+                </div>
+            </x-slot>
+            <div class="text-2xl font-bold text-success-600">
+                {{ number_format($report['total_revenue'], 2, ',', ' ') }} {{ $currency }}
+            </div>
+            <div class="text-sm text-gray-500 mt-1">
+                Toutes ventes confondues
+            </div>
+        </x-filament::section>
+
+        <x-filament::section>
+            <x-slot name="heading">
+                <div class="flex items-center gap-2">
                     <x-heroicon-o-arrow-trending-down class="w-5 h-5 text-danger-600" />
-                    Dépenses bancaires
+                    Total Dépenses (Achats)
                 </div>
             </x-slot>
             <div class="text-2xl font-bold text-danger-600">
                 {{ number_format($report['expenses'], 2, ',', ' ') }} {{ $currency }}
+            </div>
+            <div class="text-sm text-gray-500 mt-1">
+                Achats fournisseurs
             </div>
         </x-filament::section>
 
@@ -46,11 +90,14 @@
             <x-slot name="heading">
                 <div class="flex items-center gap-2">
                     <x-heroicon-o-calculator class="w-5 h-5" />
-                    Résultat
+                    Résultat Brut
                 </div>
             </x-slot>
             <div class="text-2xl font-bold {{ $report['balance'] >= 0 ? 'text-success-600' : 'text-danger-600' }}">
                 {{ number_format($report['balance'], 2, ',', ' ') }} {{ $currency }}
+            </div>
+            <div class="text-sm text-gray-500 mt-1">
+                Recettes - Dépenses
             </div>
         </x-filament::section>
     </div>

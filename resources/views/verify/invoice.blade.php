@@ -4,7 +4,8 @@
     <meta charset="utf-8">
     <title>Vérification facture {{ strtoupper($type) }} #{{ $invoiceNumber }}</title>
     <style>
-        body{font-family:Arial,Helvetica,sans-serif;margin:0;padding:40px;background:#f3f4f6;color:#111}
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        body{font-family:'Inter','DejaVu Sans',Helvetica,Arial,sans-serif;margin:0;padding:40px;background:#f3f4f6;color:#1e293b;letter-spacing:0.01em}
         .card{max-width:760px;margin:0 auto;background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:32px;box-shadow:0 4px 12px rgba(0,0,0,.05)}
         h1{margin:0 0 8px;font-size:22px;letter-spacing:.5px}
         .meta{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:18px;margin:24px 0}
@@ -31,7 +32,7 @@
         </div>
         <div class="box">
             <span class="label">Montant total</span>
-            <div><strong>{{ number_format($amount,0,',',' ') }} FCFA</strong></div>
+            <div><strong>{{ number_format($amount, 2, ',', ' ') }} €</strong></div>
         </div>
         <div class="box">
             <span class="label">Date</span>
@@ -58,8 +59,8 @@
             <tr>
                 <td>{{ $it->product->name ?? 'Produit supprimé' }}</td>
                 <td>{{ $it->quantity }}</td>
-                <td>{{ number_format($it->unit_price,0,',',' ') }} FCFA</td>
-                <td>{{ number_format($it->total_price,0,',',' ') }} FCFA</td>
+                <td>{{ number_format($it->unit_price, 2, ',', ' ') }} €</td>
+                <td>{{ number_format($it->total_price, 2, ',', ' ') }} €</td>
             </tr>
         @endforeach
         </tbody>

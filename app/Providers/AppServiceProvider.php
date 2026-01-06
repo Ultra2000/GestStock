@@ -16,6 +16,7 @@ use App\Models\Quote;
 use App\Models\StockMovement;
 use App\Observers\AuditObserver;
 use App\Observers\CompanyObserver;
+use App\Observers\ActivityObserver;
 use App\Policies\CustomerPolicy;
 use App\Policies\InvitationPolicy;
 use App\Policies\ProductPolicy;
@@ -72,6 +73,9 @@ class AppServiceProvider extends ServiceProvider
         
         // Enregistrer les observers
         Company::observe(CompanyObserver::class);
+        
+        // Activity Log Observer pour company_id automatique
+        \Spatie\Activitylog\Models\Activity::observe(ActivityObserver::class);
         
         // Audit Trail Observers
         Sale::observe(AuditObserver::class);

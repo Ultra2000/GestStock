@@ -16,8 +16,10 @@ class Quote extends Model
         'customer_id',
         'user_id',
         'quote_number',
+        'public_token',
         'quote_date',
         'valid_until',
+        'expires_at',
         'status',
         'subtotal',
         'tax_rate',
@@ -32,11 +34,13 @@ class Quote extends Model
         'sent_at',
         'accepted_at',
         'rejected_at',
+        'refusal_reason',
     ];
 
     protected $casts = [
         'quote_date' => 'date',
         'valid_until' => 'date',
+        'expires_at' => 'datetime',
         'subtotal' => 'decimal:2',
         'tax_rate' => 'decimal:2',
         'tax_amount' => 'decimal:2',
@@ -118,6 +122,14 @@ class Quote extends Model
 
     public function markAsSent(): void
     {
+        if (!$this->public_token) {
+            $this->public_token = \Illuminate\Support\Str::uuid()->toString();
+        }
+
+        if (!$this->expires_at) {
+            $this->expires_at = $this->valid_until->endOfDay();
+        }
+
         $this->update([
             'status' => 'sent',
             'sent_at' => now(),
@@ -130,16 +142,20 @@ class Quote extends Model
             'status' => 'accepted',
             'accepted_at' => now(),
         ]);
-
-        $this->convertToSale();
     }
 
-    public function reject(): void
+    public function reject(?string $reason = null): void
     {
         $this->update([
             'status' => 'rejected',
             'rejected_at' => now(),
+            'refusal_reason' => $reason,
         ]);
+    }
+
+    public function getPublicUrl(): string
+    {
+        return url('/view/quote/' . $this->public_token);
     }
 
     public function convertToSale(): ?Sale

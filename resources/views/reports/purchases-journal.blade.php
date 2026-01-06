@@ -5,6 +5,8 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
     <title>Journal des Achats - {{ $startDate }} au {{ $endDate }}</title>
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        
         @page {
             margin: 15mm;
         }
@@ -14,10 +16,11 @@
             box-sizing: border-box;
         }
         body {
-            font-family: 'DejaVu Sans', Arial, sans-serif;
+            font-family: 'Inter', 'DejaVu Sans', Helvetica, Arial, sans-serif;
             font-size: 9px;
-            color: #333;
+            color: #1e293b;
             line-height: 1.3;
+            letter-spacing: 0.01em;
         }
         .header {
             text-align: center;

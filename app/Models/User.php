@@ -14,11 +14,13 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Collection;
 use Laravel\Sanctum\HasApiTokens;
+use Spatie\Activitylog\Traits\LogsActivity;
+use Spatie\Activitylog\LogOptions;
 
 class User extends Authenticatable implements FilamentUser, HasTenants
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasApiTokens, HasFactory, Notifiable, HasRoles;
+    use HasApiTokens, HasFactory, Notifiable, HasRoles, LogsActivity;
 
     /**
      * The attributes that are mass assignable.
@@ -54,6 +56,17 @@ class User extends Authenticatable implements FilamentUser, HasTenants
         'is_active' => 'boolean',
         'is_super_admin' => 'boolean',
     ];
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logOnly(['name', 'email', 'is_active', 'is_super_admin'])
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs()
+            ->useLogName('users')
+            ->setDescriptionForEvent(fn(string $eventName) => "Utilisateur {$eventName}")
+            ->dontLogIfAttributesChangedOnly(['updated_at', 'password', 'remember_token']);
+    }
 
     public function companies(): BelongsToMany
     {

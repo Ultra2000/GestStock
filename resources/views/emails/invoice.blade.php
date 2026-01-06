@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <title>Facture</title>
 </head>
-<body style="font-family:Arial,Helvetica,sans-serif;font-size:14px;color:#111;line-height:1.5;">
+<body style="font-family:'Inter','DejaVu Sans',Helvetica,Arial,sans-serif;font-size:14px;color:#1e293b;line-height:1.5;">
     <h2 style="margin-top:0;">Facture #{{ $model->invoice_number }}</h2>
     <p>Bonjour,</p>
     @if($customMessage)
@@ -14,7 +14,7 @@
     @endif
 
     <p>
-        Montant total TTC: <strong>{{ number_format($model->total,0,',',' ') }} FCFA</strong><br>
+        Montant total TTC: <strong>{{ number_format($model->total, 2, ',', ' ') }} €</strong><br>
         Date: {{ $model->created_at->format('d/m/Y H:i') }}<br>
         Type: {{ $type === 'purchase' ? 'Achat' : 'Vente' }}
     </p>

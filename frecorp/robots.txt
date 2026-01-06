@@ -1,0 +1,16 @@
+# FRECORP ERP - Robots.txt
+# https://frecorp.fr
+
+User-agent: *
+Allow: /
+Allow: /index.html
+Allow: /fonctionnalites.html
+Allow: /tarifs.html
+Allow: /demo.html
+Allow: /connexion.html
+Allow: /inscription.html
+
+Disallow: /404.html
+
+# Sitemap
+Sitemap: https://frecorp.fr/sitemap.xml

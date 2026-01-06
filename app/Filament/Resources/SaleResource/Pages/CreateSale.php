@@ -24,7 +24,8 @@ class CreateSale extends CreateRecord
 
     protected function mutateFormDataBeforeCreate(array $data): array
     {
-        $data['invoice_number'] = 'FACT-' . strtoupper(Str::random(8));
+        // Laisser le modèle gérer la génération du numéro de facture
+        // $data['invoice_number'] = 'FACT-' . strtoupper(Str::random(8));
         return $data;
     }
 

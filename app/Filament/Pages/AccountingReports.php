@@ -80,8 +80,12 @@ class AccountingReports extends Page implements HasForms
             ->statePath('data');
     }
 
-    public function updatePeriod(string $period): void
+    public function updatePeriod(?string $period): void
     {
+        if (!$period) {
+            return;
+        }
+
         switch ($period) {
             case 'month':
                 $this->data['start_date'] = Carbon::now()->startOfMonth()->format('Y-m-d');
@@ -104,15 +108,23 @@ class AccountingReports extends Page implements HasForms
         $startDate = $this->data['start_date'];
         $endDate = $this->data['end_date'] . ' 23:59:59';
 
-        // Recettes (Crédits bancaires)
-        $income = BankTransaction::whereBetween('date', [$startDate, $endDate])
-            ->where('type', 'credit')
-            ->sum('amount');
+        // 1. Recettes issues des Ventes (Chiffre d'Affaires)
+        $salesByMethod = Sale::where('company_id', $companyId)
+            ->where('status', 'completed')
+            ->whereBetween('created_at', [$startDate, $endDate])
+            ->selectRaw('payment_method, SUM(total) as total')
+            ->groupBy('payment_method')
+            ->pluck('total', 'payment_method');
 
-        // Dépenses (Débits bancaires)
-        $expenses = BankTransaction::whereBetween('date', [$startDate, $endDate])
-            ->where('type', 'debit')
-            ->sum('amount');
+        $salesCash = (float) ($salesByMethod['cash'] ?? 0);
+        $salesBank = (float) (($salesByMethod['card'] ?? 0) + ($salesByMethod['transfer'] ?? 0) + ($salesByMethod['check'] ?? 0));
+        $salesOther = (float) (($salesByMethod['sepa_debit'] ?? 0) + ($salesByMethod['paypal'] ?? 0));
+
+        // 2. Dépenses issues des Achats (uniquement achats complétés)
+        $purchasesTotal = Purchase::where('company_id', $companyId)
+            ->whereIn('status', ['completed', 'received', 'paid'])
+            ->whereBetween('created_at', [$startDate, $endDate])
+            ->sum('total');
 
         // TVA Collectée réelle (depuis les ventes)
         $salesData = Sale::where('company_id', $companyId)
@@ -123,7 +135,7 @@ class AccountingReports extends Page implements HasForms
 
         // TVA Déductible réelle (depuis les achats)
         $purchasesData = Purchase::where('company_id', $companyId)
-            ->where('status', 'completed')
+            ->whereIn('status', ['completed', 'received', 'paid'])
             ->whereBetween('created_at', [$startDate, $endDate])
             ->selectRaw('COALESCE(SUM(total_ht), 0) as total_ht, COALESCE(SUM(total_vat), 0) as total_vat, COALESCE(SUM(total), 0) as total')
             ->first();
@@ -132,10 +144,18 @@ class AccountingReports extends Page implements HasForms
         $vatDeductible = (float) ($purchasesData->total_vat ?? 0);
         $vatToPay = $vatCollected - $vatDeductible;
 
+        // Calcul du résultat
+        $totalRecettes = $salesCash + $salesBank + $salesOther;
+        $totalDepenses = (float) $purchasesTotal;
+        $resultat = $totalRecettes - $totalDepenses;
+
         return [
-            'income' => $income,
-            'expenses' => $expenses,
-            'balance' => $income - $expenses,
+            'income' => $salesBank,
+            'cash_income' => $salesCash,
+            'other_income' => $salesOther,
+            'total_revenue' => $totalRecettes,
+            'expenses' => $totalDepenses,
+            'balance' => $resultat,
             // Données ventes
             'sales_ht' => (float) ($salesData->total_ht ?? 0),
             'sales_ttc' => (float) ($salesData->total ?? 0),

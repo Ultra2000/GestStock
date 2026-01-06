@@ -5,6 +5,8 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
     <title>Bilan Comptable - {{ $startDate }} au {{ $endDate }}</title>
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        
         @page {
             margin: 20mm;
         }
@@ -14,10 +16,11 @@
             box-sizing: border-box;
         }
         body {
-            font-family: 'DejaVu Sans', Arial, sans-serif;
+            font-family: 'Inter', 'DejaVu Sans', Helvetica, Arial, sans-serif;
             font-size: 10px;
-            color: #333;
+            color: #1e293b;
             line-height: 1.4;
+            letter-spacing: 0.01em;
         }
         .header {
             text-align: center;
@@ -293,7 +296,7 @@
 
     {{-- TVA --}}
     <div class="tva-box">
-        <h3>📋 Synthèse TVA</h3>
+        <h3>Synthèse TVA</h3>
         <table class="tva-grid">
             <tr>
                 <td width="33%">
@@ -320,7 +323,7 @@
     {{-- Évolution mensuelle --}}
     @if($salesByMonth->count() > 0 || $purchasesByMonth->count() > 0)
     <div class="section" style="margin-top: 20px;">
-        <div class="section-title">📈 Évolution mensuelle</div>
+        <div class="section-title">Évolution mensuelle</div>
         <table class="month-table">
             <thead>
                 <tr>
@@ -373,7 +376,7 @@
         <tr>
             <td>
                 @if($topCustomers->count() > 0)
-                <div class="section-title">🏆 Top 10 Clients</div>
+                <div class="section-title">Top 10 Clients</div>
                 <table class="data-grid">
                     <thead>
                         <tr>
@@ -396,7 +399,7 @@
             </td>
             <td>
                 @if($topSuppliers->count() > 0)
-                <div class="section-title">🏭 Top 10 Fournisseurs</div>
+                <div class="section-title">Top 10 Fournisseurs</div>
                 <table class="data-grid">
                     <thead>
                         <tr>
@@ -422,7 +425,7 @@
 
     {{-- Valeur du stock --}}
     <div class="section" style="margin-top: 20px;">
-        <div class="section-title">📦 Valorisation du Stock</div>
+        <div class="section-title">Valorisation du Stock</div>
         <table class="two-col">
             <tr>
                 <td>
@@ -446,7 +449,7 @@
     {{-- Ventes par mode de paiement --}}
     @if($salesByPayment->count() > 0)
     <div class="section" style="margin-top: 15px;">
-        <div class="section-title">💳 Répartition par mode de paiement</div>
+        <div class="section-title">Répartition par mode de paiement</div>
         <table class="data-grid">
             <thead>
                 <tr>

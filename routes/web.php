@@ -6,10 +6,18 @@ use App\Http\Controllers\CaisseController;
 use App\Http\Controllers\CashReportController;
 use App\Http\Controllers\QuotePdfController;
 use App\Http\Controllers\DeliveryNotePdfController;
+use App\Http\Controllers\PublicQuoteController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
     return view('welcome');
+});
+
+// Routes publiques pour les devis clients
+Route::prefix('view/quote')->group(function () {
+    Route::get('/{token}', [PublicQuoteController::class, 'show'])->name('public.quote.show');
+    Route::post('/{token}/accept', [PublicQuoteController::class, 'accept'])->name('public.quote.accept');
+    Route::post('/{token}/reject', [PublicQuoteController::class, 'reject'])->name('public.quote.reject');
 });
 
 Route::get('/dashboard', function () {
