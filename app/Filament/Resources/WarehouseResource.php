@@ -247,7 +247,7 @@ class WarehouseResource extends Resource
                     ->toggleable(),
                 Tables\Columns\TextColumn::make('products_count')
                     ->label('Produits')
-                    ->counts('products')
+                    ->state(fn (Warehouse $record) => $record->products()->distinct('products.id')->count('products.id'))
                     ->badge()
                     ->color('info'),
                 Tables\Columns\IconColumn::make('is_default')
@@ -321,7 +321,7 @@ class WarehouseResource extends Resource
                     ->schema([
                         Components\TextEntry::make('products_count')
                             ->label('Produits en stock')
-                            ->state(fn (Warehouse $record) => $record->products()->count())
+                            ->state(fn (Warehouse $record) => $record->products()->distinct('products.id')->count('products.id'))
                             ->badge()
                             ->color('info'),
                         Components\TextEntry::make('total_stock_value')

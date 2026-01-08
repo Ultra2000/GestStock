@@ -74,6 +74,15 @@ class ProductsRelationManager extends RelationManager
                     ->label('Produit')
                     ->searchable()
                     ->sortable(),
+                Tables\Columns\TextColumn::make('pivot.location_id')
+                    ->label('Emplacement')
+                    ->formatStateUsing(function ($state) {
+                        if (!$state) return '-';
+                        $location = \App\Models\WarehouseLocation::find($state);
+                        return $location ? $location->code : '-';
+                    })
+                    ->badge()
+                    ->color('gray'),
                 Tables\Columns\TextColumn::make('pivot.quantity')
                     ->label('Stock')
                     ->numeric(2)
@@ -112,6 +121,19 @@ class ProductsRelationManager extends RelationManager
                     ->toggleable(),
             ])
             ->filters([
+                Tables\Filters\SelectFilter::make('location_id')
+                    ->label('Emplacement')
+                    ->options(fn () => $this->ownerRecord->locations()
+                        ->where('is_active', true)
+                        ->get()
+                        ->mapWithKeys(fn ($loc) => [$loc->id => $loc->code . ' - ' . $loc->name])
+                        ->toArray())
+                    ->query(fn ($query, $data) => $data['value']
+                        ? $query->wherePivot('location_id', $data['value'])
+                        : $query),
+                Tables\Filters\Filter::make('no_location')
+                    ->label('Sans emplacement')
+                    ->query(fn ($query) => $query->wherePivotNull('location_id')),
                 Tables\Filters\Filter::make('low_stock')
                     ->label('Stock bas')
                     ->query(fn ($query) => $query

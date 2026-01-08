@@ -92,8 +92,10 @@
     </div>
 
     @push('scripts')
-    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
     <script>
+        let qrCodeInstance = null;
+        
         document.addEventListener('livewire:navigated', generateQR);
         document.addEventListener('livewire:init', generateQR);
         
@@ -107,17 +109,15 @@
             
             if (container && qrContent) {
                 container.innerHTML = '';
-                QRCode.toCanvas(qrContent, { 
+                
+                // Utiliser QRCode.js (qrcodejs)
+                qrCodeInstance = new QRCode(container, {
+                    text: qrContent,
                     width: 300,
-                    margin: 2,
-                    color: {
-                        dark: '#000000',
-                        light: '#ffffff'
-                    }
-                }, function(error, canvas) {
-                    if (!error) {
-                        container.appendChild(canvas);
-                    }
+                    height: 300,
+                    colorDark: '#000000',
+                    colorLight: '#ffffff',
+                    correctLevel: QRCode.CorrectLevel.H
                 });
             }
         }

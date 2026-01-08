@@ -51,17 +51,23 @@ class SaleItem extends Model
             if ($item->sale->status === 'completed') {
                 $warehouse = $item->sale->warehouse ?? Warehouse::getDefault($item->sale->company_id);
                 if ($warehouse) {
-                    // Si c'est un avoir, on réintègre le stock (quantité positive dans l'avoir = entrée en stock)
-                    // Si c'est une vente, on déduit le stock (quantité positive dans la vente = sortie de stock)
-                    $multiplier = $item->sale->type === 'credit_note' ? 1 : -1;
-                    
-                    $warehouse->adjustStock(
-                        $item->product_id,
-                        $item->quantity * $multiplier,
-                        $item->sale->type === 'credit_note' ? 'credit_note' : 'sale',
-                        ($item->sale->type === 'credit_note' ? "Avoir " : "Vente ") . $item->sale->invoice_number,
-                        null
-                    );
+                    if ($item->sale->type === 'credit_note') {
+                        // Avoir : on réintègre le stock (au stock général)
+                        $warehouse->addStockBack(
+                            $item->product_id,
+                            $item->quantity,
+                            'credit_note',
+                            "Avoir " . $item->sale->invoice_number
+                        );
+                    } else {
+                        // Vente : déstockage intelligent FIFO depuis les emplacements
+                        $warehouse->deductStockFIFO(
+                            $item->product_id,
+                            $item->quantity,
+                            'sale',
+                            "Vente " . $item->sale->invoice_number
+                        );
+                    }
                 }
             }
         });
@@ -74,15 +80,34 @@ class SaleItem extends Model
                     $diff = $item->quantity - $oldQuantity;
                     
                     if ($diff != 0) {
-                        $multiplier = $item->sale->type === 'credit_note' ? 1 : -1;
-
-                        $warehouse->adjustStock(
-                            $item->product_id,
-                            $diff * $multiplier,
-                            'sale_adjustment',
-                            "Modification quantité " . ($item->sale->type === 'credit_note' ? "avoir " : "vente ") . $item->sale->invoice_number,
-                            null
-                        );
+                        if ($item->sale->type === 'credit_note') {
+                            // Avoir modifié : ajuster le stock réintégré
+                            $warehouse->adjustStock(
+                                $item->product_id,
+                                $diff,
+                                'credit_note_adjustment',
+                                "Modification avoir " . $item->sale->invoice_number
+                            );
+                        } else {
+                            // Vente modifiée
+                            if ($diff > 0) {
+                                // Quantité augmentée : déduire plus (FIFO)
+                                $warehouse->deductStockFIFO(
+                                    $item->product_id,
+                                    $diff,
+                                    'sale_adjustment',
+                                    "Modification vente " . $item->sale->invoice_number
+                                );
+                            } else {
+                                // Quantité diminuée : réintégrer la différence
+                                $warehouse->addStockBack(
+                                    $item->product_id,
+                                    abs($diff),
+                                    'sale_adjustment',
+                                    "Modification vente " . $item->sale->invoice_number
+                                );
+                            }
+                        }
                     }
                 }
             }
@@ -94,16 +119,23 @@ class SaleItem extends Model
             if ($item->sale->status === 'completed') {
                 $warehouse = $item->sale->warehouse ?? Warehouse::getDefault($item->sale->company_id);
                 if ($warehouse) {
-                    // Annulation de l'opération : on fait l'inverse de la création
-                    $multiplier = $item->sale->type === 'credit_note' ? -1 : 1;
-
-                    $warehouse->adjustStock(
-                        $item->product_id,
-                        $item->quantity * $multiplier,
-                        'sale_return',
-                        "Suppression article " . ($item->sale->type === 'credit_note' ? "avoir " : "vente ") . $item->sale->invoice_number,
-                        null
-                    );
+                    if ($item->sale->type === 'credit_note') {
+                        // Suppression d'un article d'avoir : on retire le stock réintégré
+                        $warehouse->deductStockFIFO(
+                            $item->product_id,
+                            $item->quantity,
+                            'credit_note_cancel',
+                            "Suppression article avoir " . $item->sale->invoice_number
+                        );
+                    } else {
+                        // Suppression d'un article de vente : on réintègre le stock
+                        $warehouse->addStockBack(
+                            $item->product_id,
+                            $item->quantity,
+                            'sale_return',
+                            "Suppression article vente " . $item->sale->invoice_number
+                        );
+                    }
                 }
             }
         });

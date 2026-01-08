@@ -259,6 +259,143 @@ class Warehouse extends Model
         ]);
     }
 
+    /**
+     * Déstockage intelligent FIFO depuis les emplacements
+     * Ordre de priorité :
+     * 1. Emplacements de picking (is_picking_location = true)
+     * 2. Stock non affecté (location_id = NULL)
+     * 3. Autres emplacements actifs
+     * 
+     * @param int $productId
+     * @param float $quantityToDeduct Quantité à déduire (positive)
+     * @param string $type Type de mouvement
+     * @param string|null $reason Raison du mouvement
+     * @return array Liste des mouvements de stock créés
+     */
+    public function deductStockFIFO(int $productId, float $quantityToDeduct, string $type, ?string $reason = null): array
+    {
+        $remainingQty = abs($quantityToDeduct);
+        $movements = [];
+
+        // Vérifier le stock total disponible
+        $totalStock = $this->getProductStock($productId);
+        if ($totalStock < $remainingQty && !$this->allow_negative_stock) {
+            throw new \Exception("Stock insuffisant dans l'entrepôt {$this->name}. Disponible: {$totalStock}, Demandé: {$remainingQty}");
+        }
+
+        // 1. D'abord les emplacements de picking (FIFO par date de création)
+        $pickingLocations = \DB::table('product_warehouse')
+            ->join('warehouse_locations', 'warehouse_locations.id', '=', 'product_warehouse.location_id')
+            ->where('product_warehouse.warehouse_id', $this->id)
+            ->where('product_warehouse.product_id', $productId)
+            ->where('product_warehouse.quantity', '>', 0)
+            ->where('warehouse_locations.is_picking_location', true)
+            ->where('warehouse_locations.is_active', true)
+            ->orderBy('product_warehouse.created_at', 'asc')
+            ->select('product_warehouse.*', 'warehouse_locations.code as location_code')
+            ->get();
+
+        foreach ($pickingLocations as $stock) {
+            if ($remainingQty <= 0) break;
+            
+            $deductFromThis = min($stock->quantity, $remainingQty);
+            $movements[] = $this->deductFromLocation($productId, $stock->location_id, $deductFromThis, $type, $reason, $stock->location_code);
+            $remainingQty -= $deductFromThis;
+        }
+
+        // 2. Ensuite le stock non affecté (location_id = NULL)
+        if ($remainingQty > 0) {
+            $unassignedStock = \DB::table('product_warehouse')
+                ->where('warehouse_id', $this->id)
+                ->where('product_id', $productId)
+                ->whereNull('location_id')
+                ->where('quantity', '>', 0)
+                ->first();
+
+            if ($unassignedStock && $unassignedStock->quantity > 0) {
+                $deductFromThis = min($unassignedStock->quantity, $remainingQty);
+                $movements[] = $this->deductFromLocation($productId, null, $deductFromThis, $type, $reason, 'Stock général');
+                $remainingQty -= $deductFromThis;
+            }
+        }
+
+        // 3. Autres emplacements actifs (non-picking)
+        if ($remainingQty > 0) {
+            $otherLocations = \DB::table('product_warehouse')
+                ->join('warehouse_locations', 'warehouse_locations.id', '=', 'product_warehouse.location_id')
+                ->where('product_warehouse.warehouse_id', $this->id)
+                ->where('product_warehouse.product_id', $productId)
+                ->where('product_warehouse.quantity', '>', 0)
+                ->where('warehouse_locations.is_picking_location', false)
+                ->where('warehouse_locations.is_active', true)
+                ->orderBy('product_warehouse.created_at', 'asc')
+                ->select('product_warehouse.*', 'warehouse_locations.code as location_code')
+                ->get();
+
+            foreach ($otherLocations as $stock) {
+                if ($remainingQty <= 0) break;
+                
+                $deductFromThis = min($stock->quantity, $remainingQty);
+                $movements[] = $this->deductFromLocation($productId, $stock->location_id, $deductFromThis, $type, $reason, $stock->location_code);
+                $remainingQty -= $deductFromThis;
+            }
+        }
+
+        // 4. Si toujours du reste et stock négatif autorisé, créer un stock négatif général
+        if ($remainingQty > 0 && $this->allow_negative_stock) {
+            $movements[] = $this->deductFromLocation($productId, null, $remainingQty, $type, $reason, 'Stock général (négatif)');
+        }
+
+        return $movements;
+    }
+
+    /**
+     * Déduire du stock d'un emplacement spécifique
+     */
+    protected function deductFromLocation(int $productId, ?int $locationId, float $quantity, string $type, ?string $reason, string $locationLabel): StockMovement
+    {
+        $currentStock = \DB::table('product_warehouse')
+            ->where('warehouse_id', $this->id)
+            ->where('product_id', $productId)
+            ->where('location_id', $locationId)
+            ->value('quantity') ?? 0;
+
+        $newStock = $currentStock - $quantity;
+
+        // Mettre à jour le stock
+        \DB::table('product_warehouse')
+            ->where('warehouse_id', $this->id)
+            ->where('product_id', $productId)
+            ->where('location_id', $locationId)
+            ->update([
+                'quantity' => $newStock,
+                'updated_at' => now(),
+            ]);
+
+        // Créer le mouvement de stock
+        return StockMovement::create([
+            'company_id' => $this->company_id,
+            'product_id' => $productId,
+            'warehouse_id' => $this->id,
+            'location_id' => $locationId,
+            'type' => $type,
+            'quantity' => -$quantity,
+            'quantity_before' => $currentStock,
+            'quantity_after' => $newStock,
+            'reason' => $reason . ($locationId ? " (depuis {$locationLabel})" : ''),
+            'user_id' => auth()->id(),
+        ]);
+    }
+
+    /**
+     * Réintégrer du stock (pour avoirs, annulations, retours)
+     * Ajoute au stock non affecté par défaut
+     */
+    public function addStockBack(int $productId, float $quantity, string $type, ?string $reason = null, ?int $locationId = null): StockMovement
+    {
+        return $this->adjustStock($productId, abs($quantity), $type, $reason, $locationId);
+    }
+
     public function getTotalStockValue(): float
     {
         return \DB::table('product_warehouse')

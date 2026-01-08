@@ -167,12 +167,9 @@
 
                     @elseif($step === 'scan_qr')
                         <div class="text-center py-8">
-                            <div x-data="qrScanner()" x-init="init()" class="max-w-md mx-auto">
-                                <div class="relative aspect-square bg-black rounded-xl overflow-hidden">
-                                    <video x-ref="video" class="w-full h-full object-cover"></video>
-                                    <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
-                                        <div class="w-48 h-48 border-2 border-white/50 rounded-lg"></div>
-                                    </div>
+                            <div x-data="hrQrScanner()" x-init="startScanner()" x-on:destroy-scanner.window="stopScanner()" class="max-w-md mx-auto">
+                                <div class="relative">
+                                    <div id="hr-qr-reader" class="rounded-xl overflow-hidden"></div>
                                 </div>
                                 <p class="mt-4 text-gray-600 dark:text-gray-400">Scannez le QR Code affiché sur le site</p>
                                 
@@ -180,7 +177,7 @@
                                     <p class="mt-2 text-danger-600 dark:text-danger-400">{{ $qrError }}</p>
                                 @endif
 
-                                <button wire:click="cancelAction" class="mt-4 px-4 py-2 bg-gray-200 dark:bg-gray-700 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600">
+                                <button wire:click="cancelAction" @click="stopScanner()" class="mt-4 px-4 py-2 bg-gray-200 dark:bg-gray-700 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600">
                                     Annuler
                                 </button>
                             </div>
@@ -246,47 +243,60 @@
     @endif
 
     @push('scripts')
-    <script src="https://unpkg.com/@aspect-build/qr-scanner@0.1.0/dist/qr-scanner.min.js"></script>
+    <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
     <script>
-        function qrScanner() {
+        function hrQrScanner() {
             return {
                 scanner: null,
-                init() {
-                    const video = this.$refs.video;
+                scanning: false,
+                wire: null,
+                
+                async startScanner() {
+                    if (this.scanning) return;
+                    this.scanning = true;
                     
-                    if (typeof QrScanner === 'undefined') {
-                        // Fallback si la librairie n'est pas chargée
-                        navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
-                            .then(stream => {
-                                video.srcObject = stream;
-                                video.play();
-                            })
-                            .catch(err => {
-                                Livewire.dispatch('qr-error', { error: 'Impossible d\'accéder à la caméra' });
-                            });
-                        return;
+                    // Récupérer la référence au composant Livewire
+                    this.wire = this.$wire;
+                    
+                    try {
+                        // Attendre que l'élément soit présent dans le DOM
+                        await new Promise(resolve => setTimeout(resolve, 100));
+                        
+                        this.scanner = new Html5Qrcode("hr-qr-reader");
+                        const self = this;
+                        
+                        await this.scanner.start(
+                            { facingMode: "environment" },
+                            {
+                                fps: 10,
+                                qrbox: { width: 250, height: 250 },
+                                aspectRatio: 1.0,
+                            },
+                            (decodedText) => {
+                                // QR Code scanné avec succès
+                                self.scanner.pause(true);
+                                self.wire.dispatch('qr-scanned', { data: decodedText });
+                            },
+                            (errorMessage) => {
+                                // Ignorer les erreurs de scan en cours (pas de QR trouvé)
+                            }
+                        );
+                    } catch (err) {
+                        console.error('Erreur scanner QR:', err);
+                        this.wire.dispatch('qr-error', { error: 'Impossible d\'accéder à la caméra: ' + err.message });
                     }
-
-                    this.scanner = new QrScanner(
-                        video,
-                        result => {
-                            this.scanner.stop();
-                            Livewire.dispatch('qr-scanned', { data: result.data });
-                        },
-                        {
-                            preferredCamera: 'environment',
-                            highlightScanRegion: true,
-                            highlightCodeOutline: true,
-                        }
-                    );
-                    this.scanner.start().catch(err => {
-                        Livewire.dispatch('qr-error', { error: 'Impossible d\'accéder à la caméra: ' + err.message });
-                    });
                 },
-                destroy() {
-                    if (this.scanner) {
-                        this.scanner.stop();
-                        this.scanner.destroy();
+                
+                async stopScanner() {
+                    if (this.scanner && this.scanning) {
+                        try {
+                            await this.scanner.stop();
+                            this.scanner.clear();
+                        } catch (err) {
+                            console.log('Scanner déjà arrêté');
+                        }
+                        this.scanning = false;
+                        this.scanner = null;
                     }
                 }
             }

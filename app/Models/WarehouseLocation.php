@@ -59,6 +59,13 @@ class WarehouseLocation extends Model
         return $this->hasMany(StockMovement::class, 'location_id');
     }
 
+    // Relation avec les stocks produits via product_warehouse
+    public function productStocks()
+    {
+        return $this->hasMany(\Illuminate\Database\Eloquent\Relations\Pivot::class, 'location_id')
+            ->from('product_warehouse');
+    }
+
     // Accessors
     public function getFullCodeAttribute(): string
     {
