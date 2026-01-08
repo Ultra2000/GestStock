@@ -1,8 +1,13 @@
 <?php
 
 /**
- * Script de seeding pour la production
+ * Script de déploiement pour la production
  * Exécuter avec: php seed-production.php
+ * 
+ * Ce script crée automatiquement :
+ * - Toutes les permissions de l'application
+ * - Les rôles par défaut pour chaque entreprise existante
+ * - Associe les utilisateurs à leurs entreprises
  */
 
 require __DIR__.'/vendor/autoload.php';
@@ -16,10 +21,14 @@ use App\Models\User;
 use App\Models\Company;
 use Illuminate\Support\Facades\DB;
 
-echo "=== Script de Seeding Production ===\n\n";
+echo "╔════════════════════════════════════════════════════════════╗\n";
+echo "║         FRECORP ERP - Script de Déploiement               ║\n";
+echo "╚════════════════════════════════════════════════════════════╝\n\n";
 
-// 1. Créer les permissions
-echo "1. Création des permissions...\n";
+// ============================================================================
+// ÉTAPE 1 : CRÉATION DES PERMISSIONS (GLOBALES)
+// ============================================================================
+echo "📋 ÉTAPE 1: Création des permissions...\n";
 
 $permissions = [
     // Produits
@@ -59,6 +68,11 @@ $permissions = [
     ['name' => 'Modifier des devis', 'slug' => 'quotes.edit', 'module' => 'quotes', 'action' => 'update'],
     ['name' => 'Supprimer des devis', 'slug' => 'quotes.delete', 'module' => 'quotes', 'action' => 'delete'],
     
+    // Bons de livraison
+    ['name' => 'Voir les livraisons', 'slug' => 'deliveries.view', 'module' => 'deliveries', 'action' => 'view'],
+    ['name' => 'Créer des livraisons', 'slug' => 'deliveries.create', 'module' => 'deliveries', 'action' => 'create'],
+    ['name' => 'Modifier des livraisons', 'slug' => 'deliveries.edit', 'module' => 'deliveries', 'action' => 'update'],
+    
     // Caisse (POS)
     ['name' => 'Accéder à la caisse', 'slug' => 'pos.access', 'module' => 'pos', 'action' => 'view'],
     ['name' => 'Ouvrir/fermer la caisse', 'slug' => 'pos.session', 'module' => 'pos', 'action' => 'manage'],
@@ -77,11 +91,13 @@ $permissions = [
     ['name' => 'Voir les inventaires', 'slug' => 'inventory.view', 'module' => 'inventory', 'action' => 'view'],
     ['name' => 'Gérer les inventaires', 'slug' => 'inventory.manage', 'module' => 'inventory', 'action' => 'manage'],
     
-    // RH
+    // RH - Employés
     ['name' => 'Voir les employés', 'slug' => 'employees.view', 'module' => 'employees', 'action' => 'view'],
     ['name' => 'Créer des employés', 'slug' => 'employees.create', 'module' => 'employees', 'action' => 'create'],
     ['name' => 'Modifier des employés', 'slug' => 'employees.edit', 'module' => 'employees', 'action' => 'update'],
     ['name' => 'Supprimer des employés', 'slug' => 'employees.delete', 'module' => 'employees', 'action' => 'delete'],
+    
+    // RH - Planning et congés
     ['name' => 'Gérer le planning', 'slug' => 'schedule.manage', 'module' => 'hr', 'action' => 'manage'],
     ['name' => 'Gérer les congés', 'slug' => 'leaves.manage', 'module' => 'hr', 'action' => 'manage'],
     ['name' => 'Voir le pointage', 'slug' => 'attendance.view', 'module' => 'hr', 'action' => 'view'],
@@ -107,24 +123,12 @@ foreach ($permissions as $p) {
     Permission::firstOrCreate(['slug' => $p['slug']], $p);
     $permCount++;
 }
-echo "   ✓ $permCount permissions créées/vérifiées\n";
+echo "   ✅ $permCount permissions créées/vérifiées\n\n";
 
-// 2. Récupérer ou créer la company
-echo "\n2. Vérification de la company...\n";
-$company = Company::first();
-if (!$company) {
-    $company = Company::create([
-        'name' => 'Mon Entreprise',
-        'slug' => 'mon-entreprise',
-        'is_active' => true,
-    ]);
-    echo "   ✓ Company créée: {$company->name}\n";
-} else {
-    echo "   ✓ Company existante: {$company->name} (slug: {$company->slug})\n";
-}
-
-// 3. Créer les rôles
-echo "\n3. Création des rôles...\n";
+// ============================================================================
+// ÉTAPE 2 : CRÉATION DES RÔLES POUR CHAQUE ENTREPRISE
+// ============================================================================
+echo "👥 ÉTAPE 2: Création des rôles par entreprise...\n";
 
 $roles = [
     [
@@ -132,6 +136,7 @@ $roles = [
         'name' => 'Administrateur',
         'description' => 'Accès complet à toutes les fonctionnalités',
         'permissions' => 'all',
+        'is_default' => false,
     ],
     [
         'slug' => 'manager',
@@ -144,6 +149,7 @@ $roles = [
             'customers.view', 'customers.create', 'customers.edit',
             'suppliers.view', 'suppliers.create', 'suppliers.edit',
             'quotes.view', 'quotes.create', 'quotes.edit',
+            'deliveries.view', 'deliveries.create', 'deliveries.edit',
             'pos.access', 'pos.session', 'pos.reports',
             'warehouses.view',
             'transfers.view', 'transfers.create',
@@ -151,6 +157,7 @@ $roles = [
             'employees.view',
             'reports.view',
         ],
+        'is_default' => false,
     ],
     [
         'slug' => 'cashier',
@@ -162,6 +169,7 @@ $roles = [
             'customers.view', 'customers.create',
             'pos.access', 'pos.session',
         ],
+        'is_default' => true,
     ],
     [
         'slug' => 'accountant',
@@ -174,6 +182,7 @@ $roles = [
             'banking.view', 'banking.manage',
             'reports.view',
         ],
+        'is_default' => false,
     ],
     [
         'slug' => 'warehouse',
@@ -185,67 +194,113 @@ $roles = [
             'transfers.view', 'transfers.create', 'transfers.approve',
             'inventory.view', 'inventory.manage',
         ],
+        'is_default' => false,
+    ],
+    [
+        'slug' => 'hr',
+        'name' => 'Responsable RH',
+        'description' => 'Gestion des ressources humaines',
+        'permissions' => [
+            'employees.view', 'employees.create', 'employees.edit', 'employees.delete',
+            'schedule.manage',
+            'leaves.manage',
+            'attendance.view', 'attendance.manage',
+        ],
+        'is_default' => false,
     ],
 ];
 
-foreach ($roles as $roleData) {
-    $role = Role::firstOrCreate(
-        ['slug' => $roleData['slug'], 'company_id' => $company->id],
-        [
-            'name' => $roleData['name'],
-            'description' => $roleData['description'],
-        ]
-    );
-    
-    // Attribuer les permissions
-    if ($roleData['permissions'] === 'all') {
-        $permissionIds = Permission::pluck('id');
-    } else {
-        $permissionIds = Permission::whereIn('slug', $roleData['permissions'])->pluck('id');
+$companies = Company::all();
+
+if ($companies->isEmpty()) {
+    echo "   ⚠️  Aucune entreprise trouvée. Les rôles seront créés lors de la création d'une entreprise.\n\n";
+} else {
+    foreach ($companies as $company) {
+        echo "   📁 Entreprise: {$company->name}\n";
+        
+        foreach ($roles as $roleData) {
+            $role = Role::firstOrCreate(
+                ['slug' => $roleData['slug'], 'company_id' => $company->id],
+                [
+                    'name' => $roleData['name'],
+                    'description' => $roleData['description'],
+                    'is_default' => $roleData['is_default'],
+                ]
+            );
+            
+            // Attribuer les permissions
+            if ($roleData['permissions'] === 'all') {
+                $permissionIds = Permission::pluck('id');
+            } else {
+                $permissionIds = Permission::whereIn('slug', $roleData['permissions'])->pluck('id');
+            }
+            $role->permissions()->sync($permissionIds);
+            
+            echo "      ✅ Rôle '{$role->name}' avec " . count($permissionIds) . " permissions\n";
+        }
     }
-    $role->permissions()->sync($permissionIds);
-    
-    echo "   ✓ Rôle '{$role->name}' avec " . count($permissionIds) . " permissions\n";
+    echo "\n";
 }
 
-// 4. Attribuer le rôle admin aux utilisateurs
-echo "\n4. Attribution des rôles aux utilisateurs...\n";
+// ============================================================================
+// ÉTAPE 3 : ASSOCIATION DES UTILISATEURS
+// ============================================================================
+echo "🔗 ÉTAPE 3: Association des utilisateurs aux entreprises...\n";
 
-$adminRole = Role::where('slug', 'admin')->where('company_id', $company->id)->first();
 $users = User::all();
+$companies = Company::all();
 
-foreach ($users as $user) {
-    // Vérifier si l'utilisateur est déjà dans la company
-    if (!$user->companies()->where('company_id', $company->id)->exists()) {
-        $user->companies()->attach($company->id);
-        echo "   ✓ {$user->email} ajouté à la company\n";
+if ($companies->isEmpty()) {
+    echo "   ⚠️  Aucune entreprise. Cette étape sera ignorée.\n\n";
+} else {
+    foreach ($users as $user) {
+        foreach ($companies as $company) {
+            // Vérifier si l'utilisateur est déjà associé
+            if (!$user->companies()->where('company_id', $company->id)->exists()) {
+                $user->companies()->attach($company->id);
+                echo "   ✅ {$user->email} → {$company->name}\n";
+            }
+            
+            // Vérifier si l'utilisateur a un rôle dans cette company
+            $hasRole = DB::table('model_has_roles')
+                ->where('user_id', $user->id)
+                ->where('company_id', $company->id)
+                ->exists();
+            
+            if (!$hasRole) {
+                $adminRole = Role::where('slug', 'admin')->where('company_id', $company->id)->first();
+                if ($adminRole) {
+                    DB::table('model_has_roles')->insert([
+                        'role_id' => $adminRole->id,
+                        'user_id' => $user->id,
+                        'company_id' => $company->id,
+                    ]);
+                    echo "      → Rôle Admin attribué\n";
+                }
+            }
+        }
     }
-    
-    // Vérifier si l'utilisateur a déjà un rôle
-    $hasRole = DB::table('model_has_roles')
-        ->where('user_id', $user->id)
-        ->where('company_id', $company->id)
-        ->exists();
-    
-    if (!$hasRole) {
-        DB::table('model_has_roles')->insert([
-            'role_id' => $adminRole->id,
-            'user_id' => $user->id,
-            'company_id' => $company->id,
-        ]);
-        echo "   ✓ {$user->email} => rôle Admin\n";
-    } else {
-        echo "   - {$user->email} a déjà un rôle\n";
+    echo "\n";
+}
+
+// ============================================================================
+// RÉSUMÉ
+// ============================================================================
+echo "╔════════════════════════════════════════════════════════════╗\n";
+echo "║                      RÉSUMÉ                                ║\n";
+echo "╚════════════════════════════════════════════════════════════╝\n";
+echo "📊 Permissions : " . Permission::count() . "\n";
+echo "👥 Entreprises : " . Company::count() . "\n";
+echo "🎭 Rôles total : " . Role::count() . "\n";
+echo "👤 Utilisateurs: " . User::count() . "\n";
+
+if ($companies->isNotEmpty()) {
+    echo "\n📌 URLs d'accès :\n";
+    foreach ($companies as $company) {
+        echo "   → https://test-erp.frecorp.fr/admin/{$company->slug}\n";
     }
 }
 
-// 5. Résumé
-echo "\n=== RÉSUMÉ ===\n";
-echo "Permissions: " . Permission::count() . "\n";
-echo "Rôles: " . Role::where('company_id', $company->id)->count() . "\n";
-echo "Utilisateurs: " . User::count() . "\n";
-echo "Company: {$company->name} (slug: {$company->slug})\n";
+echo "\n✅ Déploiement terminé avec succès!\n";
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n";
 
-echo "\n=== ACCÈS ===\n";
-echo "URL: https://test-erp.frecorp.fr/admin/{$company->slug}\n";
-echo "\n✓ Seeding terminé avec succès!\n";
