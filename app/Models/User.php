@@ -143,12 +143,13 @@ class User extends Authenticatable implements FilamentUser, HasTenants
         }
 
         if ($panel->getId() === 'admin') {
-            // Tout utilisateur associé à au moins une entreprise peut accéder au panel admin
             // Les super admins ont toujours accès
             if ($this->is_super_admin) {
                 return true;
             }
-            return $this->companies()->exists();
+            // Tout utilisateur actif peut accéder au panel admin
+            // (s'il n'a pas de company, il sera redirigé vers /admin/new)
+            return true;
         }
         
         if ($panel->getId() === 'caisse') {

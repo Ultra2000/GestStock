@@ -21,6 +21,11 @@ class RegisterCompany extends RegisterTenant
         return 'Enregistrer une entreprise';
     }
 
+    public static function canView(): bool
+    {
+        return true;
+    }
+
     public function form(Form $form): Form
     {
         return $form
