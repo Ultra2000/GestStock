@@ -362,6 +362,9 @@
         </table>
 
         <!-- Totals -->
+        @php
+            $isVatFranchise = \App\Models\AccountingSetting::isVatFranchise($quote->company_id);
+        @endphp
         <div class="totals">
             <table>
                 <tr>
@@ -374,6 +377,16 @@
                     <td class="value">-{{ number_format($quote->discount_amount, 2, ',', ' ') }} €</td>
                 </tr>
                 @endif
+                @if($isVatFranchise)
+                <tr>
+                    <td class="label">TVA</td>
+                    <td class="value" style="color: #999;">Non applicable</td>
+                </tr>
+                <tr class="total-row">
+                    <td>TOTAL NET</td>
+                    <td class="value">{{ number_format($quote->subtotal - ($quote->discount_amount ?? 0), 2, ',', ' ') }} €</td>
+                </tr>
+                @else
                 <tr>
                     <td class="label">TVA ({{ $quote->tax_rate ?? 20 }}%)</td>
                     <td class="value">{{ number_format($quote->tax_amount, 2, ',', ' ') }} €</td>
@@ -382,8 +395,15 @@
                     <td>TOTAL TTC</td>
                     <td class="value">{{ number_format($quote->total_amount, 2, ',', ' ') }} €</td>
                 </tr>
+                @endif
             </table>
         </div>
+
+        @if($isVatFranchise)
+        <div style="text-align: center; padding: 10px 15px; background: #f1f5f9; border-radius: 5px; margin-bottom: 15px; font-size: 10px; font-weight: 600; color: #475569;">
+            TVA non applicable, art. 293 B du CGI
+        </div>
+        @endif
 
         <!-- Validity Notice -->
         @if($quote->valid_until)

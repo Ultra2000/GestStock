@@ -30,7 +30,25 @@ class AccountingSetting extends Model
         'fec_company_name',
         'accounting_software',
         'accounting_software_version',
+        'is_vat_franchise',
     ];
+
+    protected $casts = [
+        'is_vat_franchise' => 'boolean',
+    ];
+
+    /**
+     * Vérifie si l'entreprise est en franchise de TVA
+     */
+    public static function isVatFranchise(?int $companyId = null): bool
+    {
+        $companyId = $companyId ?? filament()->getTenant()?->id;
+        if (!$companyId) {
+            return false;
+        }
+        
+        return static::where('company_id', $companyId)->value('is_vat_franchise') ?? false;
+    }
 
     /**
      * Récupérer ou créer les paramètres comptables pour une entreprise

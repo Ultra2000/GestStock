@@ -4,6 +4,7 @@ namespace App\Filament\Widgets;
 
 use App\Models\Sale;
 use App\Models\Purchase;
+use App\Models\AccountingSetting;
 use Filament\Widgets\StatsOverviewWidget as BaseWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
 use Filament\Facades\Filament;
@@ -22,6 +23,33 @@ class VatSummaryWidget extends BaseWidget
         $companyId = Filament::getTenant()?->id;
         $currency = Filament::getTenant()->currency ?? 'EUR';
         
+        // Vérifier si l'entreprise est en franchise de TVA
+        $isVatFranchise = AccountingSetting::isVatFranchise($companyId);
+        
+        if ($isVatFranchise) {
+            // Mode Franchise TVA : afficher un seul bloc informatif
+            return [
+                Stat::make('Régime fiscal', 'Franchise en base de TVA')
+                    ->description('Art. 293 B du CGI - TVA non applicable')
+                    ->descriptionIcon('heroicon-m-check-badge')
+                    ->color('success')
+                    ->extraAttributes([
+                        'class' => 'border-2 border-green-500/30',
+                    ]),
+                
+                Stat::make('TVA Collectée', '0,00 ' . $currency)
+                    ->description('Non applicable en franchise')
+                    ->descriptionIcon('heroicon-m-minus-circle')
+                    ->color('gray'),
+                
+                Stat::make('TVA à reverser', '0,00 ' . $currency)
+                    ->description('Aucune déclaration TVA requise')
+                    ->descriptionIcon('heroicon-m-check-circle')
+                    ->color('gray'),
+            ];
+        }
+        
+        // Mode normal : calculs TVA habituels
         // Période du mois en cours
         $startOfMonth = Carbon::now()->startOfMonth();
         $endOfMonth = Carbon::now()->endOfMonth();

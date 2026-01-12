@@ -1,0 +1,416 @@
+@import '/vendor/filament/filament/resources/css/theme.css';
+
+@config '../../../../tailwind.config.js';
+
+/*
+ * FRECORP Admin Theme
+ * =====================
+ * Thème Clair: Standard Filament (inchangé)
+ * Thème Sombre: Style Landing Page (Glassmorphism + Indigo/Violet)
+ */
+
+:root {
+    --frecorp-slate-900: 15, 23, 42;
+    --frecorp-slate-800: 30, 41, 59;
+    --frecorp-indigo-500: 99, 102, 241;
+    --frecorp-violet-500: 139, 92, 246;
+}
+
+/* ============================================
+   DARK MODE ONLY - Landing Page Style
+   ============================================ */
+
+/* Sidebar Glassmorphism */
+.dark .fi-sidebar {
+    background: linear-gradient(180deg, 
+        rgba(15, 23, 42, 0.98) 0%, 
+        rgba(30, 41, 59, 0.95) 100%) !important;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-right: 1px solid rgba(99, 102, 241, 0.15) !important;
+    box-shadow: 4px 0 30px rgba(0, 0, 0, 0.3);
+}
+
+/* Sidebar Header */
+.dark .fi-sidebar-header {
+    background: transparent !important;
+    border-bottom: 1px solid rgba(99, 102, 241, 0.1) !important;
+}
+
+/* Navigation Group Labels */
+.dark .fi-sidebar-group-label {
+    color: rgba(148, 163, 184, 0.7) !important;
+    font-size: 0.7rem !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.1em !important;
+    text-transform: uppercase !important;
+}
+
+/* Navigation Items */
+.dark .fi-sidebar-item {
+    margin: 2px 0.5rem !important;
+    border-radius: 0.75rem !important;
+}
+
+.dark .fi-sidebar-item-button {
+    padding: 0.75rem 1rem !important;
+    border-radius: 0.75rem !important;
+    transition: all 0.2s ease !important;
+}
+
+.dark .fi-sidebar-item-button:hover {
+    background: rgba(99, 102, 241, 0.15) !important;
+}
+
+/* Active Navigation Item */
+.dark .fi-sidebar-item-active .fi-sidebar-item-button,
+.dark .fi-sidebar-item-button[aria-current="page"] {
+    background: linear-gradient(135deg, 
+        rgba(99, 102, 241, 0.25) 0%, 
+        rgba(139, 92, 246, 0.2) 100%) !important;
+    border: 1px solid rgba(99, 102, 241, 0.4) !important;
+    box-shadow: 0 4px 20px rgba(99, 102, 241, 0.25) !important;
+}
+
+.dark .fi-sidebar-item-active .fi-sidebar-item-label,
+.dark .fi-sidebar-item-button[aria-current="page"] .fi-sidebar-item-label {
+    color: white !important;
+    font-weight: 600 !important;
+}
+
+.dark .fi-sidebar-item-active .fi-sidebar-item-icon,
+.dark .fi-sidebar-item-button[aria-current="page"] .fi-sidebar-item-icon {
+    color: rgb(165, 180, 252) !important;
+}
+
+/* Navigation Labels & Icons */
+.dark .fi-sidebar-item-label {
+    color: rgba(203, 213, 225, 0.9) !important;
+    font-weight: 500 !important;
+}
+
+.dark .fi-sidebar-item-button:hover .fi-sidebar-item-label {
+    color: white !important;
+}
+
+.dark .fi-sidebar-item-icon {
+    color: rgba(148, 163, 184, 0.7) !important;
+    transition: all 0.2s ease !important;
+}
+
+.dark .fi-sidebar-item-button:hover .fi-sidebar-item-icon {
+    color: rgb(165, 180, 252) !important;
+    transform: scale(1.1);
+}
+
+/* Top Bar */
+.dark .fi-topbar {
+    background: linear-gradient(135deg, 
+        rgba(15, 23, 42, 0.95) 0%, 
+        rgba(30, 41, 59, 0.9) 100%) !important;
+    backdrop-filter: blur(20px) !important;
+    -webkit-backdrop-filter: blur(20px) !important;
+    border-bottom: 1px solid rgba(99, 102, 241, 0.1) !important;
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.2) !important;
+}
+
+/* Main Content Area */
+.dark .fi-main {
+    background: linear-gradient(180deg, 
+        rgb(15, 23, 42) 0%, 
+        rgb(20, 27, 46) 100%) !important;
+}
+
+/* Cards & Widgets - Glassmorphism */
+.dark .fi-wi-stats-overview-stat,
+.dark .fi-section,
+.dark .fi-ta-ctn,
+.dark .fi-fo-component-ctn {
+    background: rgba(30, 41, 59, 0.6) !important;
+    backdrop-filter: blur(12px) !important;
+    -webkit-backdrop-filter: blur(12px) !important;
+    border: 1px solid rgba(99, 102, 241, 0.1) !important;
+    border-radius: 1rem !important;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2) !important;
+}
+
+.dark .fi-wi-stats-overview-stat:hover {
+    border-color: rgba(99, 102, 241, 0.3) !important;
+    box-shadow: 0 8px 40px rgba(99, 102, 241, 0.15) !important;
+    transform: translateY(-2px);
+    transition: all 0.3s ease !important;
+}
+
+/* Buttons */
+.dark .fi-btn-primary,
+.dark [type="submit"].fi-btn {
+    background: linear-gradient(135deg, 
+        rgb(99, 102, 241) 0%, 
+        rgb(139, 92, 246) 100%) !important;
+    box-shadow: 0 4px 20px rgba(99, 102, 241, 0.4) !important;
+    border: none !important;
+    transition: all 0.3s ease !important;
+}
+
+.dark .fi-btn-primary:hover,
+.dark [type="submit"].fi-btn:hover {
+    box-shadow: 0 8px 30px rgba(99, 102, 241, 0.5) !important;
+    transform: translateY(-2px) !important;
+}
+
+/* Tables */
+.dark .fi-ta-header-cell {
+    background: rgba(30, 41, 59, 0.8) !important;
+    color: rgba(148, 163, 184, 0.9) !important;
+    font-weight: 600 !important;
+    text-transform: uppercase !important;
+    font-size: 0.75rem !important;
+    letter-spacing: 0.05em !important;
+}
+
+.dark .fi-ta-row {
+    border-bottom: 1px solid rgba(51, 65, 85, 0.5) !important;
+    transition: all 0.2s ease !important;
+}
+
+.dark .fi-ta-row:hover {
+    background: rgba(99, 102, 241, 0.08) !important;
+}
+
+/* Forms */
+.dark .fi-input,
+.dark .fi-select,
+.dark .fi-textarea,
+.dark [type="text"],
+.dark [type="email"],
+.dark [type="password"],
+.dark [type="number"],
+.dark [type="date"],
+.dark select,
+.dark textarea {
+    background: rgba(30, 41, 59, 0.6) !important;
+    border: 1px solid rgba(71, 85, 105, 0.5) !important;
+    border-radius: 0.75rem !important;
+    transition: all 0.2s ease !important;
+}
+
+.dark .fi-input:focus,
+.dark .fi-select:focus,
+.dark .fi-textarea:focus,
+.dark [type="text"]:focus,
+.dark [type="email"]:focus,
+.dark [type="password"]:focus,
+.dark [type="number"]:focus,
+.dark select:focus,
+.dark textarea:focus {
+    border-color: rgba(99, 102, 241, 0.5) !important;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15) !important;
+    outline: none !important;
+}
+
+/* Modals */
+.dark .fi-modal-window {
+    background: linear-gradient(135deg, 
+        rgba(30, 41, 59, 0.98) 0%, 
+        rgba(15, 23, 42, 0.95) 100%) !important;
+    backdrop-filter: blur(20px) !important;
+    -webkit-backdrop-filter: blur(20px) !important;
+    border: 1px solid rgba(99, 102, 241, 0.2) !important;
+    border-radius: 1.5rem !important;
+    box-shadow: 0 25px 80px rgba(0, 0, 0, 0.5) !important;
+}
+
+/* Badges */
+.dark .fi-badge-primary {
+    background: linear-gradient(135deg, 
+        rgba(99, 102, 241, 0.2) 0%, 
+        rgba(139, 92, 246, 0.2) 100%) !important;
+    color: rgb(165, 180, 252) !important;
+    border: 1px solid rgba(99, 102, 241, 0.3) !important;
+}
+
+/* Tenant Switcher */
+.dark .fi-tenant-menu-trigger {
+    background: rgba(30, 41, 59, 0.6) !important;
+    border: 1px solid rgba(99, 102, 241, 0.2) !important;
+    border-radius: 0.75rem !important;
+    transition: all 0.2s ease !important;
+}
+
+.dark .fi-tenant-menu-trigger:hover {
+    background: rgba(99, 102, 241, 0.15) !important;
+    border-color: rgba(99, 102, 241, 0.4) !important;
+}
+
+/* Dropdown Menus */
+.dark .fi-dropdown-panel {
+    background: rgba(30, 41, 59, 0.95) !important;
+    border: 1px solid rgba(99, 102, 241, 0.2) !important;
+    border-radius: 1rem !important;
+    backdrop-filter: blur(20px) !important;
+    -webkit-backdrop-filter: blur(20px) !important;
+    box-shadow: 0 15px 50px rgba(0, 0, 0, 0.4) !important;
+}
+
+/* Breadcrumbs */
+.dark .fi-breadcrumbs a {
+    color: rgba(148, 163, 184, 0.7) !important;
+    transition: color 0.2s ease !important;
+}
+
+.dark .fi-breadcrumbs a:hover {
+    color: rgb(165, 180, 252) !important;
+}
+
+/* Notifications */
+.dark .fi-notification {
+    background: rgba(30, 41, 59, 0.95) !important;
+    border: 1px solid rgba(99, 102, 241, 0.2) !important;
+    border-radius: 1rem !important;
+    backdrop-filter: blur(20px) !important;
+    -webkit-backdrop-filter: blur(20px) !important;
+}
+
+/* Tabs */
+.dark .fi-tabs-tab {
+    border-radius: 0.75rem !important;
+    transition: all 0.2s ease !important;
+}
+
+.dark .fi-tabs-tab-active {
+    background: linear-gradient(135deg, 
+        rgba(99, 102, 241, 0.2) 0%, 
+        rgba(139, 92, 246, 0.15) 100%) !important;
+    border: 1px solid rgba(99, 102, 241, 0.3) !important;
+}
+
+/* Info Lists */
+.dark .fi-in-entry {
+    border-color: rgba(51, 65, 85, 0.5) !important;
+}
+
+/* Action Buttons */
+.dark .fi-ac-btn-action {
+    transition: all 0.2s ease !important;
+}
+
+.dark .fi-ac-btn-action:hover {
+    background: rgba(99, 102, 241, 0.15) !important;
+    color: rgb(165, 180, 252) !important;
+}
+
+/* Pagination */
+.dark .fi-pagination-item {
+    transition: all 0.2s ease !important;
+}
+
+.dark .fi-pagination-item:hover {
+    background: rgba(99, 102, 241, 0.15) !important;
+}
+
+/* Empty State */
+.dark .fi-ta-empty-state {
+    background: rgba(30, 41, 59, 0.4) !important;
+    border-radius: 1rem !important;
+}
+
+/* Scrollbar - Dark Mode Only */
+.dark ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+.dark ::-webkit-scrollbar-track {
+    background: rgba(15, 23, 42, 0.5);
+    border-radius: 4px;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, 
+        rgba(99, 102, 241, 0.4) 0%, 
+        rgba(139, 92, 246, 0.4) 100%);
+    border-radius: 4px;
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, 
+        rgba(99, 102, 241, 0.6) 0%, 
+        rgba(139, 92, 246, 0.6) 100%);
+}
+
+/* Login/Register Pages - Dark Mode */
+.dark .fi-simple-layout {
+    background: linear-gradient(135deg, 
+        rgb(15, 23, 42) 0%, 
+        rgb(30, 41, 59) 50%,
+        rgb(15, 23, 42) 100%) !important;
+}
+
+.dark .fi-simple-main {
+    background: rgba(30, 41, 59, 0.6) !important;
+    backdrop-filter: blur(20px) !important;
+    -webkit-backdrop-filter: blur(20px) !important;
+    border: 1px solid rgba(99, 102, 241, 0.15) !important;
+    border-radius: 1.5rem !important;
+    box-shadow: 0 25px 80px rgba(0, 0, 0, 0.4) !important;
+}
+
+/* Glow Animation for Primary Buttons in Dark Mode */
+@keyframes glowPulse {
+    0%, 100% {
+        box-shadow: 0 4px 20px rgba(99, 102, 241, 0.4);
+    }
+    50% {
+        box-shadow: 0 4px 30px rgba(99, 102, 241, 0.6);
+    }
+}
+
+.dark .fi-btn-primary {
+    animation: glowPulse 3s ease-in-out infinite;
+}
+
+/* Sidebar Nav Glow Animation */
+@keyframes sidebarGlow {
+    0%, 100% {
+        border-right-color: rgba(99, 102, 241, 0.1);
+    }
+    50% {
+        border-right-color: rgba(99, 102, 241, 0.25);
+    }
+}
+
+.dark .fi-sidebar {
+    animation: sidebarGlow 4s ease-in-out infinite;
+}
+
+/* Widget Card Shimmer Effect on Hover */
+.dark .fi-wi-stats-overview-stat {
+    position: relative;
+    overflow: hidden;
+}
+
+.dark .fi-wi-stats-overview-stat::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, 
+        transparent, 
+        rgba(99, 102, 241, 0.1), 
+        transparent);
+    transition: left 0.5s ease;
+    pointer-events: none;
+}
+
+.dark .fi-wi-stats-overview-stat:hover::before {
+    left: 100%;
+}
+
+/* Mobile Responsive Adjustments */
+@media (max-width: 1024px) {
+    .dark .fi-sidebar {
+        box-shadow: 4px 0 40px rgba(0, 0, 0, 0.5) !important;
+    }
+}

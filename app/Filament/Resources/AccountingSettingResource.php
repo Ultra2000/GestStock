@@ -28,6 +28,54 @@ class AccountingSettingResource extends Resource
     {
         return $form
             ->schema([
+                // SECTION FRANCHISE TVA - EN PREMIER POUR VISIBILITÉ
+                Forms\Components\Section::make('Régime Fiscal')
+                    ->description('Configuration du régime de TVA de votre entreprise')
+                    ->icon('heroicon-o-scale')
+                    ->schema([
+                        Forms\Components\Toggle::make('is_vat_franchise')
+                            ->label('Franchise en base de TVA')
+                            ->helperText('Activez cette option si vous êtes en "Franchise en base de TVA" (Auto-entrepreneur, micro-entreprise). GestStock appliquera automatiquement un taux à 0% et ajoutera la mention obligatoire "Art. 293 B du CGI" sur tous vos documents.')
+                            ->onIcon('heroicon-m-check')
+                            ->offIcon('heroicon-m-x-mark')
+                            ->onColor('success')
+                            ->offColor('gray')
+                            ->live()
+                            ->afterStateUpdated(function ($state) {
+                                if ($state) {
+                                    \Filament\Notifications\Notification::make()
+                                        ->title('Mode Franchise TVA activé')
+                                        ->body('Toutes vos factures et devis afficheront désormais TVA 0% avec la mention légale Art. 293 B du CGI.')
+                                        ->success()
+                                        ->duration(5000)
+                                        ->send();
+                                }
+                            }),
+                        
+                        Forms\Components\Placeholder::make('franchise_info')
+                            ->label('')
+                            ->content(new \Illuminate\Support\HtmlString('
+                                <div class="text-sm text-gray-500 dark:text-gray-400 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                                    <p class="font-semibold text-blue-700 dark:text-blue-300 mb-2">
+                                        <span class="mr-1">ℹ️</span> Quand activer cette option ?
+                                    </p>
+                                    <ul class="list-disc list-inside space-y-1 ml-2">
+                                        <li><strong>Micro-entrepreneurs & Freelances</strong> : Si vous ne dépassez pas les plafonds de CA et ne facturez pas de TVA</li>
+                                        <li><strong>Associations</strong> : Pour les activités non lucratives exonérées</li>
+                                    </ul>
+                                    <p class="mt-3 font-semibold text-blue-700 dark:text-blue-300 mb-2">Ce que GestStock automatise :</p>
+                                    <ul class="list-disc list-inside space-y-1 ml-2">
+                                        <li><strong>Ventes & POS</strong> : Prix traités en "Net à payer", sans TVA</li>
+                                        <li><strong>PDF</strong> : Mention légale "TVA non applicable, art. 293 B du CGI"</li>
+                                        <li><strong>Dashboard</strong> : Widget TVA masqué (non applicable)</li>
+                                    </ul>
+                                </div>
+                            '))
+                            ->columnSpanFull(),
+                    ])
+                    ->collapsible()
+                    ->collapsed(fn ($record) => !$record?->is_vat_franchise),
+
                 Forms\Components\Section::make('Informations de l\'entreprise')
                     ->description('Le SIREN et la raison sociale sont récupérés automatiquement depuis les paramètres de l\'entreprise')
                     ->schema([
@@ -123,13 +171,21 @@ class AccountingSettingResource extends Resource
                             ->label('TVA Collectée')
                             ->required()
                             ->default('445710')
-                            ->helperText('Ex: 445710 - TVA collectée'),
+                            ->helperText('Ex: 445710 - TVA collectée')
+                            ->disabled(fn ($get) => $get('is_vat_franchise')),
 
                         Forms\Components\TextInput::make('account_vat_deductible')
                             ->label('TVA Déductible')
                             ->required()
                             ->default('445660')
-                            ->helperText('Ex: 445660 - TVA déductible'),
+                            ->helperText('Ex: 445660 - TVA déductible')
+                            ->disabled(fn ($get) => $get('is_vat_franchise')),
+                        
+                        Forms\Components\Placeholder::make('vat_franchise_notice')
+                            ->label('')
+                            ->content('⚠️ Comptes TVA désactivés car vous êtes en Franchise de TVA')
+                            ->visible(fn ($get) => $get('is_vat_franchise'))
+                            ->columnSpanFull(),
                     ])
                     ->columns(2),
 
@@ -179,6 +235,14 @@ class AccountingSettingResource extends Resource
     {
         return $table
             ->columns([
+                Tables\Columns\IconColumn::make('is_vat_franchise')
+                    ->label('Franchise TVA')
+                    ->boolean()
+                    ->trueIcon('heroicon-o-check-badge')
+                    ->falseIcon('heroicon-o-x-circle')
+                    ->trueColor('success')
+                    ->falseColor('gray'),
+
                 Tables\Columns\TextColumn::make('account_customers')
                     ->label('Compte Clients')
                     ->badge()

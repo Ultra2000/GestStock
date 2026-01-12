@@ -516,13 +516,16 @@
     $statusClass = 'status-' . ($status ?: 'pending');
     $discountPercent = $sale->discount_percent ?? 0;
     
+    // Vérifier si l'entreprise est en franchise de TVA
+    $isVatFranchise = \App\Models\AccountingSetting::isVatFranchise($company->id);
+    
     // Utiliser les valeurs TVA calculées par ligne et stockées dans Sale
     $totalHt = $sale->total_ht ?? $sale->items->sum('total_price_ht');
-    $totalVat = $sale->total_vat ?? $sale->items->sum('vat_amount');
-    $grandTotal = $sale->total ?? ($totalHt + $totalVat);
+    $totalVat = $isVatFranchise ? 0 : ($sale->total_vat ?? $sale->items->sum('vat_amount'));
+    $grandTotal = $isVatFranchise ? $totalHt : ($sale->total ?? ($totalHt + $totalVat));
     
     // Calculer le taux TVA effectif (moyenne pondérée)
-    $effectiveVatRate = $totalHt > 0 ? round(($totalVat / $totalHt) * 100, 1) : 0;
+    $effectiveVatRate = $isVatFranchise ? 0 : ($totalHt > 0 ? round(($totalVat / $totalHt) * 100, 1) : 0);
     
     // Calculer la remise si présente
     $totalAvantRemise = $sale->items->sum('total_price');
@@ -688,12 +691,19 @@
                     <span class="value">- {{ number_format($discountAmount, 2, ',', ' ') }} {{ $currency }}</span>
                 </div>
             @endif
-            <div class="totals-row">
-                <span class="label">TVA ({{ number_format($effectiveVatRate, 1, ',', ' ') }}%)</span>
-                <span class="value">{{ number_format($totalVat, 2, ',', ' ') }} {{ $currency }}</span>
-            </div>
+            @if($isVatFranchise)
+                <div class="totals-row">
+                    <span class="label">TVA</span>
+                    <span class="value" style="color: var(--gray-400);">Non applicable</span>
+                </div>
+            @else
+                <div class="totals-row">
+                    <span class="label">TVA ({{ number_format($effectiveVatRate, 1, ',', ' ') }}%)</span>
+                    <span class="value">{{ number_format($totalVat, 2, ',', ' ') }} {{ $currency }}</span>
+                </div>
+            @endif
             <div class="totals-row grand-total">
-                <span class="label">Total TTC</span>
+                <span class="label">Total {{ $isVatFranchise ? 'Net' : 'TTC' }}</span>
                 <span class="value">{{ number_format($grandTotal, 2, ',', ' ') }} {{ $currency }}</span>
             </div>
             <div class="amount-words">
@@ -728,6 +738,11 @@
     @endif
 
     <footer class="invoice-footer">
+        @if($isVatFranchise)
+            <p style="font-weight: 600; color: var(--gray-700); margin-bottom: 8px; padding: 8px 16px; background: var(--gray-100); border-radius: 6px; display: inline-block;">
+                TVA non applicable, art. 293 B du CGI
+            </p><br>
+        @endif
         @if($company->footer_text)
             {{ $company->footer_text }}
         @else

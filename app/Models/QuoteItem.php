@@ -65,12 +65,21 @@ class QuoteItem extends Model
         $discountAmount = $subtotalHt * (($this->discount_percent ?? 0) / 100);
         $this->total_price_ht = round($subtotalHt - $discountAmount, 2);
         
-        // Calculer la TVA
-        $vatRate = $this->vat_rate ?? 20;
-        $this->vat_amount = round($this->total_price_ht * ($vatRate / 100), 2);
+        // Vérifier si l'entreprise est en franchise de TVA
+        $companyId = $this->quote?->company_id;
+        $isVatFranchise = $companyId ? AccountingSetting::isVatFranchise($companyId) : false;
         
-        // Total TTC
-        $this->total_price = $this->total_price_ht + $this->vat_amount;
+        if ($isVatFranchise) {
+            // Franchise TVA : TVA = 0
+            $this->vat_rate = 0;
+            $this->vat_amount = 0;
+            $this->total_price = $this->total_price_ht;
+        } else {
+            // Régime normal : calculer la TVA
+            $vatRate = $this->vat_rate ?? 20;
+            $this->vat_amount = round($this->total_price_ht * ($vatRate / 100), 2);
+            $this->total_price = $this->total_price_ht + $this->vat_amount;
+        }
     }
 
     /**

@@ -25,6 +25,8 @@ use Filament\Support\Facades\FilamentView;
 use Filament\View\PanelsRenderHook;
 use Saade\FilamentFullCalendar\FilamentFullCalendarPlugin;
 
+use Filament\Navigation\NavigationGroup;
+
 class AdminPanelProvider extends PanelProvider
 {
     public function panel(Panel $panel): Panel
@@ -38,17 +40,71 @@ class AdminPanelProvider extends PanelProvider
             ->tenant(\App\Models\Company::class, slugAttribute: 'slug')
             ->tenantRegistration(\App\Filament\Pages\Tenancy\RegisterCompany::class)
             ->tenantProfile(\App\Filament\Pages\Tenancy\EditCompanyProfile::class)
+            ->brandName('FRECORP')
+            ->brandLogo(fn () => view('filament.brand-logo'))
+            ->darkMode(true) // Permet le toggle dark/light, dark par défaut
             ->colors([
-                'primary' => Color::Amber,
+                'primary' => [
+                    50 => '#eef2ff',
+                    100 => '#e0e7ff',
+                    200 => '#c7d2fe',
+                    300 => '#a5b4fc',
+                    400 => '#818cf8',
+                    500 => '#6366f1',
+                    600 => '#4f46e5',
+                    700 => '#4338ca',
+                    800 => '#3730a3',
+                    900 => '#312e81',
+                    950 => '#1e1b4b',
+                ],
+                'gray' => [
+                    50 => '#f8fafc',
+                    100 => '#f1f5f9',
+                    200 => '#e2e8f0',
+                    300 => '#cbd5e1',
+                    400 => '#94a3b8',
+                    500 => '#64748b',
+                    600 => '#475569',
+                    700 => '#334155',
+                    800 => '#1e293b',
+                    900 => '#0f172a',
+                    950 => '#020617',
+                ],
+                'danger' => Color::Rose,
+                'success' => Color::Emerald,
+                'warning' => Color::Amber,
+                'info' => Color::Sky,
             ])
+            ->font('Inter')
+            ->viteTheme('resources/css/filament/admin/theme.css')
             ->navigationGroups([
-                'Ventes',
-                'Stocks & Achats',
-                'Point de Vente',
-                'RH',
-                'Comptabilité',
-                'Administration',
+                NavigationGroup::make()
+                    ->label('Ventes')
+                    ->icon('heroicon-o-shopping-cart')
+                    ->collapsed(false),
+                NavigationGroup::make()
+                    ->label('Stocks & Achats')
+                    ->icon('heroicon-o-cube')
+                    ->collapsed(false),
+                NavigationGroup::make()
+                    ->label('Point de Vente')
+                    ->icon('heroicon-o-computer-desktop')
+                    ->collapsed(false),
+                NavigationGroup::make()
+                    ->label('RH')
+                    ->icon('heroicon-o-users')
+                    ->collapsed(false),
+                NavigationGroup::make()
+                    ->label('Comptabilité')
+                    ->icon('heroicon-o-calculator')
+                    ->collapsed(false),
+                NavigationGroup::make()
+                    ->label('Administration')
+                    ->icon('heroicon-o-cog-6-tooth')
+                    ->collapsed(true),
             ])
+            ->sidebarCollapsibleOnDesktop()
+            ->sidebarWidth('280px')
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\\Filament\\Pages')
             ->pages([

@@ -3,28 +3,29 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FRECORP ERP 100% Gratuit - Gestion d'Entreprise Complète | Stock, Ventes, RH, Comptabilité</title>
+    <title>FRECORP ERP | Gestion d'Entreprise Complète - Stock, POS, RH & Comptabilité</title>
     
     <!-- SEO Meta Tags -->
-    <meta name="description" content="FRECORP ERP 100% GRATUIT : solution complète de gestion d'entreprise. Point de vente, stock multi-entrepôts, facturation Chorus Pro, RH, comptabilité. Utilisateurs illimités, à vie.">
-    <meta name="keywords" content="ERP gratuit, logiciel gestion gratuit, point de vente gratuit, caisse enregistreuse gratuite, gestion stock gratuit, facturation gratuite, Chorus Pro, ERP français, FRECORP">
+    <meta name="description" content="FRECORP : La solution ERP SaaS complète pour entreprises. Gestion de stock multi-entrepôts, Point de vente tactile, RH avec pointage QR Code et comptabilité intégrée. 2 ans gratuits !">
+    <meta name="keywords" content="ERP gratuit, SaaS ERP, gestion de stock, logiciel caisse, RH pointage QR code, facturation Chorus Pro, multi-entreprise, FRECORP">
     <meta name="author" content="FRECORP">
     <meta name="robots" content="index, follow">
     <meta name="language" content="fr-FR">
     
     <!-- Open Graph Meta Tags -->
     <meta property="og:type" content="website">
-    <meta property="og:title" content="FRECORP ERP 100% Gratuit - Gestion d'Entreprise Complète">
-    <meta property="og:description" content="ERP 100% GRATUIT avec tous les modules : Point de vente, Stock, Facturation, RH, Comptabilité. Utilisateurs illimités. Prêt pour Chorus Pro 2026.">
+    <meta property="og:title" content="FRECORP ERP - Gestion d'Entreprise Complète">
+    <meta property="og:description" content="ERP complet avec tous les modules : Point de vente, Stock, Facturation, RH, Comptabilité. 2 ans gratuits. Prêt pour Chorus Pro 2026.">
     <meta property="og:url" content="https://frecorp.fr">
     <meta property="og:site_name" content="FRECORP">
-    <meta property="og:image" content="https://frecorp.fr/images/og-image.jpg">
+    <meta property="og:image" content="https://frecorp.fr/assets/og-image.svg">
     <meta property="og:locale" content="fr_FR">
     
     <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="FRECORP ERP 100% Gratuit">
-    <meta name="twitter:description" content="ERP complet et gratuit pour gérer votre entreprise : Caisse, Stock, Factures, RH, Compta.">
+    <meta name="twitter:title" content="FRECORP ERP - 2 ans gratuits">
+    <meta name="twitter:description" content="ERP complet pour gérer votre entreprise : Caisse, Stock, Factures, RH, Compta.">
+    <meta name="twitter:image" content="https://frecorp.fr/assets/og-image.svg">
     
     <!-- Favicon -->
     <link rel="icon" type="image/svg+xml" href="/favicon.svg">
@@ -41,7 +42,7 @@
     <!-- External Resources -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap">
     
     <!-- Structured Data -->
     <script type="application/ld+json">
@@ -56,824 +57,970 @@
             "price": "0",
             "priceCurrency": "EUR"
         },
-        "description": "Solution ERP complète et 100% gratuite pour la gestion d'entreprise",
+        "description": "Solution ERP complète pour la gestion d'entreprise - 2 ans gratuits",
         "featureList": ["Point de Vente", "Gestion de Stock", "Facturation", "RH", "Comptabilité", "Multi-entreprises"]
     }
     </script>
-    
+
     <script>
         tailwind.config = {
             theme: {
                 extend: {
                     colors: {
-                        'glass-blue': 'rgba(59, 130, 246, 0.1)',
-                        'glass-purple': 'rgba(147, 51, 234, 0.1)',
+                        'brand-indigo': '#6366f1',
+                        'glass-white': 'rgba(255, 255, 255, 0.05)',
+                        'glass-border': 'rgba(255, 255, 255, 0.1)',
                     },
-                    fontFamily: {
-                        'sans': ['Inter', '-apple-system', 'BlinkMacSystemFont', 'sans-serif']
-                    },
+                    fontFamily: { sans: ['Inter', 'sans-serif'] },
                     animation: {
                         'float': 'float 6s ease-in-out infinite',
                         'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                    },
+                    keyframes: {
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0px)' },
+                            '50%': { transform: 'translateY(-20px)' },
+                        }
                     }
                 }
             }
         }
     </script>
+
+    <style>
+        .glass-card {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        }
+        .glass-card-hover:hover {
+            background: rgba(255, 255, 255, 0.06);
+            border-color: rgba(99, 102, 241, 0.3);
+        }
+        .nav-glass {
+            background: rgba(15, 23, 42, 0.85);
+            backdrop-filter: blur(12px);
+        }
+        .floating-orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(100px);
+            z-index: 0;
+            opacity: 0.5;
+            pointer-events: none;
+        }
+        .orb-1 { width: 500px; height: 500px; background: #4338ca; top: -150px; left: -150px; }
+        .orb-2 { width: 400px; height: 400px; background: #7c3aed; bottom: 10%; right: -100px; }
+        .orb-3 { width: 300px; height: 300px; background: #06b6d4; top: 50%; left: 30%; }
+        .gradient-text {
+            background: linear-gradient(135deg, #6366f1 0%, #a855f7 50%, #ec4899 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            box-shadow: 0 10px 40px -10px rgba(99, 102, 241, 0.5);
+            transition: all 0.3s ease;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 50px -10px rgba(99, 102, 241, 0.6);
+        }
+        .feature-icon {
+            transition: all 0.3s ease;
+        }
+        .glass-card:hover .feature-icon {
+            transform: scale(1.1) rotate(5deg);
+        }
+        details[open] summary i.fa-chevron-down {
+            transform: rotate(180deg);
+        }
+        details summary i.fa-chevron-down {
+            transition: transform 0.3s ease;
+        }
+        
+        /* Modern Navbar Styles */
+        .nav-modern {
+            background: linear-gradient(135deg, rgba(15, 23, 42, 0.9) 0%, rgba(30, 41, 59, 0.85) 100%);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(99, 102, 241, 0.15);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+        }
+        
+        .nav-link {
+            position: relative;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .nav-link::before {
+            content: '';
+            position: absolute;
+            bottom: -4px;
+            left: 50%;
+            transform: translateX(-50%) scaleX(0);
+            width: 20px;
+            height: 2px;
+            background: linear-gradient(90deg, #6366f1, #8b5cf6);
+            border-radius: 2px;
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .nav-link:hover::before {
+            transform: translateX(-50%) scaleX(1);
+        }
+        
+        .nav-link:hover {
+            color: #fff;
+            background: rgba(99, 102, 241, 0.1);
+        }
+        
+        .logo-container {
+            position: relative;
+            transition: all 0.3s ease;
+        }
+        
+        .logo-container:hover {
+            transform: scale(1.02);
+        }
+        
+        .logo-icon {
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .logo-icon::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(255,255,255,0.2) 0%, transparent 50%);
+            border-radius: inherit;
+        }
+        
+        .btn-cta {
+            position: relative;
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #6366f1 100%);
+            background-size: 200% 100%;
+            box-shadow: 0 4px 20px rgba(99, 102, 241, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            overflow: hidden;
+        }
+        
+        .btn-cta::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transform: translateX(-100%);
+            transition: transform 0.6s ease;
+        }
+        
+        .btn-cta:hover::before {
+            transform: translateX(100%);
+        }
+        
+        .btn-cta:hover {
+            background-position: 100% 0;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(99, 102, 241, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+        }
+        
+        .btn-login {
+            position: relative;
+            padding: 0.5rem 1.25rem;
+            border-radius: 0.5rem;
+            border: 1px solid rgba(148, 163, 184, 0.2);
+            transition: all 0.3s ease;
+        }
+        
+        .btn-login:hover {
+            border-color: rgba(99, 102, 241, 0.5);
+            background: rgba(99, 102, 241, 0.1);
+            color: #fff;
+        }
+        
+        .mobile-menu-btn {
+            position: relative;
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            background: rgba(99, 102, 241, 0.1);
+            border: 1px solid rgba(99, 102, 241, 0.2);
+            transition: all 0.3s ease;
+        }
+        
+        .mobile-menu-btn:hover {
+            background: rgba(99, 102, 241, 0.2);
+            border-color: rgba(99, 102, 241, 0.4);
+        }
+        
+        .mobile-menu {
+            background: linear-gradient(180deg, rgba(15, 23, 42, 0.98) 0%, rgba(30, 41, 59, 0.95) 100%);
+            backdrop-filter: blur(20px);
+            border-top: 1px solid rgba(99, 102, 241, 0.1);
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1), padding 0.3s ease;
+        }
+        
+        .mobile-menu.open {
+            max-height: 400px;
+            padding-top: 1rem;
+            padding-bottom: 1.5rem;
+        }
+        
+        .mobile-link {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.875rem 1rem;
+            border-radius: 0.75rem;
+            transition: all 0.3s ease;
+            border: 1px solid transparent;
+        }
+        
+        .mobile-link:hover {
+            background: rgba(99, 102, 241, 0.1);
+            border-color: rgba(99, 102, 241, 0.2);
+            transform: translateX(4px);
+        }
+        
+        .mobile-link i {
+            width: 20px;
+            text-align: center;
+            color: #6366f1;
+        }
+        
+        @keyframes navGlow {
+            0%, 100% { box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.05); }
+            50% { box-shadow: 0 4px 40px rgba(99, 102, 241, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.08); }
+        }
+        
+        .nav-modern {
+            animation: navGlow 4s ease-in-out infinite;
+        }
+    </style>
 </head>
-<body class="min-h-screen flex flex-col bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white overflow-x-hidden">
-    
-    <!-- Navigation -->
-    <nav class="fixed top-0 w-full z-50 glass-nav">
-        <div class="max-w-7xl mx-auto px-6 py-4">
-            <div class="flex items-center justify-between">
-                <a href="/" class="flex items-center space-x-2">
-                    <img src="logo.svg" alt="FRECORP" class="w-8 h-8">
-                    <span class="text-xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">FRECORP</span>
-                </a>
-                
-                <div class="hidden md:flex items-center space-x-8">
-                    <a href="#fonctionnalites" class="nav-link">Fonctionnalités</a>
-                    <a href="#modules" class="nav-link">Modules</a>
-                    <a href="#pourquoi-gratuit" class="nav-link">Pourquoi Gratuit ?</a>
-                    <a href="#temoignages" class="nav-link">Témoignages</a>
-                    <a href="#faq" class="nav-link">FAQ</a>
+<body class="bg-[#0f172a] text-slate-200 overflow-x-hidden min-h-screen">
+
+    <!-- Orbes de fond animés -->
+    <div class="fixed inset-0 overflow-hidden pointer-events-none">
+        <div class="floating-orb orb-1"></div>
+        <div class="floating-orb orb-2"></div>
+        <div class="floating-orb orb-3"></div>
+    </div>
+
+    <!-- Navigation Moderne -->
+    <nav class="fixed top-0 w-full z-50 nav-modern">
+        <div class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+            <!-- Logo -->
+            <a href="/" class="logo-container flex items-center gap-3 group">
+                <div class="logo-icon w-11 h-11 bg-gradient-to-br from-indigo-500 via-purple-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-500/40 group-hover:shadow-indigo-500/60 transition-shadow duration-300">
+                    <i class="fas fa-boxes-stacked text-white text-xl"></i>
                 </div>
-                
-                <div class="flex items-center space-x-4">
-                    <a href="https://app.frecorp.fr/login" class="hidden sm:block text-gray-300 hover:text-white transition-colors">
-                        Connexion
+                <div class="flex flex-col">
+                    <span class="text-2xl font-black tracking-tight bg-gradient-to-r from-white via-indigo-200 to-indigo-400 bg-clip-text text-transparent">FRECORP</span>
+                    <span class="text-[10px] font-medium text-indigo-400/60 tracking-widest uppercase -mt-1 hidden sm:block">ERP Solution</span>
+                </div>
+            </a>
+            
+            <!-- Navigation Links - Desktop -->
+            <div class="hidden lg:flex items-center">
+                <div class="flex items-center bg-slate-800/30 rounded-2xl p-1.5 border border-slate-700/50">
+                    <a href="#modules" class="nav-link text-sm font-medium text-slate-400">
+                        <i class="fas fa-cube mr-2 text-xs opacity-70"></i>Modules
                     </a>
-                    <a href="https://app.frecorp.fr/register" class="glass-button-primary px-6 py-2 rounded-full text-sm font-medium">
-                        Créer un compte gratuit
+                    <a href="#chorus" class="nav-link text-sm font-medium text-slate-400">
+                        <i class="fas fa-file-invoice mr-2 text-xs opacity-70"></i>Chorus Pro
                     </a>
-                    <button id="mobile-menu-toggle" class="md:hidden text-white p-2">
-                        <i class="fas fa-bars text-xl"></i>
-                    </button>
+                    <a href="#rh" class="nav-link text-sm font-medium text-slate-400">
+                        <i class="fas fa-users mr-2 text-xs opacity-70"></i>Pointage RH
+                    </a>
+                    <a href="#pricing" class="nav-link text-sm font-medium text-slate-400">
+                        <i class="fas fa-tag mr-2 text-xs opacity-70"></i>Tarifs
+                    </a>
+                    <a href="#faq" class="nav-link text-sm font-medium text-slate-400">
+                        <i class="fas fa-circle-question mr-2 text-xs opacity-70"></i>FAQ
+                    </a>
                 </div>
             </div>
-            
-            <!-- Mobile Menu -->
-            <div id="mobile-menu" class="md:hidden hidden mt-4 pb-4 border-t border-white/10 pt-4">
-                <div class="flex flex-col space-y-4">
-                    <a href="#fonctionnalites" class="nav-link">Fonctionnalités</a>
-                    <a href="#modules" class="nav-link">Modules</a>
-                    <a href="#pourquoi-gratuit" class="nav-link">Pourquoi Gratuit ?</a>
-                    <a href="#faq" class="nav-link">FAQ</a>
-                    <a href="https://app.frecorp.fr/login" class="nav-link">Connexion</a>
-                    <a href="https://app.frecorp.fr/register" class="glass-button-primary px-6 py-3 rounded-full text-center font-medium">
-                        Créer un compte gratuit
-                    </a>
-                </div>
+
+            <!-- CTA Buttons -->
+            <div class="flex items-center gap-3">
+                <a href="https://app.frecorp.fr/login" class="btn-login hidden sm:flex items-center gap-2 text-slate-300 font-medium text-sm">
+                    <i class="fas fa-arrow-right-to-bracket text-xs"></i>
+                    <span>Connexion</span>
+                </a>
+                <a href="https://app.frecorp.fr/register" class="btn-cta text-white px-5 py-2.5 rounded-xl font-bold text-sm flex items-center gap-2">
+                    <i class="fas fa-rocket text-xs"></i>
+                    <span class="hidden sm:inline">Essai Gratuit</span>
+                    <span class="sm:hidden">Essai</span>
+                </a>
+                <button id="mobile-menu-toggle" class="mobile-menu-btn lg:hidden flex items-center justify-center">
+                    <i class="fas fa-bars text-lg text-indigo-400" id="menu-icon"></i>
+                </button>
+            </div>
+        </div>
+        
+        <!-- Mobile Menu Premium -->
+        <div id="mobile-menu" class="mobile-menu lg:hidden px-6">
+            <div class="flex flex-col space-y-1">
+                <a href="#modules" class="mobile-link text-slate-300">
+                    <i class="fas fa-cube"></i>
+                    <span>Modules</span>
+                </a>
+                <a href="#chorus" class="mobile-link text-slate-300">
+                    <i class="fas fa-file-invoice"></i>
+                    <span>Chorus Pro 2026</span>
+                </a>
+                <a href="#rh" class="mobile-link text-slate-300">
+                    <i class="fas fa-users"></i>
+                    <span>Pointage RH</span>
+                </a>
+                <a href="#pricing" class="mobile-link text-slate-300">
+                    <i class="fas fa-tag"></i>
+                    <span>Tarifs</span>
+                </a>
+                <a href="#faq" class="mobile-link text-slate-300">
+                    <i class="fas fa-circle-question"></i>
+                    <span>FAQ</span>
+                </a>
+                <div class="border-t border-slate-700/50 my-3"></div>
+                <a href="https://app.frecorp.fr/login" class="mobile-link text-slate-300">
+                    <i class="fas fa-arrow-right-to-bracket"></i>
+                    <span>Connexion</span>
+                </a>
+                <a href="https://app.frecorp.fr/register" class="btn-cta text-white px-5 py-3 rounded-xl font-bold text-sm flex items-center justify-center gap-2 mt-2">
+                    <i class="fas fa-rocket"></i>
+                    <span>Démarrer l'essai gratuit</span>
+                </a>
             </div>
         </div>
     </nav>
 
-    <main class="flex-1">
+    <main>
         <!-- Hero Section -->
-        <section id="accueil" class="min-h-screen flex items-center justify-center relative overflow-hidden px-4 sm:px-6 pt-20">
-            <!-- Animated Background -->
-            <div class="absolute inset-0 overflow-hidden">
-                <div class="floating-orb orb-1"></div>
-                <div class="floating-orb orb-2"></div>
-                <div class="floating-orb orb-3"></div>
-            </div>
-            
-            <div class="relative z-10 text-center max-w-5xl mx-auto">
-                <div class="glass-card p-8 md:p-12 rounded-3xl mb-8">
-                    <!-- Badge Offre -->
-                    <div class="inline-flex items-center bg-gradient-to-r from-green-500/20 to-emerald-500/20 border border-green-400/50 rounded-full px-6 py-2 mb-6">
-                        <span class="relative flex h-3 w-3 mr-2">
-                            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                            <span class="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
-                        </span>
-                        <span class="text-green-400 font-semibold">2 ANS GRATUITS • Utilisateurs illimités • Offre de lancement</span>
-                    </div>
-                    
-                    <h1 class="text-4xl sm:text-6xl md:text-7xl font-bold mb-6">
-                        <span class="block bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500 bg-clip-text text-transparent">
-                            L'ERP Complet
-                        </span>
-                        <span class="block text-white">Pour Votre Entreprise</span>
-                    </h1>
-                    
-                    <p class="text-lg sm:text-xl text-gray-300 mb-8 max-w-3xl mx-auto leading-relaxed">
-                        Point de vente, gestion de stock multi-entrepôts, facturation, devis, 
-                        ressources humaines, comptabilité — <strong class="text-white">2 ans gratuits, tout inclus</strong>.
-                    </p>
-                    
-                    <!-- Key Features Pills -->
-                    <div class="flex flex-wrap justify-center gap-3 mb-8">
-                        <span class="px-4 py-2 bg-blue-500/20 border border-blue-400/30 rounded-full text-sm">
-                            <i class="fas fa-cash-register mr-2"></i>Point de Vente
-                        </span>
-                        <span class="px-4 py-2 bg-purple-500/20 border border-purple-400/30 rounded-full text-sm">
-                            <i class="fas fa-boxes-stacked mr-2"></i>Multi-Entrepôts
-                        </span>
-                        <span class="px-4 py-2 bg-green-500/20 border border-green-400/30 rounded-full text-sm">
-                            <i class="fas fa-file-invoice mr-2"></i>Chorus Pro Ready
-                        </span>
-                        <span class="px-4 py-2 bg-orange-500/20 border border-orange-400/30 rounded-full text-sm">
-                            <i class="fas fa-building mr-2"></i>Multi-Entreprises
-                        </span>
-                    </div>
-                    
-                    <!-- CTA Buttons -->
-                    <div class="flex flex-col sm:flex-row gap-4 justify-center">
-                        <a href="https://app.frecorp.fr/register" class="glass-button-primary px-8 py-4 rounded-full text-lg font-semibold flex items-center justify-center space-x-2 group">
-                            <span>Commencer gratuitement</span>
-                            <i class="fas fa-arrow-right group-hover:translate-x-1 transition-transform"></i>
-                        </a>
-                        <a href="#demo" class="glass-button px-8 py-4 rounded-full text-lg font-semibold flex items-center justify-center space-x-2">
-                            <i class="fas fa-play"></i>
-                            <span>Voir la démo</span>
-                        </a>
-                    </div>
-                    
-                    <!-- Trust Indicators -->
-                    <div class="mt-8 pt-8 border-t border-white/10">
-                        <p class="text-gray-400 text-sm mb-4">Offre de lancement limitée</p>
-                        <div class="flex justify-center items-center space-x-8 opacity-60">
-                            <span class="text-xl font-bold">2 ans gratuits</span>
-                            <span class="text-gray-500">|</span>
-                            <span class="text-xl font-bold">🇫🇷 Made in France</span>
-                            <span class="text-gray-500">|</span>
-                            <span class="text-xl font-bold">RGPD Compliant</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Scroll Indicator -->
-            <div class="absolute bottom-8 left-1/2 transform -translate-x-1/2 animate-bounce hidden sm:block">
-                <i class="fas fa-chevron-down text-white/60 text-2xl"></i>
-            </div>
-        </section>
-
-        <!-- Fonctionnalités Clés -->
-        <section id="fonctionnalites" class="py-24 px-4 sm:px-6">
-            <div class="max-w-7xl mx-auto">
-                <div class="text-center mb-16">
-                    <h2 class="text-4xl md:text-5xl font-bold mb-6">
-                        <span class="bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
-                            Tout ce dont vous avez besoin
-                        </span>
-                    </h2>
-                    <p class="text-xl text-gray-300 max-w-3xl mx-auto">
-                        Une solution complète qui remplace vos logiciels de caisse, stock, facturation et RH
-                    </p>
+        <section class="relative pt-32 pb-20 lg:pt-48 lg:pb-32 px-6">
+            <div class="max-w-7xl mx-auto text-center relative z-10">
+                <!-- Badge Offre -->
+                <div class="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-gradient-to-r from-green-500/20 to-emerald-500/20 border border-green-400/30 text-green-400 text-sm font-bold mb-8">
+                    <span class="relative flex h-2.5 w-2.5">
+                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                        <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-green-500"></span>
+                    </span>
+                    <span>2 ANS GRATUITS • Utilisateurs illimités • Offre de lancement</span>
                 </div>
                 
-                <!-- Features Grid -->
-                <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-                    <!-- Point de Vente -->
-                    <div class="glass-card p-8 rounded-2xl group hover:scale-105 transition-all duration-300">
-                        <div class="w-14 h-14 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-xl flex items-center justify-center mb-6 group-hover:rotate-6 transition-transform">
-                            <i class="fas fa-cash-register text-white text-2xl"></i>
-                        </div>
-                        <h3 class="text-2xl font-bold mb-4">Point de Vente</h3>
-                        <p class="text-gray-300 mb-4">
-                            Caisse tactile intuitive, gestion des sessions, tickets de caisse, et rapports de vente en temps réel.
-                        </p>
-                        <ul class="text-sm text-gray-400 space-y-2">
-                            <li><i class="fas fa-check text-green-400 mr-2"></i>Interface tactile optimisée</li>
-                            <li><i class="fas fa-check text-green-400 mr-2"></i>Gestion des sessions de caisse</li>
-                            <li><i class="fas fa-check text-green-400 mr-2"></i>Multiples moyens de paiement</li>
-                            <li><i class="fas fa-check text-green-400 mr-2"></i>Tickets & reçus personnalisés</li>
-                        </ul>
-                    </div>
-                    
-                    <!-- Gestion de Stock -->
-                    <div class="glass-card p-8 rounded-2xl group hover:scale-105 transition-all duration-300">
-                        <div class="w-14 h-14 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl flex items-center justify-center mb-6 group-hover:rotate-6 transition-transform">
-                            <i class="fas fa-warehouse text-white text-2xl"></i>
-                        </div>
-                        <h3 class="text-2xl font-bold mb-4">Stock Multi-Entrepôts</h3>
-                        <p class="text-gray-300 mb-4">
-                            Gérez plusieurs entrepôts, transferts de stock, inventaires et alertes de réapprovisionnement.
-                        </p>
-                        <ul class="text-sm text-gray-400 space-y-2">
-                            <li><i class="fas fa-check text-green-400 mr-2"></i>Entrepôts illimités</li>
-                            <li><i class="fas fa-check text-green-400 mr-2"></i>Transferts inter-entrepôts</li>
-                            <li><i class="fas fa-check text-green-400 mr-2"></i>Inventaires & ajustements</li>
-                            <li><i class="fas fa-check text-green-400 mr-2"></i>Alertes stock bas</li>
-                        </ul>
-                    </div>
-                    
-                    <!-- Facturation -->
-                    <div class="glass-card p-8 rounded-2xl group hover:scale-105 transition-all duration-300">
-                        <div class="w-14 h-14 bg-gradient-to-r from-green-500 to-emerald-500 rounded-xl flex items-center justify-center mb-6 group-hover:rotate-6 transition-transform">
-                            <i class="fas fa-file-invoice-dollar text-white text-2xl"></i>
-                        </div>
-                        <h3 class="text-2xl font-bold mb-4">Facturation & Devis</h3>
-                        <p class="text-gray-300 mb-4">
-                            Créez devis, factures et bons de livraison. Prêt pour la facturation électronique Chorus Pro.
-                        </p>
-                        <ul class="text-sm text-gray-400 space-y-2">
-                            <li><i class="fas fa-check text-green-400 mr-2"></i>Devis → Facture en 1 clic</li>
-                            <li><i class="fas fa-check text-green-400 mr-2"></i>Bons de livraison</li>
-                            <li><i class="fas fa-check text-green-400 mr-2"></i>PDF personnalisables</li>
-                            <li><i class="fas fa-check text-green-400 mr-2"></i>Chorus Pro 2026 ready</li>
-                        </ul>
-                    </div>
-                    
-                    <!-- RH -->
-                    <div class="glass-card p-8 rounded-2xl group hover:scale-105 transition-all duration-300">
-                        <div class="w-14 h-14 bg-gradient-to-r from-orange-500 to-red-500 rounded-xl flex items-center justify-center mb-6 group-hover:rotate-6 transition-transform">
-                            <i class="fas fa-users text-white text-2xl"></i>
-                        </div>
-                        <h3 class="text-2xl font-bold mb-4">Ressources Humaines</h3>
-                        <p class="text-gray-300 mb-4">
-                            Gestion complète des employés : planning, présences, congés et pointage par QR code.
-                        </p>
-                        <ul class="text-sm text-gray-400 space-y-2">
-                            <li><i class="fas fa-check text-green-400 mr-2"></i>Fiches employés</li>
-                            <li><i class="fas fa-check text-green-400 mr-2"></i>Planning & shifts</li>
-                            <li><i class="fas fa-check text-green-400 mr-2"></i>Gestion des congés</li>
-                            <li><i class="fas fa-check text-green-400 mr-2"></i>Pointage QR Code</li>
-                        </ul>
-                    </div>
-                    
-                    <!-- Comptabilité -->
-                    <div class="glass-card p-8 rounded-2xl group hover:scale-105 transition-all duration-300">
-                        <div class="w-14 h-14 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-xl flex items-center justify-center mb-6 group-hover:rotate-6 transition-transform">
-                            <i class="fas fa-calculator text-white text-2xl"></i>
-                        </div>
-                        <h3 class="text-2xl font-bold mb-4">Comptabilité</h3>
-                        <p class="text-gray-300 mb-4">
-                            Comptes bancaires, rapports financiers, suivi CA et exports comptables.
-                        </p>
-                        <ul class="text-sm text-gray-400 space-y-2">
-                            <li><i class="fas fa-check text-green-400 mr-2"></i>Comptes bancaires</li>
-                            <li><i class="fas fa-check text-green-400 mr-2"></i>Rapports CA & TVA</li>
-                            <li><i class="fas fa-check text-green-400 mr-2"></i>Exports comptables</li>
-                            <li><i class="fas fa-check text-green-400 mr-2"></i>Tableau de bord financier</li>
-                        </ul>
-                    </div>
-                    
-                    <!-- Multi-Entreprises -->
-                    <div class="glass-card p-8 rounded-2xl group hover:scale-105 transition-all duration-300">
-                        <div class="w-14 h-14 bg-gradient-to-r from-teal-500 to-cyan-500 rounded-xl flex items-center justify-center mb-6 group-hover:rotate-6 transition-transform">
-                            <i class="fas fa-building text-white text-2xl"></i>
-                        </div>
-                        <h3 class="text-2xl font-bold mb-4">Multi-Entreprises</h3>
-                        <p class="text-gray-300 mb-4">
-                            Gérez plusieurs sociétés depuis un seul compte. Données isolées, accès personnalisés.
-                        </p>
-                        <ul class="text-sm text-gray-400 space-y-2">
-                            <li><i class="fas fa-check text-green-400 mr-2"></i>Entreprises illimitées</li>
-                            <li><i class="fas fa-check text-green-400 mr-2"></i>Données 100% isolées</li>
-                            <li><i class="fas fa-check text-green-400 mr-2"></i>Rôles personnalisés</li>
-                            <li><i class="fas fa-check text-green-400 mr-2"></i>Basculement rapide</li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Pourquoi Gratuit -->
-        <section id="pourquoi-gratuit" class="py-24 px-4 sm:px-6 relative">
-            <div class="max-w-5xl mx-auto">
-                <div class="glass-card p-8 md:p-12 rounded-3xl">
-                    <div class="text-center mb-12">
-                        <h2 class="text-4xl md:text-5xl font-bold mb-6">
-                            <span class="bg-gradient-to-r from-green-400 to-emerald-400 bg-clip-text text-transparent">
-                                Pourquoi 2 ans gratuits ?
-                            </span>
-                        </h2>
-                        <p class="text-xl text-gray-300 max-w-3xl mx-auto">
-                            Testez FRECORP sans engagement pendant 2 ans. Si vous êtes convaincu, continuez pour seulement 29€/mois.
-                        </p>
-                    </div>
-                    
-                    <div class="grid md:grid-cols-2 gap-8">
-                        <div class="space-y-6">
-                            <div class="flex items-start space-x-4">
-                                <div class="w-10 h-10 bg-green-500/20 rounded-lg flex items-center justify-center flex-shrink-0">
-                                    <i class="fas fa-check text-green-400"></i>
-                                </div>
-                                <div>
-                                    <h4 class="font-bold text-lg mb-1">2 ans 100% gratuits</h4>
-                                    <p class="text-gray-400">Profitez de toutes les fonctionnalités sans payer un centime pendant 24 mois.</p>
-                                </div>
-                            </div>
-                            
-                            <div class="flex items-start space-x-4">
-                                <div class="w-10 h-10 bg-green-500/20 rounded-lg flex items-center justify-center flex-shrink-0">
-                                    <i class="fas fa-users text-green-400"></i>
-                                </div>
-                                <div>
-                                    <h4 class="font-bold text-lg mb-1">Utilisateurs illimités</h4>
-                                    <p class="text-gray-400">Ajoutez autant d'employés, caissiers et gestionnaires que nécessaire.</p>
-                                </div>
-                            </div>
-                            
-                            <div class="flex items-start space-x-4">
-                                <div class="w-10 h-10 bg-green-500/20 rounded-lg flex items-center justify-center flex-shrink-0">
-                                    <i class="fas fa-tags text-green-400"></i>
-                                </div>
-                                <div>
-                                    <h4 class="font-bold text-lg mb-1">Puis 29€/mois seulement</h4>
-                                    <p class="text-gray-400">Après 2 ans, continuez pour moins cher qu'un déjeuner d'affaires par mois.</p>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="space-y-6">
-                            <div class="flex items-start space-x-4">
-                                <div class="w-10 h-10 bg-purple-500/20 rounded-lg flex items-center justify-center flex-shrink-0">
-                                    <i class="fas fa-headset text-purple-400"></i>
-                                </div>
-                                <div>
-                                    <h4 class="font-bold text-lg mb-1">Services optionnels</h4>
-                                    <p class="text-gray-400">Besoin d'aide ? Formation, support prioritaire et développements sur-mesure disponibles.</p>
-                                </div>
-                            </div>
-                            
-                            <div class="flex items-start space-x-4">
-                                <div class="w-10 h-10 bg-purple-500/20 rounded-lg flex items-center justify-center flex-shrink-0">
-                                    <i class="fas fa-code text-purple-400"></i>
-                                </div>
-                                <div>
-                                    <h4 class="font-bold text-lg mb-1">Personnalisation sur devis</h4>
-                                    <p class="text-gray-400">Des besoins spécifiques ? Nos développeurs créent des modules sur-mesure pour vous.</p>
-                                </div>
-                            </div>
-                            
-                            <div class="flex items-start space-x-4">
-                                <div class="w-10 h-10 bg-purple-500/20 rounded-lg flex items-center justify-center flex-shrink-0">
-                                    <i class="fas fa-heart text-purple-400"></i>
-                                </div>
-                                <div>
-                                    <h4 class="font-bold text-lg mb-1">Communauté active</h4>
-                                    <p class="text-gray-400">Rejoignez notre communauté d'utilisateurs pour partager et s'entraider.</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- CTA -->
-                    <div class="text-center mt-12 pt-8 border-t border-white/10">
-                        <a href="https://app.frecorp.fr/register" class="inline-flex items-center space-x-2 glass-button-primary px-8 py-4 rounded-full text-lg font-semibold">
-                            <span>Profiter des 2 ans gratuits</span>
-                            <i class="fas fa-arrow-right"></i>
-                        </a>
-                        <p class="text-gray-400 text-sm mt-4">Aucune carte bancaire • Accès immédiat • Offre limitée</p>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Chorus Pro Section - Interactive Timeline -->
-        <section class="py-24 px-4 sm:px-6 relative overflow-hidden" id="chorus-pro">
-            <div class="max-w-7xl mx-auto">
-                <!-- Header avec compte à rebours -->
-                <div class="text-center mb-16">
-                    <div class="inline-flex items-center bg-gradient-to-r from-red-500/20 to-orange-500/20 border border-red-400/40 rounded-full px-6 py-3 mb-8 animate-pulse">
-                        <i class="fas fa-clock text-red-400 mr-3 text-xl"></i>
-                        <span class="text-red-400 font-bold text-lg" id="countdown-text">Chargement...</span>
-                    </div>
-                    
-                    <h2 class="text-4xl md:text-6xl font-bold mb-6">
-                        <span class="text-white">La facture papier</span>
-                        <span class="block bg-gradient-to-r from-red-500 via-orange-500 to-yellow-500 bg-clip-text text-transparent line-through opacity-60">c'est bientôt fini</span>
-                    </h2>
-                    <p class="text-xl text-gray-300 max-w-2xl mx-auto">
-                        Vous êtes prêt ? Nous oui. Depuis le premier jour.
-                    </p>
-                </div>
-
-                <!-- Simulation interactive de facture -->
-                <div class="glass-card p-8 md:p-12 rounded-3xl mb-16 relative">
-                    <div class="grid lg:grid-cols-2 gap-12 items-center">
-                        <!-- Gauche : Ancienne façon (barrée) -->
-                        <div class="relative">
-                            <div class="absolute -top-4 -left-4 bg-red-500 text-white text-xs font-bold px-3 py-1 rounded-full transform -rotate-12 z-10">
-                                OBSOLÈTE
-                            </div>
-                            <div class="bg-white/5 rounded-2xl p-6 border border-red-500/30 relative overflow-hidden opacity-60">
-                                <div class="absolute inset-0 flex items-center justify-center">
-                                    <div class="w-full h-0.5 bg-red-500 transform rotate-[-15deg]"></div>
-                                </div>
-                                <div class="flex items-center mb-4">
-                                    <i class="fas fa-file-alt text-gray-500 text-3xl mr-4"></i>
-                                    <div>
-                                        <div class="text-gray-400 font-bold">Facture papier</div>
-                                        <div class="text-gray-500 text-sm">Impression • Envoi postal • Classement</div>
-                                    </div>
-                                </div>
-                                <div class="space-y-2 text-gray-500 text-sm">
-                                    <div class="flex items-center"><i class="fas fa-times text-red-400 mr-2"></i>Délai de paiement : 45+ jours</div>
-                                    <div class="flex items-center"><i class="fas fa-times text-red-400 mr-2"></i>Risque de perte : élevé</div>
-                                    <div class="flex items-center"><i class="fas fa-times text-red-400 mr-2"></i>Coût moyen : 8-15€/facture</div>
-                                    <div class="flex items-center"><i class="fas fa-times text-red-400 mr-2"></i>Empreinte carbone : 🌍💨</div>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <!-- Flèche de transformation -->
-                        <div class="hidden lg:flex absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 z-20">
-                            <div class="bg-gradient-to-r from-blue-500 to-purple-500 rounded-full p-4 shadow-lg shadow-purple-500/30">
-                                <i class="fas fa-bolt text-white text-2xl"></i>
-                            </div>
-                        </div>
-                        
-                        <!-- Droite : Nouvelle façon (FRECORP) -->
-                        <div class="relative">
-                            <div class="absolute -top-4 -right-4 bg-gradient-to-r from-green-500 to-emerald-500 text-white text-xs font-bold px-3 py-1 rounded-full transform rotate-12 z-10">
-                                FRECORP ✓
-                            </div>
-                            <div class="bg-gradient-to-br from-green-500/10 to-blue-500/10 rounded-2xl p-6 border border-green-500/30 relative">
-                                <div class="flex items-center mb-4">
-                                    <div class="bg-gradient-to-r from-blue-500 to-purple-500 rounded-xl p-3 mr-4">
-                                        <i class="fas fa-file-invoice text-white text-2xl"></i>
-                                    </div>
-                                    <div>
-                                        <div class="text-white font-bold">Factur-X Automatique</div>
-                                        <div class="text-green-400 text-sm">1 clic • Instantané • Conforme</div>
-                                    </div>
-                                </div>
-                                <div class="space-y-2 text-gray-300 text-sm">
-                                    <div class="flex items-center"><i class="fas fa-check text-green-400 mr-2"></i>Délai de paiement : <span class="text-green-400 font-bold">réduit de 30%</span></div>
-                                    <div class="flex items-center"><i class="fas fa-check text-green-400 mr-2"></i>Traçabilité : <span class="text-green-400 font-bold">100%</span></div>
-                                    <div class="flex items-center"><i class="fas fa-check text-green-400 mr-2"></i>Coût : <span class="text-green-400 font-bold">0€</span> avec FRECORP</div>
-                                    <div class="flex items-center"><i class="fas fa-check text-green-400 mr-2"></i>Empreinte carbone : <span class="text-green-400 font-bold">🌱</span></div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Timeline verticale interactive -->
-                <div class="relative">
-                    <h3 class="text-2xl font-bold text-center mb-12">
-                        <span class="text-gray-400">Où en êtes-vous ?</span>
-                    </h3>
-                    
-                    <!-- Ligne de timeline -->
-                    <div class="absolute left-1/2 transform -translate-x-1/2 w-1 h-full bg-gradient-to-b from-green-500 via-yellow-500 to-orange-500 rounded-full hidden md:block"></div>
-                    
-                    <div class="space-y-8 md:space-y-0 relative">
-                        <!-- Étape 1 : Déjà concerné (Grandes entreprises) -->
-                        <div class="md:flex items-center justify-center mb-8">
-                            <div class="md:w-5/12 md:text-right md:pr-8">
-                                <div class="glass-card p-6 rounded-2xl inline-block hover:scale-105 transition-transform cursor-pointer group" onclick="checkMyStatus('GE')">
-                                    <div class="flex items-center md:flex-row-reverse">
-                                        <div class="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center md:ml-4 mr-4 md:mr-0 group-hover:animate-pulse">
-                                            <i class="fas fa-building text-white text-xl"></i>
-                                        </div>
-                                        <div class="md:text-right">
-                                            <div class="text-green-400 font-bold">1er Sept 2026</div>
-                                            <div class="text-white font-bold">Grandes Entreprises</div>
-                                            <div class="text-gray-400 text-sm">CA > 250M€ ou 5000+ employés</div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="hidden md:flex w-2/12 justify-center">
-                                <div class="w-6 h-6 bg-green-500 rounded-full border-4 border-slate-900 z-10"></div>
-                            </div>
-                            <div class="md:w-5/12"></div>
-                        </div>
-                        
-                        <!-- Étape 2 : ETI -->
-                        <div class="md:flex items-center justify-center mb-8">
-                            <div class="md:w-5/12"></div>
-                            <div class="hidden md:flex w-2/12 justify-center">
-                                <div class="w-6 h-6 bg-yellow-500 rounded-full border-4 border-slate-900 z-10"></div>
-                            </div>
-                            <div class="md:w-5/12 md:pl-8">
-                                <div class="glass-card p-6 rounded-2xl inline-block hover:scale-105 transition-transform cursor-pointer group" onclick="checkMyStatus('ETI')">
-                                    <div class="flex items-center">
-                                        <div class="w-12 h-12 bg-yellow-500 rounded-full flex items-center justify-center mr-4 group-hover:animate-pulse">
-                                            <i class="fas fa-industry text-white text-xl"></i>
-                                        </div>
-                                        <div>
-                                            <div class="text-yellow-400 font-bold">1er Sept 2027</div>
-                                            <div class="text-white font-bold">ETI</div>
-                                            <div class="text-gray-400 text-sm">CA entre 50M€ et 250M€</div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <!-- Étape 3 : PME & TPE -->
-                        <div class="md:flex items-center justify-center">
-                            <div class="md:w-5/12 md:text-right md:pr-8">
-                                <div class="glass-card p-6 rounded-2xl inline-block hover:scale-105 transition-transform cursor-pointer group border-2 border-orange-500/50" onclick="checkMyStatus('PME')">
-                                    <div class="flex items-center md:flex-row-reverse">
-                                        <div class="w-12 h-12 bg-gradient-to-r from-orange-500 to-red-500 rounded-full flex items-center justify-center md:ml-4 mr-4 md:mr-0 group-hover:animate-pulse">
-                                            <i class="fas fa-store text-white text-xl"></i>
-                                        </div>
-                                        <div class="md:text-right">
-                                            <div class="text-orange-400 font-bold">1er Sept 2028</div>
-                                            <div class="text-white font-bold">PME & TPE</div>
-                                            <div class="text-gray-400 text-sm">Toutes les entreprises B2B</div>
-                                            <div class="text-orange-400 text-xs mt-1 font-semibold">← C'est probablement vous !</div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="hidden md:flex w-2/12 justify-center">
-                                <div class="w-6 h-6 bg-orange-500 rounded-full border-4 border-slate-900 z-10"></div>
-                            </div>
-                            <div class="md:w-5/12"></div>
-                        </div>
-                    </div>
+                <h1 class="text-4xl sm:text-5xl lg:text-7xl font-extrabold mb-8 leading-[1.1]">
+                    <span class="block text-white">L'ERP Complet pour</span>
+                    <span class="block gradient-text">votre Entreprise</span>
+                </h1>
+                
+                <p class="text-lg sm:text-xl text-slate-400 max-w-3xl mx-auto mb-10 leading-relaxed">
+                    Point de vente, gestion de stock multi-entrepôts, facturation Chorus Pro, 
+                    RH avec pointage QR code, comptabilité — <strong class="text-white">tout inclus, 2 ans gratuits</strong>.
+                </p>
+                
+                <!-- Key Features Pills -->
+                <div class="flex flex-wrap justify-center gap-3 mb-10">
+                    <span class="px-4 py-2 bg-indigo-500/20 border border-indigo-400/30 rounded-full text-sm font-medium">
+                        <i class="fas fa-cash-register mr-2 text-indigo-400"></i>Point de Vente
+                    </span>
+                    <span class="px-4 py-2 bg-purple-500/20 border border-purple-400/30 rounded-full text-sm font-medium">
+                        <i class="fas fa-boxes-stacked mr-2 text-purple-400"></i>Multi-Entrepôts
+                    </span>
+                    <span class="px-4 py-2 bg-emerald-500/20 border border-emerald-400/30 rounded-full text-sm font-medium">
+                        <i class="fas fa-file-invoice mr-2 text-emerald-400"></i>Chorus Pro Ready
+                    </span>
+                    <span class="px-4 py-2 bg-orange-500/20 border border-orange-400/30 rounded-full text-sm font-medium">
+                        <i class="fas fa-qrcode mr-2 text-orange-400"></i>Pointage QR Code
+                    </span>
                 </div>
                 
-                <!-- CTA -->
-                <div class="text-center mt-16">
-                    <p class="text-gray-400 mb-6">
-                        <i class="fas fa-info-circle mr-2"></i>
-                        Avec FRECORP, vous n'avez rien à faire. On s'occupe de tout.
-                    </p>
-                    <a href="https://app.frecorp.fr/register" class="inline-flex items-center space-x-3 glass-button-primary px-8 py-4 rounded-full text-lg font-semibold group">
-                        <span>Anticiper maintenant</span>
-                        <span class="bg-white/20 rounded-full px-3 py-1 text-sm">Gratuit</span>
+                <!-- CTA Buttons -->
+                <div class="flex flex-col sm:flex-row gap-4 justify-center mb-12">
+                    <a href="https://app.frecorp.fr/register" class="btn-primary px-10 py-4 rounded-2xl text-lg font-bold flex items-center justify-center gap-2 group">
+                        <span>Commencer gratuitement</span>
                         <i class="fas fa-arrow-right group-hover:translate-x-1 transition-transform"></i>
                     </a>
+                    <a href="#demo" class="glass-card glass-card-hover px-10 py-4 rounded-2xl text-lg font-bold flex items-center justify-center gap-2">
+                        <i class="fas fa-play text-indigo-400"></i>
+                        <span>Voir la démo</span>
+                    </a>
+                </div>
+                
+                <!-- Trust Indicators -->
+                <div class="pt-10 border-t border-white/5">
+                    <p class="text-slate-500 text-sm mb-4 uppercase tracking-widest font-semibold">Ils nous font confiance</p>
+                    <div class="flex flex-wrap justify-center items-center gap-8 lg:gap-16 opacity-40 grayscale hover:opacity-70 hover:grayscale-0 transition duration-500">
+                        <span class="text-xl font-bold">🇫🇷 Made in France</span>
+                        <span class="text-xl font-bold">RGPD Compliant</span>
+                        <span class="text-xl font-bold">ISO 27001</span>
+                    </div>
                 </div>
             </div>
         </section>
-        
-        <script>
-        // Compte à rebours jusqu'au 1er septembre 2028 (PME/TPE)
-        function updateCountdown() {
-            const target = new Date('2028-09-01T00:00:00');
-            const now = new Date();
-            const diff = target - now;
-            
-            const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-            const months = Math.floor(days / 30);
-            const years = Math.floor(months / 12);
-            const remainingMonths = months % 12;
-            
-            document.getElementById('countdown-text').innerHTML = 
-                `<span class="text-2xl">${years}</span> ans <span class="text-2xl">${remainingMonths}</span> mois restants avant l'obligation`;
-        }
-        updateCountdown();
-        setInterval(updateCountdown, 86400000); // Update daily
-        
-        function checkMyStatus(type) {
-            const messages = {
-                'GE': '🏢 Grandes Entreprises : L\'obligation commence dans moins d\'un an ! Contactez-nous pour une migration express.',
-                'ETI': '🏭 ETI : Vous avez encore un peu de temps, mais anticiper c\'est gagner. FRECORP est prêt.',
-                'PME': '🏪 PME/TPE : Parfait timing pour vous préparer sereinement. Créez votre compte gratuit !'
-            };
-            alert(messages[type]);
-        }
-        </script>
 
-        <!-- Témoignages -->
-        <section id="temoignages" class="py-24 px-4 sm:px-6">
-            <div class="max-w-7xl mx-auto">
+        <!-- Modules Grid -->
+        <section id="modules" class="py-24 px-6 bg-slate-950/50 relative">
+            <div class="max-w-7xl mx-auto relative z-10">
+                <div class="text-center mb-20">
+                    <h2 class="text-3xl sm:text-4xl font-bold mb-4">Une suite modulaire complète</h2>
+                    <p class="text-slate-400 text-lg max-w-2xl mx-auto">Activez les modules dont vous avez besoin selon votre croissance. Tout est inclus, sans frais cachés.</p>
+                </div>
+
+                <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    <!-- Stock -->
+                    <div class="glass-card glass-card-hover p-8 rounded-3xl group transition-all duration-300">
+                        <div class="feature-icon w-14 h-14 bg-indigo-600/20 rounded-2xl flex items-center justify-center mb-6 text-indigo-400">
+                            <i class="fas fa-boxes-stacked text-2xl"></i>
+                        </div>
+                        <h3 class="text-xl font-bold mb-4">Stocks & Achats</h3>
+                        <p class="text-slate-400 text-sm mb-6 leading-relaxed">Multi-entrepôts, gestion par allées/rayons/étagères, transferts automatiques et inventaires consolidés en temps réel.</p>
+                        <ul class="space-y-3 text-xs text-slate-500 font-semibold">
+                            <li><i class="fas fa-check text-indigo-500 mr-2"></i>CODES-BARRES EAN13 & QR</li>
+                            <li><i class="fas fa-check text-indigo-500 mr-2"></i>ALERTES RUPTURE STOCK</li>
+                            <li><i class="fas fa-check text-indigo-500 mr-2"></i>HISTORIQUE FOURNISSEURS</li>
+                        </ul>
+                    </div>
+
+                    <!-- POS -->
+                    <div class="glass-card glass-card-hover p-8 rounded-3xl group transition-all duration-300">
+                        <div class="feature-icon w-14 h-14 bg-emerald-600/20 rounded-2xl flex items-center justify-center mb-6 text-emerald-400">
+                            <i class="fas fa-cash-register text-2xl"></i>
+                        </div>
+                        <h3 class="text-xl font-bold mb-4">Point de Vente (POS)</h3>
+                        <p class="text-slate-400 text-sm mb-6 leading-relaxed">Interface tactile ultra-rapide pour vos boutiques. Gestion de sessions de caisse, multi-paiements et tickets personnalisés.</p>
+                        <ul class="space-y-3 text-xs text-slate-500 font-semibold">
+                            <li><i class="fas fa-check text-emerald-500 mr-2"></i>CALCUL AUTO DES ÉCARTS</li>
+                            <li><i class="fas fa-check text-emerald-500 mr-2"></i>FOND DE CAISSE DYNAMIQUE</li>
+                            <li><i class="fas fa-check text-emerald-500 mr-2"></i>RAPPORTS EN TEMPS RÉEL</li>
+                        </ul>
+                    </div>
+
+                    <!-- HR -->
+                    <div class="glass-card glass-card-hover p-8 rounded-3xl group transition-all duration-300 border-purple-500/20">
+                        <div class="feature-icon w-14 h-14 bg-purple-600/20 rounded-2xl flex items-center justify-center mb-6 text-purple-400">
+                            <i class="fas fa-user-clock text-2xl"></i>
+                        </div>
+                        <h3 class="text-xl font-bold mb-4">Ressources Humaines</h3>
+                        <p class="text-slate-400 text-sm mb-6 leading-relaxed">Gérez vos employés, plannings et pointages. Inclut le module URSSAF et commissions commerciaux.</p>
+                        <ul class="space-y-3 text-xs text-slate-500 font-semibold">
+                            <li><i class="fas fa-check text-purple-500 mr-2"></i>POINTAGE QR CODE ROTATIF</li>
+                            <li><i class="fas fa-check text-purple-500 mr-2"></i>GESTION DES CONGÉS</li>
+                            <li><i class="fas fa-check text-purple-500 mr-2"></i>PLANNINGS HEBDOMADAIRES</li>
+                        </ul>
+                    </div>
+
+                    <!-- Finance -->
+                    <div class="glass-card glass-card-hover p-8 rounded-3xl group transition-all duration-300">
+                        <div class="feature-icon w-14 h-14 bg-blue-600/20 rounded-2xl flex items-center justify-center mb-6 text-blue-400">
+                            <i class="fas fa-chart-line text-2xl"></i>
+                        </div>
+                        <h3 class="text-xl font-bold mb-4">Comptabilité & Banque</h3>
+                        <p class="text-slate-400 text-sm mb-6 leading-relaxed">Multi-comptes bancaires, rapprochement, export FEC standard et règles d'imputation automatique.</p>
+                        <ul class="space-y-3 text-xs text-slate-500 font-semibold">
+                            <li><i class="fas fa-check text-blue-500 mr-2"></i>RÉSUMÉ TVA DÉDUCTIBLE</li>
+                            <li><i class="fas fa-check text-blue-500 mr-2"></i>RAPPROCHEMENT BANCAIRE</li>
+                            <li><i class="fas fa-check text-blue-500 mr-2"></i>BILAN FINANCIER COMPLET</li>
+                        </ul>
+                    </div>
+
+                    <!-- Ventes -->
+                    <div class="glass-card glass-card-hover p-8 rounded-3xl group transition-all duration-300">
+                        <div class="feature-icon w-14 h-14 bg-orange-600/20 rounded-2xl flex items-center justify-center mb-6 text-orange-400">
+                            <i class="fas fa-file-invoice-dollar text-2xl"></i>
+                        </div>
+                        <h3 class="text-xl font-bold mb-4">Ventes & Facturation</h3>
+                        <p class="text-slate-400 text-sm mb-6 leading-relaxed">Devis convertibles en ventes, factures PDF, signatures clients et gestion des commandes récurrentes.</p>
+                        <ul class="space-y-3 text-xs text-slate-500 font-semibold">
+                            <li><i class="fas fa-check text-orange-500 mr-2"></i>CHORUS PRO READY 2026</li>
+                            <li><i class="fas fa-check text-orange-500 mr-2"></i>FACTUR-X AUTOMATIQUE</li>
+                            <li><i class="fas fa-check text-orange-500 mr-2"></i>BONS DE LIVRAISON PDF</li>
+                        </ul>
+                    </div>
+
+                    <!-- Admin -->
+                    <div class="glass-card glass-card-hover p-8 rounded-3xl group transition-all duration-300">
+                        <div class="feature-icon w-14 h-14 bg-slate-600/20 rounded-2xl flex items-center justify-center mb-6 text-slate-400">
+                            <i class="fas fa-shield-halved text-2xl"></i>
+                        </div>
+                        <h3 class="text-xl font-bold mb-4">Multi-Tenancy & Sécurité</h3>
+                        <p class="text-slate-400 text-sm mb-6 leading-relaxed">Gérez plusieurs entreprises isolées avec un seul accès. 6 rôles prédéfinis et 55+ permissions granulaires.</p>
+                        <ul class="space-y-3 text-xs text-slate-500 font-semibold">
+                            <li><i class="fas fa-check text-slate-400 mr-2"></i>ISOLATION TOTALE DES DONNÉES</li>
+                            <li><i class="fas fa-check text-slate-400 mr-2"></i>LOG D'ACTIVITÉ COMPLET</li>
+                            <li><i class="fas fa-check text-slate-400 mr-2"></i>SYSTÈME D'INVITATIONS</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section Chorus Pro -->
+        <section id="chorus" class="py-24 px-6 relative">
+            <div class="max-w-7xl mx-auto relative z-10">
+                <div class="glass-card p-10 lg:p-20 rounded-[3rem] border-indigo-500/20 relative overflow-hidden">
+                    <div class="grid lg:grid-cols-2 gap-16 items-center">
+                        <div>
+                            <div class="inline-flex items-center bg-red-500/10 border border-red-500/30 px-4 py-2 rounded-lg text-red-400 text-sm font-bold mb-6">
+                                <i class="fas fa-clock mr-2"></i> COMPTE À REBOURS LÉGAL
+                            </div>
+                            <h2 class="text-3xl sm:text-4xl font-bold mb-6">Facturation électronique obligatoire 2026</h2>
+                            <p class="text-slate-400 text-lg mb-10 leading-relaxed">
+                                Ne vous laissez pas surprendre par la réforme. FRECORP génère déjà vos factures au format <strong class="text-white">Factur-X</strong> et s'intègre nativement aux plateformes partenaires Chorus Pro.
+                            </p>
+                            
+                            <div id="countdown" class="grid grid-cols-3 gap-4 mb-10">
+                                <div class="glass-card p-4 rounded-2xl text-center">
+                                    <span id="countdown-months" class="text-3xl font-bold block text-white">--</span>
+                                    <span class="text-[10px] uppercase text-slate-500 font-bold tracking-widest">Mois</span>
+                                </div>
+                                <div class="glass-card p-4 rounded-2xl text-center">
+                                    <span id="countdown-days" class="text-3xl font-bold block text-white">--</span>
+                                    <span class="text-[10px] uppercase text-slate-500 font-bold tracking-widest">Jours</span>
+                                </div>
+                                <div class="glass-card p-4 rounded-2xl text-center border-emerald-500/30">
+                                    <span class="text-3xl font-bold block text-emerald-400">✓</span>
+                                    <span class="text-[10px] uppercase text-slate-500 font-bold tracking-widest">FRECORP Prêt</span>
+                                </div>
+                            </div>
+                            
+                            <a href="https://app.frecorp.fr/register" class="btn-primary inline-flex items-center gap-2 px-8 py-4 rounded-xl font-bold">
+                                <span>Anticiper maintenant</span>
+                                <i class="fas fa-arrow-right"></i>
+                            </a>
+                        </div>
+                        <div class="relative hidden lg:block">
+                            <div class="bg-slate-900 rounded-2xl p-6 border border-white/10 shadow-2xl animate-float">
+                                <div class="flex items-center justify-between mb-8">
+                                    <div class="text-xs text-slate-500 font-mono">// Factur-X Generation Module</div>
+                                    <div class="w-3 h-3 rounded-full bg-emerald-500 shadow-[0_0_15px_rgba(16,185,129,0.5)]"></div>
+                                </div>
+                                <div class="space-y-4">
+                                    <div class="h-4 bg-white/5 rounded w-3/4"></div>
+                                    <div class="h-4 bg-white/5 rounded w-1/2"></div>
+                                    <div class="h-4 bg-white/5 rounded w-5/6"></div>
+                                    <div class="h-4 bg-white/5 rounded w-2/3"></div>
+                                    <div class="pt-6 mt-6 border-t border-white/5 flex justify-between items-center">
+                                        <div class="text-emerald-400 font-bold text-sm">CONFORME FACTUR-X</div>
+                                        <i class="fas fa-file-pdf text-red-500 text-2xl"></i>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Backdrop shine -->
+                            <div class="absolute inset-0 bg-indigo-500/20 blur-[100px] -z-10"></div>
+                        </div>
+                    </div>
+
+                    <!-- Timeline -->
+                    <div class="mt-16 pt-16 border-t border-white/5">
+                        <h3 class="text-xl font-bold text-center mb-10 text-slate-300">Calendrier de la réforme</h3>
+                        <div class="grid md:grid-cols-3 gap-6">
+                            <div class="glass-card p-6 rounded-2xl text-center">
+                                <div class="w-12 h-12 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                                    <i class="fas fa-building text-green-400 text-xl"></i>
+                                </div>
+                                <div class="text-green-400 font-bold mb-1">1er Sept 2026</div>
+                                <div class="text-white font-semibold">Grandes Entreprises</div>
+                                <div class="text-slate-500 text-xs mt-1">CA > 250M€</div>
+                            </div>
+                            <div class="glass-card p-6 rounded-2xl text-center">
+                                <div class="w-12 h-12 bg-yellow-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                                    <i class="fas fa-industry text-yellow-400 text-xl"></i>
+                                </div>
+                                <div class="text-yellow-400 font-bold mb-1">1er Sept 2027</div>
+                                <div class="text-white font-semibold">ETI</div>
+                                <div class="text-slate-500 text-xs mt-1">CA entre 50M€ et 250M€</div>
+                            </div>
+                            <div class="glass-card p-6 rounded-2xl text-center border-orange-500/30">
+                                <div class="w-12 h-12 bg-orange-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                                    <i class="fas fa-store text-orange-400 text-xl"></i>
+                                </div>
+                                <div class="text-orange-400 font-bold mb-1">1er Sept 2028</div>
+                                <div class="text-white font-semibold">PME & TPE</div>
+                                <div class="text-slate-500 text-xs mt-1">← C'est probablement vous !</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Pointage RH Focus -->
+        <section id="rh" class="py-24 px-6 bg-slate-950/50">
+            <div class="max-w-6xl mx-auto relative z-10">
                 <div class="text-center mb-16">
-                    <h2 class="text-4xl md:text-5xl font-bold mb-6">
-                        <span class="bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
-                            Ils utilisent FRECORP
-                        </span>
-                    </h2>
-                    <p class="text-xl text-gray-300">Ce que nos utilisateurs disent de nous</p>
+                    <h2 class="text-3xl sm:text-4xl font-bold mb-4">Le pointage le plus sécurisé du marché</h2>
+                    <p class="text-slate-400 text-lg">Fini les fraudes. QR code rotatif toutes les 30 secondes.</p>
                 </div>
                 
-                <div class="grid md:grid-cols-3 gap-8">
-                    <div class="glass-card p-8 rounded-2xl">
-                        <div class="flex items-center mb-4">
-                            <div class="text-yellow-400">
-                                <i class="fas fa-star"></i>
-                                <i class="fas fa-star"></i>
-                                <i class="fas fa-star"></i>
-                                <i class="fas fa-star"></i>
-                                <i class="fas fa-star"></i>
-                            </div>
+                <div class="grid md:grid-cols-2 gap-12 items-center">
+                    <div class="glass-card p-10 rounded-[2.5rem] border-purple-500/20">
+                        <div class="aspect-square bg-white rounded-3xl p-8 flex flex-col items-center justify-center mb-6">
+                            <i class="fas fa-qrcode text-8xl sm:text-9xl text-slate-900 mb-4 animate-pulse"></i>
+                            <span class="text-slate-900 font-mono font-bold tracking-tighter text-sm">TOKEN: FRC-8294-XK</span>
+                            <span class="text-slate-500 text-xs mt-2">Expire dans 27s</span>
                         </div>
-                        <p class="text-gray-300 mb-6 italic">
-                            "Incroyable qu'un ERP aussi complet soit gratuit ! On a remplacé 3 logiciels différents par FRECORP. La caisse est super intuitive."
-                        </p>
-                        <div class="flex items-center space-x-4">
-                            <div class="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center">
-                                <span class="font-bold">ML</span>
-                            </div>
-                            <div>
-                                <div class="font-bold">Marie L.</div>
-                                <div class="text-gray-400 text-sm">Gérante de boutique, Lyon</div>
-                            </div>
-                        </div>
+                        <div class="text-center text-xs text-slate-500 font-bold uppercase tracking-widest">QR Code Dynamique rotatif (30s)</div>
                     </div>
                     
-                    <div class="glass-card p-8 rounded-2xl">
-                        <div class="flex items-center mb-4">
-                            <div class="text-yellow-400">
-                                <i class="fas fa-star"></i>
-                                <i class="fas fa-star"></i>
-                                <i class="fas fa-star"></i>
-                                <i class="fas fa-star"></i>
-                                <i class="fas fa-star"></i>
-                            </div>
+                    <div class="space-y-8">
+                        <div>
+                            <h3 class="text-2xl font-bold text-purple-400 mb-4">Anti-Fraude Natif</h3>
+                            <p class="text-slate-400 leading-relaxed">
+                                Fini les pointages pour les collègues absents. Notre QR Code change toutes les 30 secondes et nécessite la présence physique pour valider la prise de poste.
+                            </p>
                         </div>
-                        <p class="text-gray-300 mb-6 italic">
-                            "Le module RH avec le pointage QR code a changé notre quotidien. Plus de feuilles Excel pour gérer les présences !"
-                        </p>
-                        <div class="flex items-center space-x-4">
-                            <div class="w-12 h-12 bg-gradient-to-r from-green-500 to-teal-500 rounded-full flex items-center justify-center">
-                                <span class="font-bold">TD</span>
-                            </div>
-                            <div>
-                                <div class="font-bold">Thomas D.</div>
-                                <div class="text-gray-400 text-sm">Directeur PME, Paris</div>
-                            </div>
-                        </div>
+                        
+                        <ul class="space-y-4">
+                            <li class="flex items-center gap-4">
+                                <div class="w-10 h-10 rounded-xl bg-purple-500/20 flex items-center justify-center text-purple-400">
+                                    <i class="fas fa-mobile-screen"></i>
+                                </div>
+                                <span class="text-slate-300">Scan direct via smartphone employé</span>
+                            </li>
+                            <li class="flex items-center gap-4">
+                                <div class="w-10 h-10 rounded-xl bg-purple-500/20 flex items-center justify-center text-purple-400">
+                                    <i class="fas fa-clock-rotate-left"></i>
+                                </div>
+                                <span class="text-slate-300">Historique de pointage immuable</span>
+                            </li>
+                            <li class="flex items-center gap-4">
+                                <div class="w-10 h-10 rounded-xl bg-purple-500/20 flex items-center justify-center text-purple-400">
+                                    <i class="fas fa-calendar-check"></i>
+                                </div>
+                                <span class="text-slate-300">Gestion congés et plannings intégrée</span>
+                            </li>
+                            <li class="flex items-center gap-4">
+                                <div class="w-10 h-10 rounded-xl bg-purple-500/20 flex items-center justify-center text-purple-400">
+                                    <i class="fas fa-file-export"></i>
+                                </div>
+                                <span class="text-slate-300">Export direct vers module paie</span>
+                            </li>
+                        </ul>
                     </div>
-                    
-                    <div class="glass-card p-8 rounded-2xl">
-                        <div class="flex items-center mb-4">
-                            <div class="text-yellow-400">
-                                <i class="fas fa-star"></i>
-                                <i class="fas fa-star"></i>
-                                <i class="fas fa-star"></i>
-                                <i class="fas fa-star"></i>
-                                <i class="fas fa-star-half-alt"></i>
-                            </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Pricing -->
+        <section id="pricing" class="py-24 px-6 relative">
+            <div class="max-w-7xl mx-auto relative z-10">
+                <div class="text-center mb-16">
+                    <h2 class="text-3xl sm:text-4xl font-bold mb-4">Tarifs simples et transparents</h2>
+                    <p class="text-slate-400 text-lg">Commencez gratuitement pendant 2 ans, puis évoluez selon vos besoins.</p>
+                </div>
+
+                <div class="grid lg:grid-cols-3 gap-8">
+                    <!-- Gratuit -->
+                    <div class="glass-card p-10 rounded-[2rem] flex flex-col border-green-500/30">
+                        <div class="mb-8">
+                            <div class="inline-flex items-center bg-green-500/20 text-green-400 px-3 py-1 rounded-full text-xs font-bold mb-3">OFFRE DE LANCEMENT</div>
+                            <h4 class="font-bold text-slate-400 uppercase tracking-widest text-xs mb-2">2 ans gratuits</h4>
+                            <div class="text-4xl font-bold">0€<span class="text-sm text-slate-500 font-normal">/mois</span></div>
                         </div>
-                        <p class="text-gray-300 mb-6 italic">
-                            "Multi-entrepôts + transferts automatiques = gain de temps énorme. Et le fait que ce soit préparé pour Chorus Pro, c'est un vrai plus."
-                        </p>
-                        <div class="flex items-center space-x-4">
-                            <div class="w-12 h-12 bg-gradient-to-r from-orange-500 to-red-500 rounded-full flex items-center justify-center">
-                                <span class="font-bold">SB</span>
-                            </div>
-                            <div>
-                                <div class="font-bold">Sophie B.</div>
-                                <div class="text-gray-400 text-sm">Responsable logistique, Bordeaux</div>
-                            </div>
+                        <ul class="space-y-4 mb-10 flex-grow text-sm text-slate-400">
+                            <li><i class="fas fa-check text-green-500 mr-2"></i>Tous les modules inclus</li>
+                            <li><i class="fas fa-check text-green-500 mr-2"></i>Utilisateurs illimités</li>
+                            <li><i class="fas fa-check text-green-500 mr-2"></i>Entreprises illimitées</li>
+                            <li><i class="fas fa-check text-green-500 mr-2"></i>Support communauté</li>
+                            <li><i class="fas fa-check text-green-500 mr-2"></i>Mises à jour incluses</li>
+                        </ul>
+                        <a href="https://app.frecorp.fr/register" class="w-full py-4 bg-green-600 hover:bg-green-500 text-white rounded-xl font-bold transition text-center">
+                            Profiter de l'offre
+                        </a>
+                    </div>
+
+                    <!-- Standard -->
+                    <div class="glass-card p-10 rounded-[2rem] flex flex-col border-indigo-500/50 relative scale-105 shadow-2xl shadow-indigo-500/10">
+                        <div class="absolute -top-4 left-1/2 -translate-x-1/2 bg-indigo-600 px-4 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest">Après 2 ans</div>
+                        <div class="mb-8">
+                            <h4 class="font-bold text-indigo-400 uppercase tracking-widest text-xs mb-2">Standard</h4>
+                            <div class="text-4xl font-bold">29€<span class="text-sm text-slate-500 font-normal">/mois</span></div>
                         </div>
+                        <ul class="space-y-4 mb-10 flex-grow text-sm text-slate-300">
+                            <li><i class="fas fa-check text-indigo-500 mr-2"></i>Tous les modules inclus</li>
+                            <li><i class="fas fa-check text-indigo-500 mr-2"></i>Utilisateurs illimités</li>
+                            <li><i class="fas fa-check text-indigo-500 mr-2"></i>Jusqu'à 5 entreprises</li>
+                            <li><i class="fas fa-check text-indigo-500 mr-2"></i>Support email prioritaire</li>
+                            <li><i class="fas fa-check text-indigo-500 mr-2"></i>API REST complète</li>
+                            <li><i class="fas fa-check text-indigo-500 mr-2"></i>Exports comptables FEC</li>
+                        </ul>
+                        <button class="w-full py-4 btn-primary rounded-xl font-bold">Après l'offre gratuite</button>
+                    </div>
+
+                    <!-- Enterprise -->
+                    <div class="glass-card p-10 rounded-[2rem] flex flex-col border-white/5">
+                        <div class="mb-8">
+                            <h4 class="font-bold text-slate-400 uppercase tracking-widest text-xs mb-2">Enterprise</h4>
+                            <div class="text-4xl font-bold">Sur Mesure</div>
+                        </div>
+                        <ul class="space-y-4 mb-10 flex-grow text-sm text-slate-400">
+                            <li><i class="fas fa-check text-slate-400 mr-2"></i>Entreprises Illimitées</li>
+                            <li><i class="fas fa-check text-slate-400 mr-2"></i>Déploiement Docker dédié</li>
+                            <li><i class="fas fa-check text-slate-400 mr-2"></i>Formation sur site</li>
+                            <li><i class="fas fa-check text-slate-400 mr-2"></i>Support téléphone 24/7</li>
+                            <li><i class="fas fa-check text-slate-400 mr-2"></i>Modules sur-mesure</li>
+                        </ul>
+                        <a href="mailto:contact@frecorp.fr" class="w-full py-4 glass-card rounded-xl font-bold hover:bg-white/5 transition text-center">
+                            Nous contacter
+                        </a>
                     </div>
                 </div>
             </div>
         </section>
 
         <!-- FAQ -->
-        <section id="faq" class="py-24 px-4 sm:px-6">
-            <div class="max-w-4xl mx-auto">
+        <section id="faq" class="py-24 px-6 bg-slate-950/50">
+            <div class="max-w-4xl mx-auto relative z-10">
                 <div class="text-center mb-16">
-                    <h2 class="text-4xl md:text-5xl font-bold mb-6">
-                        <span class="bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
-                            Questions Fréquentes
-                        </span>
-                    </h2>
+                    <h2 class="text-3xl sm:text-4xl font-bold mb-4">Questions Fréquentes</h2>
+                    <p class="text-slate-400">Tout ce que vous devez savoir sur FRECORP</p>
                 </div>
                 
                 <div class="space-y-4">
                     <details class="glass-card rounded-2xl group" open>
-                        <summary class="p-6 cursor-pointer flex justify-between items-center font-bold text-lg">
+                        <summary class="p-6 cursor-pointer flex justify-between items-center font-bold text-lg list-none">
                             Pourquoi 2 ans gratuits ? C'est quoi l'arnaque ?
-                            <i class="fas fa-chevron-down group-open:rotate-180 transition-transform"></i>
+                            <i class="fas fa-chevron-down text-indigo-400"></i>
                         </summary>
-                        <div class="px-6 pb-6 text-gray-300">
-                            Aucune arnaque ! Nous voulons que vous testiez FRECORP en conditions réelles. Pendant 2 ans, tout est gratuit et illimité. Après, vous payez seulement 29€/mois si vous souhaitez continuer. Vous pouvez exporter vos données à tout moment.
+                        <div class="px-6 pb-6 text-slate-400 leading-relaxed">
+                            Aucune arnaque ! Nous voulons que vous testiez FRECORP en conditions réelles. Pendant 2 ans, tout est gratuit et illimité. Après, vous payez seulement 29€/mois si vous souhaitez continuer. Vous pouvez exporter vos données à tout moment. Aucune carte bancaire requise à l'inscription.
                         </div>
                     </details>
                     
                     <details class="glass-card rounded-2xl group">
-                        <summary class="p-6 cursor-pointer flex justify-between items-center font-bold text-lg">
+                        <summary class="p-6 cursor-pointer flex justify-between items-center font-bold text-lg list-none">
                             Combien d'utilisateurs puis-je ajouter ?
-                            <i class="fas fa-chevron-down group-open:rotate-180 transition-transform"></i>
+                            <i class="fas fa-chevron-down text-indigo-400"></i>
                         </summary>
-                        <div class="px-6 pb-6 text-gray-300">
-                            Autant que vous voulez ! Il n'y a aucune limite sur le nombre d'utilisateurs, d'employés ou d'entreprises que vous pouvez gérer avec FRECORP.
+                        <div class="px-6 pb-6 text-slate-400 leading-relaxed">
+                            Autant que vous voulez ! Il n'y a aucune limite sur le nombre d'utilisateurs, d'employés ou d'entreprises que vous pouvez gérer avec FRECORP. Ajoutez autant de caissiers, gestionnaires et comptables que nécessaire.
                         </div>
                     </details>
                     
                     <details class="glass-card rounded-2xl group">
-                        <summary class="p-6 cursor-pointer flex justify-between items-center font-bold text-lg">
+                        <summary class="p-6 cursor-pointer flex justify-between items-center font-bold text-lg list-none">
                             Mes données sont-elles sécurisées ?
-                            <i class="fas fa-chevron-down group-open:rotate-180 transition-transform"></i>
+                            <i class="fas fa-chevron-down text-indigo-400"></i>
                         </summary>
-                        <div class="px-6 pb-6 text-gray-300">
-                            Absolument. Vos données sont hébergées en France, chiffrées et sauvegardées quotidiennement. Nous sommes conformes au RGPD et ne partageons jamais vos données avec des tiers.
+                        <div class="px-6 pb-6 text-slate-400 leading-relaxed">
+                            Absolument. Vos données sont hébergées en France 🇫🇷, chiffrées et sauvegardées quotidiennement. Nous sommes conformes au RGPD et ne partageons jamais vos données avec des tiers. Chaque entreprise a ses données totalement isolées.
                         </div>
                     </details>
                     
                     <details class="glass-card rounded-2xl group">
-                        <summary class="p-6 cursor-pointer flex justify-between items-center font-bold text-lg">
+                        <summary class="p-6 cursor-pointer flex justify-between items-center font-bold text-lg list-none">
                             Puis-je migrer depuis un autre logiciel ?
-                            <i class="fas fa-chevron-down group-open:rotate-180 transition-transform"></i>
+                            <i class="fas fa-chevron-down text-indigo-400"></i>
                         </summary>
-                        <div class="px-6 pb-6 text-gray-300">
-                            Oui ! Nous proposons des imports CSV/Excel pour vos produits, clients et fournisseurs. Pour des migrations plus complexes, notre équipe peut vous accompagner (service payant).
+                        <div class="px-6 pb-6 text-slate-400 leading-relaxed">
+                            Oui ! Nous proposons des imports CSV/Excel pour vos produits, clients et fournisseurs. Pour des migrations plus complexes, notre équipe peut vous accompagner (service optionnel sur devis).
                         </div>
                     </details>
                     
                     <details class="glass-card rounded-2xl group">
-                        <summary class="p-6 cursor-pointer flex justify-between items-center font-bold text-lg">
+                        <summary class="p-6 cursor-pointer flex justify-between items-center font-bold text-lg list-none">
                             FRECORP est-il compatible avec la facturation électronique 2026 ?
-                            <i class="fas fa-chevron-down group-open:rotate-180 transition-transform"></i>
+                            <i class="fas fa-chevron-down text-indigo-400"></i>
                         </summary>
-                        <div class="px-6 pb-6 text-gray-300">
-                            Oui, FRECORP est déjà préparé pour Chorus Pro et la facturation électronique obligatoire. Nous générons des factures au format Factur-X et nous nous connecterons aux PDP partenaires avant les échéances légales.
+                        <div class="px-6 pb-6 text-slate-400 leading-relaxed">
+                            Oui, FRECORP est déjà préparé pour Chorus Pro et la facturation électronique obligatoire. Nous générons des factures au format Factur-X et nous nous connecterons aux PDP partenaires avant les échéances légales (2026-2028 selon la taille de votre entreprise).
+                        </div>
+                    </details>
+                    
+                    <details class="glass-card rounded-2xl group">
+                        <summary class="p-6 cursor-pointer flex justify-between items-center font-bold text-lg list-none">
+                            Comment fonctionne le pointage QR code ?
+                            <i class="fas fa-chevron-down text-indigo-400"></i>
+                        </summary>
+                        <div class="px-6 pb-6 text-slate-400 leading-relaxed">
+                            Un QR code dynamique est affiché sur un écran (tablette, PC) dans vos locaux. Ce code change toutes les 30 secondes pour éviter toute fraude. Les employés scannent le code avec leur smartphone pour pointer leur arrivée, pause ou départ. L'historique est enregistré automatiquement.
                         </div>
                     </details>
                 </div>
             </div>
         </section>
 
-        <!-- CTA Final -->
-        <section class="py-24 px-4 sm:px-6">
-            <div class="max-w-4xl mx-auto">
-                <div class="glass-card p-8 md:p-12 rounded-3xl text-center bg-gradient-to-r from-blue-500/10 to-purple-500/10 border border-blue-400/20">
-                    <h2 class="text-3xl md:text-5xl font-bold mb-6">
-                        Prêt à simplifier votre gestion ?
-                    </h2>
-                    <p class="text-xl text-gray-300 mb-8 max-w-2xl mx-auto">
-                        Rejoignez les 500+ entreprises qui font confiance à FRECORP pour leur gestion quotidienne.
+        <!-- Final CTA -->
+        <section class="py-32 px-6 relative">
+            <div class="max-w-4xl mx-auto text-center relative z-10">
+                <div class="glass-card p-12 lg:p-20 rounded-[3rem] bg-gradient-to-br from-indigo-900/40 via-slate-900/40 to-purple-900/40 border-indigo-500/20">
+                    <h2 class="text-3xl sm:text-4xl lg:text-5xl font-bold mb-8">Reprenez le contrôle total de votre entreprise</h2>
+                    <p class="text-slate-400 text-lg mb-10 max-w-2xl mx-auto">
+                        Plus de 500 gestionnaires ont abandonné leurs tableurs Excel pour la puissance de FRECORP. Pourquoi pas vous ?
                     </p>
-                    <div class="flex flex-col sm:flex-row gap-4 justify-center">
-                        <a href="https://app.frecorp.fr/register" class="glass-button-primary px-8 py-4 rounded-full text-lg font-semibold flex items-center justify-center space-x-2">
+                    <div class="flex flex-col sm:flex-row justify-center gap-4">
+                        <a href="https://app.frecorp.fr/register" class="bg-white text-slate-950 px-10 py-5 rounded-2xl font-bold text-lg hover:bg-indigo-50 transition shadow-2xl inline-flex items-center justify-center gap-2">
                             <span>Créer mon compte gratuit</span>
                             <i class="fas fa-arrow-right"></i>
                         </a>
-                        <a href="mailto:contact@frecorp.fr" class="glass-button px-8 py-4 rounded-full text-lg font-semibold flex items-center justify-center space-x-2">
+                        <a href="mailto:contact@frecorp.fr" class="glass-card glass-card-hover px-10 py-5 rounded-2xl font-bold text-lg inline-flex items-center justify-center gap-2">
                             <i class="fas fa-envelope"></i>
                             <span>Nous contacter</span>
                         </a>
                     </div>
-                    <p class="text-gray-400 text-sm mt-6">
-                        <i class="fas fa-lock mr-2"></i>Aucune carte bancaire requise • Données hébergées en France 🇫🇷
-                    </p>
+                    <div class="mt-8 text-xs text-slate-500 font-semibold uppercase tracking-widest">
+                        <i class="fas fa-shield-check mr-2 text-indigo-500"></i> Données hébergées en France 🇫🇷 • Sans carte bancaire • RGPD Compliant
+                    </div>
                 </div>
             </div>
         </section>
     </main>
 
     <!-- Footer -->
-    <footer class="py-12 border-t border-white/10">
-        <div class="max-w-7xl mx-auto px-6">
-            <div class="grid md:grid-cols-4 gap-8 mb-8">
-                <div>
-                    <div class="flex items-center space-x-2 mb-4">
-                        <img src="logo.svg" alt="FRECORP" class="w-8 h-8">
-                        <span class="text-xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">FRECORP</span>
+    <footer class="py-16 border-t border-white/5 bg-slate-950/50 relative z-10">
+        <div class="max-w-7xl mx-auto px-6 grid md:grid-cols-4 gap-12">
+            <div>
+                <div class="flex items-center gap-2 mb-6">
+                    <div class="w-8 h-8 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-boxes-stacked text-white text-sm"></i>
                     </div>
-                    <p class="text-gray-400 text-sm">
-                        Solution ERP 100% gratuite pour la gestion d'entreprise moderne.
-                    </p>
+                    <span class="text-xl font-bold text-white">FRECORP</span>
                 </div>
-                
-                <div>
-                    <h4 class="font-bold mb-4">Produit</h4>
-                    <ul class="space-y-2 text-gray-400 text-sm">
-                        <li><a href="#fonctionnalites" class="hover:text-white transition-colors">Fonctionnalités</a></li>
-                        <li><a href="#modules" class="hover:text-white transition-colors">Modules</a></li>
-                        <li><a href="demo.html" class="hover:text-white transition-colors">Démo</a></li>
-                        <li><a href="#" class="hover:text-white transition-colors">Roadmap</a></li>
-                    </ul>
-                </div>
-                
-                <div>
-                    <h4 class="font-bold mb-4">Ressources</h4>
-                    <ul class="space-y-2 text-gray-400 text-sm">
-                        <li><a href="blog.html" class="hover:text-white transition-colors">Blog</a></li>
-                        <li><a href="#" class="hover:text-white transition-colors">Documentation</a></li>
-                        <li><a href="#faq" class="hover:text-white transition-colors">FAQ</a></li>
-                        <li><a href="#" class="hover:text-white transition-colors">Support</a></li>
-                    </ul>
-                </div>
-                
-                <div>
-                    <h4 class="font-bold mb-4">Légal</h4>
-                    <ul class="space-y-2 text-gray-400 text-sm">
-                        <li><a href="#" class="hover:text-white transition-colors">Mentions légales</a></li>
-                        <li><a href="#" class="hover:text-white transition-colors">CGU</a></li>
-                        <li><a href="#" class="hover:text-white transition-colors">Politique de confidentialité</a></li>
-                        <li><a href="#" class="hover:text-white transition-colors">RGPD</a></li>
-                    </ul>
-                </div>
+                <p class="text-slate-500 text-sm">L'ERP complet pour les entreprises modernes. Simplifiez votre gestion.</p>
             </div>
-            
-            <div class="flex flex-col md:flex-row items-center justify-between pt-8 border-t border-white/10">
-                <p class="text-gray-400 text-sm mb-4 md:mb-0">
-                    © <span id="current-year"></span> FRECORP. Tous droits réservés. Made with ❤️ in France 🇫🇷
-                </p>
-                <div class="flex items-center space-x-6">
-                    <a href="#" class="text-gray-400 hover:text-white transition-colors">
-                        <i class="fab fa-twitter text-xl"></i>
-                    </a>
-                    <a href="#" class="text-gray-400 hover:text-white transition-colors">
-                        <i class="fab fa-linkedin text-xl"></i>
-                    </a>
-                    <a href="#" class="text-gray-400 hover:text-white transition-colors">
-                        <i class="fab fa-github text-xl"></i>
-                    </a>
-                    <a href="#" class="text-gray-400 hover:text-white transition-colors">
-                        <i class="fab fa-discord text-xl"></i>
-                    </a>
-                </div>
+            <div>
+                <h5 class="text-white font-bold mb-6">Produit</h5>
+                <ul class="text-slate-500 space-y-3 text-sm">
+                    <li><a href="#modules" class="hover:text-indigo-400 transition">Modules</a></li>
+                    <li><a href="#pricing" class="hover:text-indigo-400 transition">Tarifs</a></li>
+                    <li><a href="#" class="hover:text-indigo-400 transition">Roadmap</a></li>
+                    <li><a href="#" class="hover:text-indigo-400 transition">Changelog</a></li>
+                </ul>
+            </div>
+            <div>
+                <h5 class="text-white font-bold mb-6">Ressources</h5>
+                <ul class="text-slate-500 space-y-3 text-sm">
+                    <li><a href="#" class="hover:text-indigo-400 transition">Documentation</a></li>
+                    <li><a href="#" class="hover:text-indigo-400 transition">Centre d'aide</a></li>
+                    <li><a href="#faq" class="hover:text-indigo-400 transition">FAQ</a></li>
+                    <li><a href="mailto:contact@frecorp.fr" class="hover:text-indigo-400 transition">Contact</a></li>
+                </ul>
+            </div>
+            <div>
+                <h5 class="text-white font-bold mb-6">Légal</h5>
+                <ul class="text-slate-500 space-y-3 text-sm">
+                    <li><a href="#" class="hover:text-indigo-400 transition">Mentions légales</a></li>
+                    <li><a href="#" class="hover:text-indigo-400 transition">CGU</a></li>
+                    <li><a href="#" class="hover:text-indigo-400 transition">Confidentialité</a></li>
+                    <li><a href="#" class="hover:text-indigo-400 transition">RGPD</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="max-w-7xl mx-auto px-6 pt-12 mt-12 border-t border-white/5 flex flex-col md:flex-row items-center justify-between gap-4">
+            <p class="text-slate-600 text-sm">
+                © <span id="current-year"></span> FRECORP. Tous droits réservés. Made with ❤️ in France 🇫🇷
+            </p>
+            <div class="flex items-center space-x-6">
+                <a href="#" class="text-slate-500 hover:text-indigo-400 transition">
+                    <i class="fab fa-twitter text-xl"></i>
+                </a>
+                <a href="#" class="text-slate-500 hover:text-indigo-400 transition">
+                    <i class="fab fa-linkedin text-xl"></i>
+                </a>
+                <a href="#" class="text-slate-500 hover:text-indigo-400 transition">
+                    <i class="fab fa-github text-xl"></i>
+                </a>
+                <a href="#" class="text-slate-500 hover:text-indigo-400 transition">
+                    <i class="fab fa-discord text-xl"></i>
+                </a>
             </div>
         </div>
     </footer>
 
-    <script src="script.js"></script>
+    <script>
+        // Mobile menu toggle avec animation
+        const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
+        const mobileMenu = document.getElementById('mobile-menu');
+        const menuIcon = document.getElementById('menu-icon');
+        
+        mobileMenuToggle?.addEventListener('click', function() {
+            mobileMenu.classList.toggle('open');
+            
+            // Animer l'icône
+            if (mobileMenu.classList.contains('open')) {
+                menuIcon.classList.remove('fa-bars');
+                menuIcon.classList.add('fa-xmark');
+            } else {
+                menuIcon.classList.remove('fa-xmark');
+                menuIcon.classList.add('fa-bars');
+            }
+        });
+        
+        // Fermer le menu mobile au clic sur un lien
+        document.querySelectorAll('.mobile-link').forEach(link => {
+            link.addEventListener('click', () => {
+                mobileMenu.classList.remove('open');
+                menuIcon.classList.remove('fa-xmark');
+                menuIcon.classList.add('fa-bars');
+            });
+        });
+        
+        // Active nav link highlighting on scroll
+        const sections = document.querySelectorAll('section[id]');
+        const navLinks = document.querySelectorAll('.nav-link');
+        
+        window.addEventListener('scroll', () => {
+            let current = '';
+            sections.forEach(section => {
+                const sectionTop = section.offsetTop - 100;
+                if (pageYOffset >= sectionTop) {
+                    current = section.getAttribute('id');
+                }
+            });
+            
+            navLinks.forEach(link => {
+                link.classList.remove('text-white', 'bg-indigo-500/20');
+                if (link.getAttribute('href') === '#' + current) {
+                    link.classList.add('text-white', 'bg-indigo-500/20');
+                }
+            });
+        });
+
+        // Current year
+        document.getElementById('current-year').textContent = new Date().getFullYear();
+
+        // Compte à rebours Chorus Pro (1er Septembre 2026 pour Grandes Entreprises)
+        function updateCountdown() {
+            const targetDate = new Date('September 1, 2026 00:00:00').getTime();
+            const now = new Date().getTime();
+            const distance = targetDate - now;
+
+            const totalDays = Math.floor(distance / (1000 * 60 * 60 * 24));
+            const months = Math.floor(totalDays / 30.44);
+            const days = Math.floor(totalDays % 30.44);
+
+            const monthsEl = document.getElementById('countdown-months');
+            const daysEl = document.getElementById('countdown-days');
+            
+            if (monthsEl) monthsEl.innerText = months;
+            if (daysEl) daysEl.innerText = days;
+        }
+
+        updateCountdown();
+        setInterval(updateCountdown, 86400000); // Update daily
+
+        // Smooth scroll for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                    // Close mobile menu if open
+                    document.getElementById('mobile-menu')?.classList.add('hidden');
+                }
+            });
+        });
+    </script>
 </body>
 </html>

@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="main-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#6366f1;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#8b5cf6;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Background rounded square -->
+  <rect x="32" y="32" width="448" height="448" rx="96" ry="96" fill="url(#main-grad)"/>
+  
+  <!-- Stacked boxes icon -->
+  <rect x="120" y="300" width="160" height="100" rx="12" fill="white" opacity="0.7"/>
+  <rect x="160" y="220" width="160" height="100" rx="12" fill="white" opacity="0.85"/>
+  <rect x="200" y="140" width="160" height="100" rx="12" fill="white"/>
+  
+  <!-- Accent lines -->
+  <line x1="220" y1="170" x2="280" y2="170" stroke="#6366f1" stroke-width="8" stroke-linecap="round"/>
+  <line x1="220" y1="195" x2="340" y2="195" stroke="#6366f1" stroke-width="8" stroke-linecap="round" opacity="0.5"/>
+</svg>

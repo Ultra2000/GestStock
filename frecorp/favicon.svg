@@ -1,3 +1,14 @@
-<svg xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" width="200" height="200"><svg xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 200 200"><rect width="200" height="200" fill="url('#gradient')"></rect><defs><linearGradient id="SvgjsLinearGradient1010" gradientTransform="rotate(45 0.5 0.5)"><stop offset="0%" stop-color="#3b82f6"></stop><stop offset="100%" stop-color="#9333ea"></stop></linearGradient></defs><g><g fill="#ffffff" transform="matrix(9.986813186813187,0,0,9.986813186813187,41.77679846758371,171.00561795811075)" stroke="#ffff" stroke-width="0.3"><path d="M10.03-8.30L10.03-5.66L4.50-5.66L4.50 0L1.07 0L1.07-14.22L10.59-14.22L10.59-11.57L4.50-11.57L4.50-8.30L10.03-8.30Z"></path></g></g></svg><style>@media (prefers-color-scheme: light) { :root { filter: none; } }
-@media (prefers-color-scheme: dark) { :root { filter: none; } }
-</style></svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#6366f1;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#8b5cf6;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <rect x="32" y="32" width="448" height="448" rx="96" ry="96" fill="url(#grad)"/>
+  <rect x="120" y="300" width="160" height="100" rx="12" fill="#fff" opacity="0.7"/>
+  <rect x="160" y="220" width="160" height="100" rx="12" fill="#fff" opacity="0.85"/>
+  <rect x="200" y="140" width="160" height="100" rx="12" fill="#fff"/>
+  <line x1="220" y1="170" x2="280" y2="170" stroke="#6366f1" stroke-width="8" stroke-linecap="round"/>
+  <line x1="220" y1="195" x2="340" y2="195" stroke="#6366f1" stroke-width="8" stroke-linecap="round" opacity="0.5"/>
+</svg>
