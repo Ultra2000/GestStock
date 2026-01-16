@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Filament\Pages\BalanceGenerale;
+use App\Filament\Pages\JournalAudit;
 use App\Models\Traits\BelongsToCompany;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -79,9 +80,10 @@ class AccountingEntry extends Model
             }
         });
 
-        // Invalider le cache Balance Générale à chaque nouvelle écriture
+        // Invalider le cache Balance Générale et Journal Audit à chaque nouvelle écriture
         static::created(function ($entry) {
             BalanceGenerale::clearBalanceCache($entry->company_id);
+            JournalAudit::clearAuditCache($entry->company_id);
         });
 
         static::updating(function ($entry) {
