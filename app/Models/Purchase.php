@@ -81,8 +81,8 @@ class Purchase extends Model
 
         // Gérer le cas d'un achat créé directement avec status = 'completed'
         static::created(function ($purchase) {
-            // Si l'achat est créé avec le statut "completed"
-            if ($purchase->status === 'completed') {
+            // Si l'achat est créé avec le statut "completed" ET que le total est défini
+            if ($purchase->status === 'completed' && $purchase->total > 0) {
                 // Créer la transaction bancaire si compte bancaire lié
                 if ($purchase->bank_account_id) {
                     $exists = BankTransaction::where('reference', $purchase->invoice_number)->exists();
@@ -241,6 +241,25 @@ class Purchase extends Model
         $this->total_vat = round($totalVat * (1 - $this->discount_percent / 100), 2);
         $this->total = round($afterDiscount, 2);
         $this->save();
+
+        // Créer la transaction bancaire si achat completed avec compte bancaire
+        // (exécuté ici car le total est maintenant calculé)
+        if ($this->status === 'completed' && $this->bank_account_id && $this->total > 0) {
+            $exists = BankTransaction::where('reference', $this->invoice_number)->exists();
+            
+            if (!$exists) {
+                BankTransaction::create([
+                    'bank_account_id' => $this->bank_account_id,
+                    'date' => now(),
+                    'amount' => $this->total,
+                    'type' => 'debit',
+                    'label' => "Achat " . $this->invoice_number,
+                    'reference' => $this->invoice_number,
+                    'status' => 'pending',
+                    'metadata' => ['purchase_id' => $this->id],
+                ]);
+            }
+        }
     }
 
     /**
