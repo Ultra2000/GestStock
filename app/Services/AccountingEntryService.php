@@ -6,6 +6,7 @@ use App\Models\AccountingCategory;
 use App\Models\AccountingEntry;
 use App\Models\AccountingSetting;
 use App\Models\Customer;
+use App\Models\Payment;
 use App\Models\Product;
 use App\Models\Purchase;
 use App\Models\Sale;
@@ -89,26 +90,49 @@ class AccountingEntryService
             }
 
             // 4. Écritures CRÉDIT TVA collectée (par taux)
+            // SAUF si régime "encaissements" : la TVA sera comptabilisée au paiement
+            $vatRegime = $settings->vat_regime ?? 'debits';
+            
             if (!AccountingSetting::isVatFranchise($sale->company_id)) {
                 $vatByRate = $this->groupVatByRate($sale->items, $settings);
                 
                 foreach ($vatByRate as $rate => $data) {
                     if ($data['total_vat'] > 0) {
-                        $entries[] = AccountingEntry::create([
-                            'company_id' => $sale->company_id,
-                            'source_type' => Sale::class,
-                            'source_id' => $sale->id,
-                            'entry_date' => $sale->created_at->toDateString(),
-                            'piece_number' => $sale->invoice_number,
-                            'journal_code' => $settings->journal_sales ?? 'VTE',
-                            'account_number' => $data['account_vat'],
-                            'label' => "TVA collectée {$rate}% - {$sale->invoice_number}",
-                            'debit' => 0,
-                            'credit' => $data['total_vat'],
-                            'vat_rate' => $rate,
-                            'vat_base' => $data['total_ht'],
-                            'created_by' => auth()->id(),
-                        ]);
+                        if ($vatRegime === 'encaissements') {
+                            // Régime encaissements : TVA en attente (44574x)
+                            $entries[] = AccountingEntry::create([
+                                'company_id' => $sale->company_id,
+                                'source_type' => Sale::class,
+                                'source_id' => $sale->id,
+                                'entry_date' => $sale->created_at->toDateString(),
+                                'piece_number' => $sale->invoice_number,
+                                'journal_code' => $settings->journal_sales ?? 'VTE',
+                                'account_number' => $this->getVatPendingAccount((float) $rate),
+                                'label' => "TVA en attente {$rate}% - {$sale->invoice_number}",
+                                'debit' => 0,
+                                'credit' => $data['total_vat'],
+                                'vat_rate' => $rate,
+                                'vat_base' => $data['total_ht'],
+                                'created_by' => auth()->id(),
+                            ]);
+                        } else {
+                            // Régime débits : TVA collectée immédiatement (4457x)
+                            $entries[] = AccountingEntry::create([
+                                'company_id' => $sale->company_id,
+                                'source_type' => Sale::class,
+                                'source_id' => $sale->id,
+                                'entry_date' => $sale->created_at->toDateString(),
+                                'piece_number' => $sale->invoice_number,
+                                'journal_code' => $settings->journal_sales ?? 'VTE',
+                                'account_number' => $data['account_vat'],
+                                'label' => "TVA collectée {$rate}% - {$sale->invoice_number}",
+                                'debit' => 0,
+                                'credit' => $data['total_vat'],
+                                'vat_rate' => $rate,
+                                'vat_base' => $data['total_ht'],
+                                'created_by' => auth()->id(),
+                            ]);
+                        }
                     }
                 }
             }
@@ -559,5 +583,421 @@ class AccountingEntryService
 
         $class = (int) substr($account, 0, 1);
         return in_array($class, $allowedClasses);
+    }
+
+    /**
+     * Génère les écritures comptables pour un paiement (règlement)
+     * 
+     * Schéma pour paiement client :
+     * - DÉBIT 512/530 (Banque/Caisse) : Montant payé
+     * - CRÉDIT 411xxx (Client) : Montant payé
+     * 
+     * Schéma pour paiement fournisseur :
+     * - DÉBIT 401xxx (Fournisseur) : Montant payé
+     * - CRÉDIT 512/530 (Banque/Caisse) : Montant payé
+     * 
+     * + TVA si régime "encaissements" (prestataires de services)
+     */
+    public function createEntriesForPayment(Payment $payment): array
+    {
+        $settings = AccountingSetting::getForCompany($payment->company_id);
+        $entries = [];
+        $payable = $payment->payable;
+
+        if (!$payable) {
+            throw new \Exception("Document payé introuvable.");
+        }
+
+        DB::beginTransaction();
+
+        try {
+            $accountTreasury = $payment->getAccountForMethod();
+            $journalCode = $payment->getJournalCode();
+            $pieceNumber = $this->generatePaymentPieceNumber($payment, $settings);
+
+            if ($payment->isCustomerPayment()) {
+                // Paiement client (vente)
+                $entries = $this->createCustomerPaymentEntries(
+                    $payment, $payable, $settings, $accountTreasury, $journalCode, $pieceNumber
+                );
+            } else {
+                // Paiement fournisseur (achat)
+                $entries = $this->createSupplierPaymentEntries(
+                    $payment, $payable, $settings, $accountTreasury, $journalCode, $pieceNumber
+                );
+            }
+
+            // Attribuer le numéro FEC global
+            foreach ($entries as $entry) {
+                $entry->fec_sequence = $this->getNextFecSequence($payment->company_id);
+                $entry->entry_type = 'payment';
+                $entry->save();
+            }
+
+            // Lettrage automatique avec l'écriture de vente/achat
+            $this->autoLetterPayment($payment, $entries);
+
+            DB::commit();
+
+            Log::info("Écritures de paiement créées", [
+                'payment_id' => $payment->id,
+                'amount' => $payment->amount,
+                'method' => $payment->payment_method,
+            ]);
+
+            return $entries;
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error("Erreur création écritures paiement: " . $e->getMessage());
+            throw $e;
+        }
+    }
+
+    /**
+     * Écritures pour un paiement client
+     */
+    protected function createCustomerPaymentEntries(
+        Payment $payment,
+        Sale $sale,
+        AccountingSetting $settings,
+        string $accountTreasury,
+        string $journalCode,
+        string $pieceNumber
+    ): array {
+        $entries = [];
+        $customerAuxiliary = $this->getCustomerAuxiliary($sale->customer);
+        $label = "Règlement {$sale->invoice_number}";
+
+        if ($sale->customer) {
+            $label .= " - {$sale->customer->name}";
+        }
+
+        // 1. DÉBIT Trésorerie (Banque/Caisse)
+        $entries[] = AccountingEntry::create([
+            'company_id' => $payment->company_id,
+            'source_type' => Payment::class,
+            'source_id' => $payment->id,
+            'entry_date' => $payment->payment_date->toDateString(),
+            'piece_number' => $pieceNumber,
+            'journal_code' => $journalCode,
+            'account_number' => $accountTreasury,
+            'label' => $label,
+            'debit' => $payment->amount,
+            'credit' => 0,
+            'created_by' => auth()->id(),
+        ]);
+
+        // 2. CRÉDIT Client
+        $entries[] = AccountingEntry::create([
+            'company_id' => $payment->company_id,
+            'source_type' => Payment::class,
+            'source_id' => $payment->id,
+            'entry_date' => $payment->payment_date->toDateString(),
+            'piece_number' => $pieceNumber,
+            'journal_code' => $journalCode,
+            'account_number' => $settings->account_customers ?? '411000',
+            'account_auxiliary' => $customerAuxiliary,
+            'label' => $label,
+            'debit' => 0,
+            'credit' => $payment->amount,
+            'created_by' => auth()->id(),
+        ]);
+
+        // 3. TVA si régime "encaissements" et pas encore comptabilisée
+        if ($this->isVatOnReceipts($settings) && !$this->isVatFranchise($payment->company_id)) {
+            $vatEntries = $this->createVatEntriesOnPayment($payment, $sale, $settings, $journalCode, $pieceNumber);
+            $entries = array_merge($entries, $vatEntries);
+        }
+
+        return $entries;
+    }
+
+    /**
+     * Écritures pour un paiement fournisseur
+     */
+    protected function createSupplierPaymentEntries(
+        Payment $payment,
+        Purchase $purchase,
+        AccountingSetting $settings,
+        string $accountTreasury,
+        string $journalCode,
+        string $pieceNumber
+    ): array {
+        $entries = [];
+        $supplierAuxiliary = $this->getSupplierAuxiliary($purchase->supplier);
+        $label = "Règlement achat {$purchase->reference}";
+
+        if ($purchase->supplier) {
+            $label .= " - {$purchase->supplier->name}";
+        }
+
+        // 1. DÉBIT Fournisseur (on solde la dette)
+        $entries[] = AccountingEntry::create([
+            'company_id' => $payment->company_id,
+            'source_type' => Payment::class,
+            'source_id' => $payment->id,
+            'entry_date' => $payment->payment_date->toDateString(),
+            'piece_number' => $pieceNumber,
+            'journal_code' => $journalCode,
+            'account_number' => $settings->account_suppliers ?? '401000',
+            'account_auxiliary' => $supplierAuxiliary,
+            'label' => $label,
+            'debit' => $payment->amount,
+            'credit' => 0,
+            'created_by' => auth()->id(),
+        ]);
+
+        // 2. CRÉDIT Trésorerie (Banque/Caisse)
+        $entries[] = AccountingEntry::create([
+            'company_id' => $payment->company_id,
+            'source_type' => Payment::class,
+            'source_id' => $payment->id,
+            'entry_date' => $payment->payment_date->toDateString(),
+            'piece_number' => $pieceNumber,
+            'journal_code' => $journalCode,
+            'account_number' => $accountTreasury,
+            'label' => $label,
+            'debit' => 0,
+            'credit' => $payment->amount,
+            'created_by' => auth()->id(),
+        ]);
+
+        return $entries;
+    }
+
+    /**
+     * Génère les écritures de TVA au moment du paiement (régime encaissements)
+     */
+    protected function createVatEntriesOnPayment(
+        Payment $payment,
+        Sale $sale,
+        AccountingSetting $settings,
+        string $journalCode,
+        string $pieceNumber
+    ): array {
+        $entries = [];
+
+        // Calculer la part de TVA correspondant au paiement
+        // Ratio = montant payé / total TTC
+        $ratio = $payment->amount / $sale->total;
+
+        $sale->load('items.product');
+        $vatByRate = $this->groupVatByRate($sale->items, $settings);
+
+        foreach ($vatByRate as $rate => $data) {
+            $vatAmount = round($data['total_vat'] * $ratio, 2);
+            
+            if ($vatAmount > 0) {
+                // DÉBIT TVA en attente (44574x)
+                $entries[] = AccountingEntry::create([
+                    'company_id' => $payment->company_id,
+                    'source_type' => Payment::class,
+                    'source_id' => $payment->id,
+                    'entry_date' => $payment->payment_date->toDateString(),
+                    'piece_number' => $pieceNumber,
+                    'journal_code' => $journalCode,
+                    'account_number' => $this->getVatPendingAccount($rate),
+                    'label' => "TVA encaissée {$rate}% - {$sale->invoice_number}",
+                    'debit' => $vatAmount,
+                    'credit' => 0,
+                    'vat_rate' => $rate,
+                    'created_by' => auth()->id(),
+                ]);
+
+                // CRÉDIT TVA collectée (4457x)
+                $entries[] = AccountingEntry::create([
+                    'company_id' => $payment->company_id,
+                    'source_type' => Payment::class,
+                    'source_id' => $payment->id,
+                    'entry_date' => $payment->payment_date->toDateString(),
+                    'piece_number' => $pieceNumber,
+                    'journal_code' => $journalCode,
+                    'account_number' => $data['account_vat'],
+                    'label' => "TVA collectée {$rate}% - {$sale->invoice_number}",
+                    'debit' => 0,
+                    'credit' => $vatAmount,
+                    'vat_rate' => $rate,
+                    'created_by' => auth()->id(),
+                ]);
+            }
+        }
+
+        return $entries;
+    }
+
+    /**
+     * Vérifie si l'entreprise est en régime TVA sur les encaissements
+     */
+    public function isVatOnReceipts(AccountingSetting $settings): bool
+    {
+        return ($settings->vat_regime ?? 'debits') === 'encaissements';
+    }
+
+    /**
+     * Vérifie si l'entreprise est en franchise de TVA
+     */
+    public function isVatFranchise(int $companyId): bool
+    {
+        return AccountingSetting::isVatFranchise($companyId);
+    }
+
+    /**
+     * Compte TVA en attente (régime encaissements)
+     */
+    protected function getVatPendingAccount(float $vatRate): string
+    {
+        $accounts = [
+            20.00 => '445740',
+            10.00 => '445742',
+            5.50 => '445741',
+            2.10 => '445743',
+        ];
+
+        return $accounts[$vatRate] ?? '445740';
+    }
+
+    /**
+     * Génère le numéro de pièce pour un paiement
+     */
+    protected function generatePaymentPieceNumber(Payment $payment, AccountingSetting $settings): string
+    {
+        $prefix = $payment->payment_method === 'cash' ? 'CAI' : 'BQ';
+        $year = $payment->payment_date->format('Y');
+
+        $lastNumber = AccountingEntry::where('company_id', $payment->company_id)
+            ->where('piece_number', 'like', "{$prefix}-{$year}-%")
+            ->selectRaw("MAX(CAST(SUBSTRING(piece_number, " . (strlen($prefix) + 7) . ") AS UNSIGNED)) as max_num")
+            ->value('max_num') ?? 0;
+
+        return "{$prefix}-{$year}-" . str_pad($lastNumber + 1, 5, '0', STR_PAD_LEFT);
+    }
+
+    /**
+     * Obtient le prochain numéro FEC global (sans trou)
+     */
+    public function getNextFecSequence(int $companyId): int
+    {
+        return AccountingEntry::where('company_id', $companyId)
+            ->max('fec_sequence') + 1 ?? 1;
+    }
+
+    /**
+     * Lettrage automatique entre paiement et document source
+     */
+    protected function autoLetterPayment(Payment $payment, array $paymentEntries): void
+    {
+        $payable = $payment->payable;
+        
+        if (!$payable) {
+            return;
+        }
+
+        // Trouver l'écriture client/fournisseur du document original
+        $sourceType = get_class($payable);
+        $accountNumber = $payment->isCustomerPayment() ? '411' : '401';
+
+        $originalEntry = AccountingEntry::where('source_type', $sourceType)
+            ->where('source_id', $payable->id)
+            ->where('account_number', 'like', "{$accountNumber}%")
+            ->whereNull('lettering')
+            ->first();
+
+        if (!$originalEntry) {
+            return;
+        }
+
+        // Trouver l'écriture client/fournisseur du paiement
+        $paymentEntry = collect($paymentEntries)->first(function ($entry) use ($accountNumber) {
+            return str_starts_with($entry->account_number, $accountNumber);
+        });
+
+        if (!$paymentEntry) {
+            return;
+        }
+
+        // Générer un code de lettrage unique
+        $letteringCode = $this->generateLetteringCode($payment->company_id);
+        $letteringDate = $payment->payment_date;
+
+        // Appliquer le lettrage
+        $originalEntry->lettering = $letteringCode;
+        $originalEntry->lettering_date = $letteringDate;
+        $originalEntry->save();
+
+        $paymentEntry->lettering = $letteringCode;
+        $paymentEntry->lettering_date = $letteringDate;
+        $paymentEntry->save();
+    }
+
+    /**
+     * Génère un code de lettrage unique (AA, AB, AC... BA, BB...)
+     */
+    protected function generateLetteringCode(int $companyId): string
+    {
+        $lastCode = AccountingEntry::where('company_id', $companyId)
+            ->whereNotNull('lettering')
+            ->orderByDesc('lettering')
+            ->value('lettering');
+
+        if (!$lastCode) {
+            return 'AA';
+        }
+
+        // Incrémenter le code (AA -> AB -> ... -> AZ -> BA -> ...)
+        $lastCode = strtoupper($lastCode);
+        $len = strlen($lastCode);
+        
+        for ($i = $len - 1; $i >= 0; $i--) {
+            if ($lastCode[$i] !== 'Z') {
+                $lastCode[$i] = chr(ord($lastCode[$i]) + 1);
+                return $lastCode;
+            }
+            $lastCode[$i] = 'A';
+        }
+
+        return 'A' . $lastCode;
+    }
+
+    /**
+     * Enregistre un paiement POS (cash immédiat)
+     */
+    public function registerPosPayment(Sale $sale): ?Payment
+    {
+        // Si la vente n'est pas complétée ou pas de méthode de paiement, ignorer
+        if ($sale->status !== 'completed' || !$sale->payment_method) {
+            return null;
+        }
+
+        $settings = AccountingSetting::getForCompany($sale->company_id);
+
+        // Déterminer le compte selon le mode de paiement
+        $accountNumber = match ($sale->payment_method) {
+            'cash', 'especes' => $settings->account_cash ?? '530000',
+            'check', 'cheque' => '511200',
+            default => $settings->account_bank ?? '512000',
+        };
+
+        // Créer le paiement
+        $payment = Payment::create([
+            'company_id' => $sale->company_id,
+            'payable_type' => Sale::class,
+            'payable_id' => $sale->id,
+            'amount' => $sale->total,
+            'payment_method' => $sale->payment_method,
+            'payment_date' => $sale->created_at->toDateString(),
+            'account_number' => $accountNumber,
+            'cash_session_id' => $sale->cash_session_id,
+            'created_by' => auth()->id(),
+        ]);
+
+        // Mettre à jour le statut de paiement de la vente
+        $sale->update([
+            'payment_status' => 'paid',
+            'amount_paid' => $sale->total,
+            'paid_at' => now(),
+        ]);
+
+        return $payment;
     }
 }

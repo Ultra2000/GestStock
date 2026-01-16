@@ -22,6 +22,7 @@ class AccountingEntry extends Model
         'company_id',
         'source_type',
         'source_id',
+        'fec_sequence',
         'entry_date',
         'piece_number',
         'journal_code',
@@ -37,6 +38,8 @@ class AccountingEntry extends Model
         'lettering_date',
         'is_locked',
         'reversal_of_id',
+        'payment_for_id',
+        'entry_type',
         'created_by',
         'creation_source',
     ];
@@ -66,6 +69,14 @@ class AccountingEntry extends Model
     protected static function boot()
     {
         parent::boot();
+
+        // Attribution automatique du numéro FEC séquentiel
+        static::creating(function ($entry) {
+            if (!$entry->fec_sequence) {
+                $entry->fec_sequence = static::where('company_id', $entry->company_id)
+                    ->max('fec_sequence') + 1 ?? 1;
+            }
+        });
 
         static::updating(function ($entry) {
             // Seuls le lettrage et quelques champs peuvent être modifiés sur une écriture verrouillée
@@ -218,7 +229,7 @@ class AccountingEntry extends Model
         return [
             'JournalCode' => $this->journal_code,
             'JournalLib' => $this->getJournalLabel(),
-            'EcritureNum' => $this->piece_number,
+            'EcritureNum' => $this->fec_sequence ?? $this->id, // Numéro séquentiel global sans trou
             'EcritureDate' => $this->entry_date->format('Ymd'),
             'CompteNum' => $this->account_number,
             'CompteLib' => $this->getAccountLabel(),

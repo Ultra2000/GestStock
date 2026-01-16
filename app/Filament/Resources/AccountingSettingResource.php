@@ -52,6 +52,38 @@ class AccountingSettingResource extends Resource
                                 }
                             }),
                         
+                        Forms\Components\Select::make('vat_regime')
+                            ->label('Régime d\'exigibilité de la TVA')
+                            ->options(AccountingSetting::VAT_REGIMES)
+                            ->default('debits')
+                            ->required()
+                            ->visible(fn ($get) => !$get('is_vat_franchise'))
+                            ->helperText('Détermine QUAND la TVA devient exigible')
+                            ->hint('Très important pour les prestataires de services')
+                            ->hintIcon('heroicon-o-exclamation-triangle')
+                            ->hintColor('warning'),
+
+                        Forms\Components\Placeholder::make('vat_regime_help')
+                            ->label('')
+                            ->content(new \Illuminate\Support\HtmlString('
+                                <div class="text-sm p-4 bg-amber-50 dark:bg-amber-900/20 rounded-lg border border-amber-200 dark:border-amber-800">
+                                    <p class="font-semibold text-amber-700 dark:text-amber-300 mb-2">
+                                        <span class="mr-1">⚠️</span> Quel régime choisir ?
+                                    </p>
+                                    <ul class="list-disc list-inside space-y-2 ml-2">
+                                        <li><strong>TVA sur les débits (facturation)</strong> : La TVA est due dès l\'émission de la facture. 
+                                            <br><span class="text-gray-500 ml-6">→ Pour la vente de biens/marchandises (cas le plus courant)</span></li>
+                                        <li><strong>TVA sur les encaissements (paiement)</strong> : La TVA est due uniquement au moment où le client paie.
+                                            <br><span class="text-gray-500 ml-6">→ Pour les prestataires de services (avocats, consultants, agences...)</span></li>
+                                    </ul>
+                                    <p class="mt-3 text-amber-600 dark:text-amber-400 text-xs">
+                                        💡 En cas de doute, consultez votre expert-comptable. Un mauvais choix peut entraîner une déclaration de TVA erronée.
+                                    </p>
+                                </div>
+                            '))
+                            ->visible(fn ($get) => !$get('is_vat_franchise'))
+                            ->columnSpanFull(),
+                        
                         Forms\Components\Placeholder::make('franchise_info')
                             ->label('')
                             ->content(new \Illuminate\Support\HtmlString('
@@ -163,7 +195,9 @@ class AccountingSettingResource extends Resource
                             ->validationMessages([
                                 'regex' => 'Le compte ventes doit commencer par 7 et contenir au moins 6 chiffres (ex: 707000)',
                             ])
-                            ->helperText('Ex: 707000 - Ventes de marchandises'),
+                            ->helperText('707000 = Ventes de marchandises (revente). 701000 = Ventes de produits finis (fabrication)')
+                            ->hint('707 pour revendeurs, 701 pour fabricants')
+                            ->hintIcon('heroicon-o-information-circle'),
 
                         Forms\Components\TextInput::make('account_purchases')
                             ->label('Compte Achats (Classe 6)')

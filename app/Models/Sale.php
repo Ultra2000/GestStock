@@ -27,6 +27,9 @@ class Sale extends Model
         'total_ht',
         'total_vat',
         'status',
+        'payment_status',
+        'amount_paid',
+        'paid_at',
         'payment_method',
         'payment_details',
         'discount_percent',
@@ -42,6 +45,9 @@ class Sale extends Model
 
     protected $casts = [
         'status' => 'string',
+        'payment_status' => 'string',
+        'amount_paid' => 'decimal:2',
+        'paid_at' => 'datetime',
         'payment_details' => 'array',
         'ppf_synced_at' => 'datetime',
     ];
@@ -70,6 +76,14 @@ class Sale extends Model
     public function bankAccount(): BelongsTo
     {
         return $this->belongsTo(BankAccount::class);
+    }
+
+    /**
+     * Paiements reçus pour cette vente
+     */
+    public function payments()
+    {
+        return $this->morphMany(Payment::class, 'payable');
     }
 
     /**
@@ -148,6 +162,18 @@ class Sale extends Model
                     \Illuminate\Support\Facades\Log::error(
                         "Erreur génération écritures comptables {$sale->type} (création) {$sale->invoice_number}: " . $e->getMessage()
                     );
+                }
+
+                // Enregistrer le paiement POS si payé immédiatement
+                if ($sale->payment_method && $sale->cash_session_id) {
+                    try {
+                        $accountingService = app(\App\Services\AccountingEntryService::class);
+                        $accountingService->registerPosPayment($sale);
+                    } catch (\Exception $e) {
+                        \Illuminate\Support\Facades\Log::error(
+                            "Erreur enregistrement paiement POS {$sale->invoice_number}: " . $e->getMessage()
+                        );
+                    }
                 }
             }
         });

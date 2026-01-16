@@ -31,10 +31,19 @@ class AccountingSetting extends Model
         'accounting_software',
         'accounting_software_version',
         'is_vat_franchise',
+        'vat_regime',
     ];
 
     protected $casts = [
         'is_vat_franchise' => 'boolean',
+    ];
+
+    /**
+     * Régimes TVA disponibles
+     */
+    public const VAT_REGIMES = [
+        'debits' => 'TVA sur les débits (facturation)',
+        'encaissements' => 'TVA sur les encaissements (paiement)',
     ];
 
     /**
@@ -60,7 +69,7 @@ class AccountingSetting extends Model
             [
                 'account_customers' => '411000',
                 'account_suppliers' => '401000',
-                'account_sales' => '707000',
+                'account_sales' => '707000', // Ventes de marchandises (défaut TPE/PME)
                 'account_purchases' => '607000',
                 'account_vat_collected' => '445710',
                 'account_vat_deductible' => '445660',
@@ -75,7 +84,21 @@ class AccountingSetting extends Model
                 'journal_misc' => 'OD',
                 'accounting_software' => 'GestStock',
                 'accounting_software_version' => '1.0',
+                'vat_regime' => 'debits', // Par défaut : TVA sur les débits
             ]
         );
+    }
+
+    /**
+     * Vérifie si le régime TVA est sur les encaissements
+     */
+    public static function isVatOnReceipts(?int $companyId = null): bool
+    {
+        $companyId = $companyId ?? filament()->getTenant()?->id;
+        if (!$companyId) {
+            return false;
+        }
+        
+        return static::where('company_id', $companyId)->value('vat_regime') === 'encaissements';
     }
 }
