@@ -109,31 +109,47 @@ class AccountingSettingResource extends Resource
                     ->columns(2),
 
                 Forms\Components\Section::make('Plan Comptable - Comptes de Bilan')
-                    ->description('Numéros de comptes du Plan Comptable Général')
+                    ->description('Numéros de comptes du Plan Comptable Général (6 chiffres minimum)')
                     ->schema([
                         Forms\Components\TextInput::make('account_customers')
                             ->label('Compte Clients (Classe 4)')
                             ->required()
                             ->default('411000')
-                            ->helperText('Ex: 411000'),
+                            ->regex('/^4[0-9]{5,}$/')
+                            ->validationMessages([
+                                'regex' => 'Le compte client doit commencer par 4 et contenir au moins 6 chiffres (ex: 411000)',
+                            ])
+                            ->helperText('Ex: 411000 - Doit commencer par 4'),
 
                         Forms\Components\TextInput::make('account_suppliers')
                             ->label('Compte Fournisseurs (Classe 4)')
                             ->required()
                             ->default('401000')
-                            ->helperText('Ex: 401000'),
+                            ->regex('/^4[0-9]{5,}$/')
+                            ->validationMessages([
+                                'regex' => 'Le compte fournisseur doit commencer par 4 et contenir au moins 6 chiffres (ex: 401000)',
+                            ])
+                            ->helperText('Ex: 401000 - Doit commencer par 4'),
 
                         Forms\Components\TextInput::make('account_bank')
                             ->label('Compte Banque (Classe 5)')
                             ->required()
                             ->default('512000')
-                            ->helperText('Ex: 512000'),
+                            ->regex('/^5[0-9]{5,}$/')
+                            ->validationMessages([
+                                'regex' => 'Le compte banque doit commencer par 5 et contenir au moins 6 chiffres (ex: 512000)',
+                            ])
+                            ->helperText('Ex: 512000 - Doit commencer par 5'),
 
                         Forms\Components\TextInput::make('account_cash')
                             ->label('Compte Caisse (Classe 5)')
                             ->required()
                             ->default('530000')
-                            ->helperText('Ex: 530000'),
+                            ->regex('/^5[0-9]{5,}$/')
+                            ->validationMessages([
+                                'regex' => 'Le compte caisse doit commencer par 5 et contenir au moins 6 chiffres (ex: 530000)',
+                            ])
+                            ->helperText('Ex: 530000 - Doit commencer par 5'),
                     ])
                     ->columns(2),
 
@@ -143,24 +159,40 @@ class AccountingSettingResource extends Resource
                             ->label('Compte Ventes (Classe 7)')
                             ->required()
                             ->default('707000')
+                            ->regex('/^7[0-9]{5,}$/')
+                            ->validationMessages([
+                                'regex' => 'Le compte ventes doit commencer par 7 et contenir au moins 6 chiffres (ex: 707000)',
+                            ])
                             ->helperText('Ex: 707000 - Ventes de marchandises'),
 
                         Forms\Components\TextInput::make('account_purchases')
                             ->label('Compte Achats (Classe 6)')
                             ->required()
                             ->default('607000')
+                            ->regex('/^6[0-9]{5,}$/')
+                            ->validationMessages([
+                                'regex' => 'Le compte achats doit commencer par 6 et contenir au moins 6 chiffres (ex: 607000)',
+                            ])
                             ->helperText('Ex: 607000 - Achats de marchandises'),
 
                         Forms\Components\TextInput::make('account_discounts_granted')
                             ->label('Compte Remises accordées')
                             ->required()
                             ->default('709000')
+                            ->regex('/^7[0-9]{5,}$/')
+                            ->validationMessages([
+                                'regex' => 'Le compte remises doit commencer par 7 et contenir au moins 6 chiffres (ex: 709000)',
+                            ])
                             ->helperText('Ex: 709000 - Rabais, remises, ristournes accordés'),
 
                         Forms\Components\TextInput::make('account_discounts_received')
                             ->label('Compte Remises obtenues')
                             ->required()
                             ->default('609000')
+                            ->regex('/^6[0-9]{5,}$/')
+                            ->validationMessages([
+                                'regex' => 'Le compte remises doit commencer par 6 et contenir au moins 6 chiffres (ex: 609000)',
+                            ])
                             ->helperText('Ex: 609000 - Rabais, remises, ristournes obtenus'),
                     ])
                     ->columns(2),
@@ -171,6 +203,10 @@ class AccountingSettingResource extends Resource
                             ->label('TVA Collectée')
                             ->required()
                             ->default('445710')
+                            ->regex('/^4457[0-9]{2,}$/')
+                            ->validationMessages([
+                                'regex' => 'Le compte TVA collectée doit commencer par 4457 (ex: 445710)',
+                            ])
                             ->helperText('Ex: 445710 - TVA collectée')
                             ->disabled(fn ($get) => $get('is_vat_franchise')),
 
@@ -178,6 +214,10 @@ class AccountingSettingResource extends Resource
                             ->label('TVA Déductible')
                             ->required()
                             ->default('445660')
+                            ->regex('/^4456[0-9]{2,}$/')
+                            ->validationMessages([
+                                'regex' => 'Le compte TVA déductible doit commencer par 4456 (ex: 445660)',
+                            ])
                             ->helperText('Ex: 445660 - TVA déductible')
                             ->disabled(fn ($get) => $get('is_vat_franchise')),
                         

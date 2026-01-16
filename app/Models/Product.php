@@ -164,6 +164,11 @@ class Product extends Model
         return $this->belongsTo(Supplier::class);
     }
 
+    public function accountingCategory(): BelongsTo
+    {
+        return $this->belongsTo(AccountingCategory::class, 'accounting_category_id');
+    }
+
     public function saleItems(): HasMany
     {
         return $this->hasMany(SaleItem::class);

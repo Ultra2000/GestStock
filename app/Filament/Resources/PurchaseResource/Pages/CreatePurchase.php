@@ -41,7 +41,7 @@ class CreatePurchase extends CreateRecord
                     if ($purchase->warehouse_id) {
                         $product->warehouses()->syncWithoutDetaching([
                             $purchase->warehouse_id => [
-                                'stock' => \DB::raw("COALESCE(stock, 0) + {$item->quantity}"),
+                                'quantity' => \DB::raw("COALESCE(quantity, 0) + {$item->quantity}"),
                             ]
                         ]);
                         

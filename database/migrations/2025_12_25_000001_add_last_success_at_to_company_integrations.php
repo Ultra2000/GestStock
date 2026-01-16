@@ -11,9 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('company_integrations', function (Blueprint $table) {
-            $table->timestamp('last_success_at')->nullable()->after('last_sync_at');
-        });
+        if (!Schema::hasColumn('company_integrations', 'last_success_at')) {
+            Schema::table('company_integrations', function (Blueprint $table) {
+                $table->timestamp('last_success_at')->nullable()->after('last_sync_at');
+            });
+        }
     }
 
     /**
@@ -21,8 +23,10 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('company_integrations', function (Blueprint $table) {
-            $table->dropColumn('last_success_at');
-        });
+        if (Schema::hasColumn('company_integrations', 'last_success_at')) {
+            Schema::table('company_integrations', function (Blueprint $table) {
+                $table->dropColumn('last_success_at');
+            });
+        }
     }
 };

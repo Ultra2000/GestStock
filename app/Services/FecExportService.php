@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\AccountingSetting;
+use App\Models\AccountingEntry;
 use App\Models\Sale;
 use App\Models\Purchase;
 use Illuminate\Support\Collection;
@@ -43,8 +44,47 @@ class FecExportService
      * 16. ValidDate - Date de validation (yyyyMMdd)
      * 17. Montantdevise - Montant en devise (optionnel)
      * 18. Idevise - Code devise (optionnel)
+     * 
+     * NOUVEAU: Lecture directe depuis la table accounting_entries (Grand Livre)
+     * pour garantir la conformité FEC (immutabilité des écritures)
      */
     public function generate(string $startDate, string $endDate): string
+    {
+        // NOUVEAU : Lecture directe depuis accounting_entries (Grand Livre immutable)
+        $accountingEntries = AccountingEntry::where('company_id', $this->companyId)
+            ->whereBetween('entry_date', [$startDate, $endDate])
+            ->orderBy('entry_date')
+            ->orderBy('piece_number')
+            ->orderBy('id')
+            ->get();
+
+        // Si des écritures existent dans la table accounting_entries, les utiliser
+        if ($accountingEntries->isNotEmpty()) {
+            return $this->generateFromAccountingEntries($accountingEntries);
+        }
+
+        // Fallback : Génération à la volée pour les anciennes données (rétrocompatibilité)
+        return $this->generateLegacy($startDate, $endDate);
+    }
+
+    /**
+     * Générer le FEC depuis la table accounting_entries (méthode recommandée)
+     * Les écritures sont déjà figées et conformes FEC
+     */
+    protected function generateFromAccountingEntries(Collection $accountingEntries): string
+    {
+        $entries = $accountingEntries->map(function (AccountingEntry $entry) {
+            return $entry->toFecArray();
+        });
+
+        return $this->formatAsFec($entries);
+    }
+
+    /**
+     * Génération legacy (rétrocompatibilité pour anciennes données)
+     * @deprecated Utiliser accounting_entries à la place
+     */
+    protected function generateLegacy(string $startDate, string $endDate): string
     {
         $entries = collect();
 

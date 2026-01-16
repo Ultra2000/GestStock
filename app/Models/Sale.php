@@ -72,6 +72,14 @@ class Sale extends Model
         return $this->belongsTo(BankAccount::class);
     }
 
+    /**
+     * Écritures comptables liées à cette vente
+     */
+    public function accountingEntries()
+    {
+        return $this->morphMany(AccountingEntry::class, 'source');
+    }
+
     protected static function boot()
     {
         parent::boot();
@@ -100,6 +108,50 @@ class Sale extends Model
             $sale->generateSecurityHash();
         });
 
+        // Gérer le cas d'une vente créée directement avec status = 'completed'
+        static::created(function ($sale) {
+            // Si la vente est créée avec le statut "completed"
+            if ($sale->status === 'completed') {
+                // Créer la transaction bancaire si compte bancaire lié
+                if ($sale->bank_account_id) {
+                    $exists = BankTransaction::where('reference', $sale->invoice_number)->exists();
+                    
+                    if (!$exists) {
+                        BankTransaction::create([
+                            'bank_account_id' => $sale->bank_account_id,
+                            'date' => now(),
+                            'amount' => $sale->total,
+                            'type' => $sale->type === 'credit_note' ? 'debit' : 'credit',
+                            'label' => ($sale->type === 'credit_note' ? "Avoir " : "Vente ") . $sale->invoice_number,
+                            'reference' => $sale->invoice_number,
+                            'status' => 'pending',
+                            'metadata' => ['sale_id' => $sale->id],
+                        ]);
+                    }
+                }
+
+                // Générer les écritures comptables
+                try {
+                    $accountingService = app(\App\Services\AccountingEntryService::class);
+                    
+                    // Si c'est un avoir avec une facture parente, contre-passer les écritures
+                    if ($sale->type === 'credit_note' && $sale->parent_id) {
+                        $originalSale = Sale::find($sale->parent_id);
+                        if ($originalSale) {
+                            $accountingService->reverseEntries($originalSale, $sale);
+                        }
+                    } else {
+                        // Vente normale : créer les écritures standard
+                        $accountingService->createEntriesForSale($sale);
+                    }
+                } catch (\Exception $e) {
+                    \Illuminate\Support\Facades\Log::error(
+                        "Erreur génération écritures comptables {$sale->type} (création) {$sale->invoice_number}: " . $e->getMessage()
+                    );
+                }
+            }
+        });
+
         static::updated(function ($sale) {
             // Si la vente passe à "completed" et qu'un compte bancaire est lié
             if ($sale->wasChanged('status') && $sale->status === 'completed' && $sale->bank_account_id) {
@@ -117,6 +169,33 @@ class Sale extends Model
                         'status' => 'pending',
                         'metadata' => ['sale_id' => $sale->id],
                     ]);
+                }
+            }
+
+            // Générer les écritures comptables quand la vente passe à "completed"
+            if ($sale->wasChanged('status') && $sale->status === 'completed') {
+                try {
+                    $accountingService = app(\App\Services\AccountingEntryService::class);
+                    $accountingService->createEntriesForSale($sale);
+                } catch (\Exception $e) {
+                    \Illuminate\Support\Facades\Log::error(
+                        "Erreur génération écritures comptables vente {$sale->invoice_number}: " . $e->getMessage()
+                    );
+                }
+            }
+
+            // Générer les écritures de contre-passation pour un avoir
+            if ($sale->wasChanged('status') && $sale->status === 'completed' && $sale->type === 'credit_note' && $sale->parent_id) {
+                try {
+                    $accountingService = app(\App\Services\AccountingEntryService::class);
+                    $originalSale = Sale::find($sale->parent_id);
+                    if ($originalSale) {
+                        $accountingService->reverseEntries($originalSale, $sale);
+                    }
+                } catch (\Exception $e) {
+                    \Illuminate\Support\Facades\Log::error(
+                        "Erreur génération écritures avoir {$sale->invoice_number}: " . $e->getMessage()
+                    );
                 }
             }
         });

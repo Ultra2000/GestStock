@@ -53,6 +53,14 @@ class Purchase extends Model
         return $this->belongsTo(BankAccount::class);
     }
 
+    /**
+     * Écritures comptables liées à cet achat
+     */
+    public function accountingEntries()
+    {
+        return $this->morphMany(AccountingEntry::class, 'source');
+    }
+
     protected static function booted()
     {
         static::creating(function ($purchase) {
@@ -68,6 +76,40 @@ class Purchase extends Model
             if (empty($purchase->warehouse_id)) {
                 $defaultWarehouse = Warehouse::getDefault($purchase->company_id);
                 $purchase->warehouse_id = $defaultWarehouse?->id;
+            }
+        });
+
+        // Gérer le cas d'un achat créé directement avec status = 'completed'
+        static::created(function ($purchase) {
+            // Si l'achat est créé avec le statut "completed"
+            if ($purchase->status === 'completed') {
+                // Créer la transaction bancaire si compte bancaire lié
+                if ($purchase->bank_account_id) {
+                    $exists = BankTransaction::where('reference', $purchase->invoice_number)->exists();
+                    
+                    if (!$exists) {
+                        BankTransaction::create([
+                            'bank_account_id' => $purchase->bank_account_id,
+                            'date' => now(),
+                            'amount' => $purchase->total,
+                            'type' => 'debit',
+                            'label' => "Achat " . $purchase->invoice_number,
+                            'reference' => $purchase->invoice_number,
+                            'status' => 'pending',
+                            'metadata' => ['purchase_id' => $purchase->id],
+                        ]);
+                    }
+                }
+
+                // Générer les écritures comptables
+                try {
+                    $accountingService = app(\App\Services\AccountingEntryService::class);
+                    $accountingService->createEntriesForPurchase($purchase);
+                } catch (\Exception $e) {
+                    \Illuminate\Support\Facades\Log::error(
+                        "Erreur génération écritures comptables achat (création) {$purchase->invoice_number}: " . $e->getMessage()
+                    );
+                }
             }
         });
 
@@ -88,6 +130,18 @@ class Purchase extends Model
                         'status' => 'pending',
                         'metadata' => ['purchase_id' => $purchase->id],
                     ]);
+                }
+            }
+
+            // Générer les écritures comptables quand l'achat passe à "completed"
+            if ($purchase->wasChanged('status') && $purchase->status === 'completed') {
+                try {
+                    $accountingService = app(\App\Services\AccountingEntryService::class);
+                    $accountingService->createEntriesForPurchase($purchase);
+                } catch (\Exception $e) {
+                    \Illuminate\Support\Facades\Log::error(
+                        "Erreur génération écritures comptables achat {$purchase->invoice_number}: " . $e->getMessage()
+                    );
                 }
             }
 
