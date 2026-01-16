@@ -272,6 +272,16 @@ class Company extends Model
         return $this->hasMany(BankTransaction::class);
     }
 
+    public function payments(): HasMany
+    {
+        return $this->hasMany(Payment::class);
+    }
+
+    public function accountingEntries(): HasMany
+    {
+        return $this->hasMany(AccountingEntry::class);
+    }
+
     public function integrations(): HasMany
     {
         return $this->hasMany(CompanyIntegration::class);

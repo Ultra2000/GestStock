@@ -31,6 +31,12 @@ class AccountingEntryService
             throw new \Exception("Impossible de générer les écritures : la vente n'est pas validée.");
         }
 
+        // Vérifier que le total est calculé (non NULL et > 0)
+        if (!$sale->total || $sale->total <= 0) {
+            Log::warning("Écritures non générées pour {$sale->invoice_number} : total non calculé");
+            return [];
+        }
+
         // Vérifier si les écritures existent déjà
         $existingEntries = AccountingEntry::where('source_type', Sale::class)
             ->where('source_id', $sale->id)
@@ -170,6 +176,12 @@ class AccountingEntryService
     {
         if ($purchase->status !== 'completed') {
             throw new \Exception("Impossible de générer les écritures : l'achat n'est pas terminé.");
+        }
+
+        // Vérifier que le total est calculé (non NULL et > 0)
+        if (!$purchase->total || $purchase->total <= 0) {
+            Log::warning("Écritures non générées pour achat {$purchase->invoice_number} : total non calculé");
+            return [];
         }
 
         $existingEntries = AccountingEntry::where('source_type', Purchase::class)
