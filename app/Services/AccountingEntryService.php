@@ -228,11 +228,23 @@ class AccountingEntryService
             }
 
             // 3. Écritures DÉBIT TVA déductible (par taux)
+            // En régime encaissements : TVA en attente (44586x) - devient déductible au paiement
+            // En régime débits : TVA déductible immédiate (4456x)
             if (!AccountingSetting::isVatFranchise($purchase->company_id)) {
                 $vatByRate = $this->groupVatByRateForPurchase($purchase->items, $settings);
+                $isVatOnReceipts = $this->isVatOnReceipts($settings);
                 
                 foreach ($vatByRate as $rate => $data) {
                     if ($data['total_vat'] > 0) {
+                        // En régime encaissements, utiliser le compte d'attente
+                        $vatAccount = $isVatOnReceipts 
+                            ? $this->getVatDeductiblePendingAccount($rate) 
+                            : $data['account_vat'];
+                        
+                        $vatLabel = $isVatOnReceipts
+                            ? "TVA déductible en attente {$rate}%"
+                            : "TVA déductible {$rate}%";
+                        
                         $entries[] = AccountingEntry::create([
                             'company_id' => $purchase->company_id,
                             'source_type' => Purchase::class,
@@ -240,8 +252,8 @@ class AccountingEntryService
                             'entry_date' => $purchase->created_at->toDateString(),
                             'piece_number' => $purchase->reference ?? 'ACH-' . $purchase->id,
                             'journal_code' => $settings->journal_purchases ?? 'ACH',
-                            'account_number' => $data['account_vat'],
-                            'label' => "TVA déductible {$rate}%",
+                            'account_number' => $vatAccount,
+                            'label' => $vatLabel,
                             'debit' => $data['total_vat'],
                             'credit' => 0,
                             'vat_rate' => $rate,
@@ -763,11 +775,24 @@ class AccountingEntryService
             'created_by' => auth()->id(),
         ]);
 
+        // 3. TVA déductible si régime "encaissements"
+        // La TVA devient déductible uniquement au moment du paiement
+        if ($this->isVatOnReceipts($settings) && !$this->isVatFranchise($payment->company_id)) {
+            $vatEntries = $this->createVatEntriesOnSupplierPayment($payment, $purchase, $settings, $journalCode, $pieceNumber);
+            $entries = array_merge($entries, $vatEntries);
+        }
+
         return $entries;
     }
 
     /**
      * Génère les écritures de TVA au moment du paiement (régime encaissements)
+     * 
+     * Formule fiscale pour paiement partiel :
+     * TVA à basculer = Paiement × (Taux TVA / (1 + Taux TVA))
+     * 
+     * Exemple : Paiement de 600€ sur facture à 20%
+     * TVA = 600 × (0.20 / 1.20) = 600 × 0.1667 = 100€
      */
     protected function createVatEntriesOnPayment(
         Payment $payment,
@@ -778,18 +803,34 @@ class AccountingEntryService
     ): array {
         $entries = [];
 
-        // Calculer la part de TVA correspondant au paiement
-        // Ratio = montant payé / total TTC
-        $ratio = $payment->amount / $sale->total;
-
         $sale->load('items.product');
         $vatByRate = $this->groupVatByRate($sale->items, $settings);
 
+        // Calculer le montant restant à payer avant ce paiement
+        $previousPayments = Payment::where('payable_type', Sale::class)
+            ->where('payable_id', $sale->id)
+            ->where('id', '<', $payment->id)
+            ->sum('amount');
+        
+        $remainingBeforePayment = $sale->total - $previousPayments;
+        
+        // Si le paiement dépasse le restant dû, le limiter
+        $effectivePayment = min($payment->amount, $remainingBeforePayment);
+
         foreach ($vatByRate as $rate => $data) {
-            $vatAmount = round($data['total_vat'] * $ratio, 2);
+            // Formule fiscale : TVA = Paiement × (Taux / (1 + Taux))
+            $rateDecimal = $rate / 100;
+            $vatAmount = round($effectivePayment * ($rateDecimal / (1 + $rateDecimal)), 2);
             
-            if ($vatAmount > 0) {
-                // DÉBIT TVA en attente (44574x)
+            // Vérifier qu'on ne dépasse pas la TVA totale restante pour ce taux
+            $totalVatForRate = $data['total_vat'];
+            $alreadyTransferred = $this->getAlreadyTransferredVat($sale->id, $rate);
+            $maxVatToTransfer = $totalVatForRate - $alreadyTransferred;
+            
+            $vatAmount = min($vatAmount, $maxVatToTransfer);
+            
+            if ($vatAmount > 0.01) {
+                // DÉBIT TVA en attente (44574x) - On vide le compte transitoire
                 $entries[] = AccountingEntry::create([
                     'company_id' => $payment->company_id,
                     'source_type' => Payment::class,
@@ -805,7 +846,7 @@ class AccountingEntryService
                     'created_by' => auth()->id(),
                 ]);
 
-                // CRÉDIT TVA collectée (4457x)
+                // CRÉDIT TVA collectée (4457x) - La TVA devient exigible
                 $entries[] = AccountingEntry::create([
                     'company_id' => $payment->company_id,
                     'source_type' => Payment::class,
@@ -827,6 +868,114 @@ class AccountingEntryService
     }
 
     /**
+     * Calcule la TVA déjà transférée du compte d'attente vers collectée pour une vente
+     */
+    protected function getAlreadyTransferredVat(int $saleId, float $vatRate): float
+    {
+        // Chercher les écritures de paiement qui ont déjà basculé de la TVA
+        return AccountingEntry::whereHas('source', function ($query) use ($saleId) {
+                $query->where('payable_type', Sale::class)
+                    ->where('payable_id', $saleId);
+            })
+            ->where('account_number', 'like', '4457%') // TVA collectée
+            ->where('credit', '>', 0)
+            ->where('vat_rate', $vatRate)
+            ->sum('credit');
+    }
+
+    /**
+     * Génère les écritures de TVA déductible au moment du paiement fournisseur (régime encaissements)
+     * 
+     * En régime encaissements, la TVA sur achats de services n'est déductible qu'au paiement.
+     * On bascule du compte 44586x (TVA en attente déductible) vers 4456x (TVA déductible).
+     */
+    protected function createVatEntriesOnSupplierPayment(
+        Payment $payment,
+        Purchase $purchase,
+        AccountingSetting $settings,
+        string $journalCode,
+        string $pieceNumber
+    ): array {
+        $entries = [];
+
+        $purchase->load('items.product');
+        $vatByRate = $this->groupVatByRateForPurchase($purchase->items, $settings);
+
+        // Calculer le montant restant à payer avant ce paiement
+        $previousPayments = Payment::where('payable_type', Purchase::class)
+            ->where('payable_id', $purchase->id)
+            ->where('id', '<', $payment->id)
+            ->sum('amount');
+        
+        $remainingBeforePayment = $purchase->total - $previousPayments;
+        $effectivePayment = min($payment->amount, $remainingBeforePayment);
+
+        foreach ($vatByRate as $rate => $data) {
+            // Formule fiscale : TVA = Paiement × (Taux / (1 + Taux))
+            $rateDecimal = $rate / 100;
+            $vatAmount = round($effectivePayment * ($rateDecimal / (1 + $rateDecimal)), 2);
+            
+            // Vérifier qu'on ne dépasse pas la TVA totale restante pour ce taux
+            $totalVatForRate = $data['total_vat'];
+            $alreadyTransferred = $this->getAlreadyTransferredDeductibleVat($purchase->id, $rate);
+            $maxVatToTransfer = $totalVatForRate - $alreadyTransferred;
+            
+            $vatAmount = min($vatAmount, $maxVatToTransfer);
+            
+            if ($vatAmount > 0.01) {
+                // CRÉDIT TVA en attente déductible (44586x) - On vide le compte transitoire
+                $entries[] = AccountingEntry::create([
+                    'company_id' => $payment->company_id,
+                    'source_type' => Payment::class,
+                    'source_id' => $payment->id,
+                    'entry_date' => $payment->payment_date->toDateString(),
+                    'piece_number' => $pieceNumber,
+                    'journal_code' => $journalCode,
+                    'account_number' => $this->getVatDeductiblePendingAccount($rate),
+                    'label' => "TVA déductible payée {$rate}% - {$purchase->reference}",
+                    'debit' => 0,
+                    'credit' => $vatAmount,
+                    'vat_rate' => $rate,
+                    'created_by' => auth()->id(),
+                ]);
+
+                // DÉBIT TVA déductible (4456x) - La TVA devient déductible
+                $entries[] = AccountingEntry::create([
+                    'company_id' => $payment->company_id,
+                    'source_type' => Payment::class,
+                    'source_id' => $payment->id,
+                    'entry_date' => $payment->payment_date->toDateString(),
+                    'piece_number' => $pieceNumber,
+                    'journal_code' => $journalCode,
+                    'account_number' => $data['account_vat'],
+                    'label' => "TVA déductible {$rate}% - {$purchase->reference}",
+                    'debit' => $vatAmount,
+                    'credit' => 0,
+                    'vat_rate' => $rate,
+                    'created_by' => auth()->id(),
+                ]);
+            }
+        }
+
+        return $entries;
+    }
+
+    /**
+     * Calcule la TVA déjà transférée du compte d'attente vers déductible pour un achat
+     */
+    protected function getAlreadyTransferredDeductibleVat(int $purchaseId, float $vatRate): float
+    {
+        return AccountingEntry::whereHas('source', function ($query) use ($purchaseId) {
+                $query->where('payable_type', Purchase::class)
+                    ->where('payable_id', $purchaseId);
+            })
+            ->where('account_number', 'like', '4456%') // TVA déductible
+            ->where('debit', '>', 0)
+            ->where('vat_rate', $vatRate)
+            ->sum('debit');
+    }
+
+    /**
      * Vérifie si l'entreprise est en régime TVA sur les encaissements
      */
     public function isVatOnReceipts(AccountingSetting $settings): bool
@@ -843,7 +992,8 @@ class AccountingEntryService
     }
 
     /**
-     * Compte TVA en attente (régime encaissements)
+     * Compte TVA en attente collectée (régime encaissements - ventes)
+     * 44574x = TVA collectée d'avance / en attente
      */
     protected function getVatPendingAccount(float $vatRate): string
     {
@@ -855,6 +1005,22 @@ class AccountingEntryService
         ];
 
         return $accounts[$vatRate] ?? '445740';
+    }
+
+    /**
+     * Compte TVA déductible en attente (régime encaissements - achats)
+     * 44586x = TVA sur factures non parvenues / en attente de déduction
+     */
+    protected function getVatDeductiblePendingAccount(float $vatRate): string
+    {
+        $accounts = [
+            20.00 => '445860',
+            10.00 => '445862',
+            5.50 => '445861',
+            2.10 => '445863',
+        ];
+
+        return $accounts[$vatRate] ?? '445860';
     }
 
     /**

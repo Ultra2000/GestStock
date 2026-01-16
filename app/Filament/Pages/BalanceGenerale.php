@@ -11,6 +11,7 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\Filter;
 use Filament\Forms\Components\DatePicker;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 
 class BalanceGenerale extends Page implements HasTable
@@ -170,68 +171,84 @@ class BalanceGenerale extends Page implements HasTable
     public function getBalanceTotals(): array
     {
         $companyId = filament()->getTenant()?->id;
+        $cacheKey = "balance_totals_{$companyId}";
+        
+        // Cache for 5 minutes, invalidated on new accounting entry
+        return Cache::remember($cacheKey, 300, function () use ($companyId) {
+            $totals = AccountingEntry::where('company_id', $companyId)
+                ->selectRaw('SUM(debit) as total_debit, SUM(credit) as total_credit')
+                ->first();
 
-        $totals = AccountingEntry::where('company_id', $companyId)
-            ->selectRaw('SUM(debit) as total_debit, SUM(credit) as total_credit')
-            ->first();
+            $totalDebit = $totals->total_debit ?? 0;
+            $totalCredit = $totals->total_credit ?? 0;
 
-        $totalDebit = $totals->total_debit ?? 0;
-        $totalCredit = $totals->total_credit ?? 0;
+            // Calcul des soldes débiteurs et créditeurs
+            $soldes = AccountingEntry::where('company_id', $companyId)
+                ->select('account_number')
+                ->selectRaw('SUM(debit) - SUM(credit) as solde')
+                ->groupBy('account_number')
+                ->get();
 
-        // Calcul des soldes débiteurs et créditeurs
-        $soldes = AccountingEntry::where('company_id', $companyId)
-            ->select('account_number')
-            ->selectRaw('SUM(debit) - SUM(credit) as solde')
-            ->groupBy('account_number')
-            ->get();
+            $totalSoldeDebiteur = $soldes->where('solde', '>', 0)->sum('solde');
+            $totalSoldeCrediteur = abs($soldes->where('solde', '<', 0)->sum('solde'));
 
-        $totalSoldeDebiteur = $soldes->where('solde', '>', 0)->sum('solde');
-        $totalSoldeCrediteur = abs($soldes->where('solde', '<', 0)->sum('solde'));
-
-        return [
-            'total_debit' => $totalDebit,
-            'total_credit' => $totalCredit,
-            'difference' => $totalDebit - $totalCredit,
-            'is_balanced' => abs($totalDebit - $totalCredit) < 0.01,
-            'solde_debiteur' => $totalSoldeDebiteur,
-            'solde_crediteur' => $totalSoldeCrediteur,
-            'soldes_equilibres' => abs($totalSoldeDebiteur - $totalSoldeCrediteur) < 0.01,
-        ];
+            return [
+                'total_debit' => $totalDebit,
+                'total_credit' => $totalCredit,
+                'difference' => $totalDebit - $totalCredit,
+                'is_balanced' => abs($totalDebit - $totalCredit) < 0.01,
+                'solde_debiteur' => $totalSoldeDebiteur,
+                'solde_crediteur' => $totalSoldeCrediteur,
+                'soldes_equilibres' => abs($totalSoldeDebiteur - $totalSoldeCrediteur) < 0.01,
+            ];
+        });
     }
 
     public function getBalanceByClass(): array
     {
         $companyId = filament()->getTenant()?->id;
+        $cacheKey = "balance_by_class_{$companyId}";
+        
+        return Cache::remember($cacheKey, 300, function () use ($companyId) {
+            $results = AccountingEntry::where('company_id', $companyId)
+                ->selectRaw('SUBSTR(account_number, 1, 1) as classe')
+                ->selectRaw('SUM(debit) as total_debit')
+                ->selectRaw('SUM(credit) as total_credit')
+                ->selectRaw('SUM(debit) - SUM(credit) as solde')
+                ->groupBy('classe')
+                ->orderBy('classe')
+                ->get();
 
-        $results = AccountingEntry::where('company_id', $companyId)
-            ->selectRaw('SUBSTR(account_number, 1, 1) as classe')
-            ->selectRaw('SUM(debit) as total_debit')
-            ->selectRaw('SUM(credit) as total_credit')
-            ->selectRaw('SUM(debit) - SUM(credit) as solde')
-            ->groupBy('classe')
-            ->orderBy('classe')
-            ->get();
-
-        $classes = [
-            '1' => 'Capitaux',
-            '2' => 'Immobilisations',
-            '3' => 'Stocks',
-            '4' => 'Tiers',
-            '5' => 'Financiers',
-            '6' => 'Charges',
-            '7' => 'Produits',
-            '8' => 'Comptes spéciaux',
-        ];
-
-        return $results->map(function ($item) use ($classes) {
-            return [
-                'classe' => $item->classe,
-                'label' => $classes[$item->classe] ?? 'Classe ' . $item->classe,
-                'total_debit' => $item->total_debit,
-                'total_credit' => $item->total_credit,
-                'solde' => $item->solde,
+            $classes = [
+                '1' => 'Capitaux',
+                '2' => 'Immobilisations',
+                '3' => 'Stocks',
+                '4' => 'Tiers',
+                '5' => 'Financiers',
+                '6' => 'Charges',
+                '7' => 'Produits',
+                '8' => 'Comptes spéciaux',
             ];
-        })->toArray();
+
+            return $results->map(function ($item) use ($classes) {
+                return [
+                    'classe' => $item->classe,
+                    'label' => $classes[$item->classe] ?? 'Classe ' . $item->classe,
+                    'total_debit' => $item->total_debit,
+                    'total_credit' => $item->total_credit,
+                    'solde' => $item->solde,
+                ];
+            })->toArray();
+        });
+    }
+
+    /**
+     * Invalide le cache de la Balance Générale
+     */
+    public static function clearBalanceCache(int $companyId): void
+    {
+        Cache::forget("balance_totals_{$companyId}");
+        Cache::forget("balance_by_class_{$companyId}");
     }
 
     public function getAccountLabels(): array

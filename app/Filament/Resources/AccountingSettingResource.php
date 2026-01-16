@@ -195,8 +195,8 @@ class AccountingSettingResource extends Resource
                             ->validationMessages([
                                 'regex' => 'Le compte ventes doit commencer par 7 et contenir au moins 6 chiffres (ex: 707000)',
                             ])
-                            ->helperText('707000 = Ventes de marchandises (revente). 701000 = Ventes de produits finis (fabrication)')
-                            ->hint('707 pour revendeurs, 701 pour fabricants')
+                            ->helperText('707000 = Marchandises | 706000 = Prestations de services | 701000 = Produits finis')
+                            ->hint('707 négoce, 706 services, 701 production')
                             ->hintIcon('heroicon-o-information-circle'),
 
                         Forms\Components\TextInput::make('account_purchases')
@@ -207,7 +207,7 @@ class AccountingSettingResource extends Resource
                             ->validationMessages([
                                 'regex' => 'Le compte achats doit commencer par 6 et contenir au moins 6 chiffres (ex: 607000)',
                             ])
-                            ->helperText('Ex: 607000 - Achats de marchandises'),
+                            ->helperText('607000 = Marchandises | 604000 = Services | 601000 = Matières premières'),
 
                         Forms\Components\TextInput::make('account_discounts_granted')
                             ->label('Compte Remises accordées')

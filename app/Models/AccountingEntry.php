@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Filament\Pages\BalanceGenerale;
 use App\Models\Traits\BelongsToCompany;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -76,6 +77,11 @@ class AccountingEntry extends Model
                 $entry->fec_sequence = static::where('company_id', $entry->company_id)
                     ->max('fec_sequence') + 1 ?? 1;
             }
+        });
+
+        // Invalider le cache Balance Générale à chaque nouvelle écriture
+        static::created(function ($entry) {
+            BalanceGenerale::clearBalanceCache($entry->company_id);
         });
 
         static::updating(function ($entry) {
