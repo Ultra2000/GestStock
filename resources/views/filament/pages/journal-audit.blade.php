@@ -454,12 +454,36 @@
         </div>
     </div>
 
-    {{-- Bouton Rafraîchir --}}
-    <div class="flex justify-end">
+    {{-- Boutons d'action --}}
+    <div class="flex justify-between items-center">
+        {{-- Bouton Certificat (visible uniquement si score = 100) --}}
+        <div>
+            @if($health['score'] === 100)
+                <button 
+                    wire:click="downloadCertificate"
+                    wire:loading.attr="disabled"
+                    class="inline-flex items-center px-6 py-3 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200">
+                    <x-heroicon-o-document-check class="w-6 h-6 mr-2" />
+                    <span wire:loading.remove wire:target="downloadCertificate">
+                        Générer le Certificat d'Intégrité
+                    </span>
+                    <span wire:loading wire:target="downloadCertificate">
+                        Génération en cours...
+                    </span>
+                </button>
+            @else
+                <div class="inline-flex items-center px-6 py-3 bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400 font-medium rounded-xl cursor-not-allowed">
+                    <x-heroicon-o-document-check class="w-6 h-6 mr-2 opacity-50" />
+                    Certificat disponible à 100/100
+                </div>
+            @endif
+        </div>
+
+        {{-- Bouton Rafraîchir --}}
         <button 
             wire:click="refreshAudit"
             class="inline-flex items-center px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white font-medium rounded-lg transition-colors">
-            <x-heroicon-o-arrow-path class="w-5 h-5 mr-2" wire:loading.class="animate-spin" />
+            <x-heroicon-o-arrow-path class="w-5 h-5 mr-2" wire:loading.class="animate-spin" wire:target="refreshAudit" />
             Rafraîchir l'audit
         </button>
     </div>

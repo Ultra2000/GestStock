@@ -7,9 +7,11 @@ use App\Models\AccountingSetting;
 use App\Models\Payment;
 use App\Models\Purchase;
 use App\Models\Sale;
+use App\Services\IntegrityCertificateService;
 use Filament\Pages\Page;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 /**
  * Journal d'Audit - Tableau de Concordance
@@ -539,6 +541,25 @@ class JournalAudit extends Page
         
         // Notifier le rafraîchissement
         $this->dispatch('audit-refreshed');
+    }
+
+    /**
+     * Génère et télécharge le Certificat d'Intégrité PDF
+     */
+    public function downloadCertificate(): StreamedResponse
+    {
+        $companyId = filament()->getTenant()?->id;
+        
+        $service = new IntegrityCertificateService($companyId);
+        $pdf = $service->generate();
+        
+        $filename = 'certificat-integrite-' . now()->format('Y-m-d-His') . '.pdf';
+        
+        return response()->streamDownload(function () use ($pdf) {
+            echo $pdf->output();
+        }, $filename, [
+            'Content-Type' => 'application/pdf',
+        ]);
     }
 
     /**
