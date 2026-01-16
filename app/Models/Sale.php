@@ -126,8 +126,9 @@ class Sale extends Model
         static::created(function ($sale) {
             // Si la vente est créée avec le statut "completed"
             if ($sale->status === 'completed') {
-                // Créer la transaction bancaire si compte bancaire lié
-                if ($sale->bank_account_id) {
+                // Créer la transaction bancaire si compte bancaire lié ET si le total est défini
+                // Note: Le total peut être NULL si les items n'ont pas encore été ajoutés
+                if ($sale->bank_account_id && $sale->total > 0) {
                     $exists = BankTransaction::where('reference', $sale->invoice_number)->exists();
                     
                     if (!$exists) {
@@ -349,6 +350,25 @@ class Sale extends Model
         $this->total_vat = round($totalVat * (1 - $this->discount_percent / 100), 2);
         $this->total = round($afterDiscount, 2);
         $this->save();
+
+        // Créer la transaction bancaire si vente completed avec compte bancaire
+        // (exécuté ici car le total est maintenant calculé)
+        if ($this->status === 'completed' && $this->bank_account_id && $this->total > 0) {
+            $exists = BankTransaction::where('reference', $this->invoice_number)->exists();
+            
+            if (!$exists) {
+                BankTransaction::create([
+                    'bank_account_id' => $this->bank_account_id,
+                    'date' => now(),
+                    'amount' => $this->total,
+                    'type' => $this->type === 'credit_note' ? 'debit' : 'credit',
+                    'label' => ($this->type === 'credit_note' ? "Avoir " : "Vente ") . $this->invoice_number,
+                    'reference' => $this->invoice_number,
+                    'status' => 'pending',
+                    'metadata' => ['sale_id' => $this->id],
+                ]);
+            }
+        }
     }
 
     /**
