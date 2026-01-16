@@ -38,6 +38,11 @@ class BalanceGenerale extends Page implements HasTable
         $this->dateTo = now()->format('Y-m-d');
     }
 
+    public function getTableRecordKey($record): string
+    {
+        return $record->account_number;
+    }
+
     public function table(Table $table): Table
     {
         return $table
