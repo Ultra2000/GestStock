@@ -5,6 +5,11 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
     <title>Certificat d'Intégrité Comptable - {{ $certificate_number }}</title>
     <style>
+        /* ============================================================
+           CERTIFICAT D'INTÉGRITÉ - Design Professionnel & Moderne
+           Compatible DomPDF - Sans Flexbox/Grid
+           ============================================================ */
+        
         /* Reset et Base */
         * {
             margin: 0;
@@ -14,13 +19,14 @@
         
         @page {
             margin: 0;
+            size: A4;
         }
 
         body {
-            font-family: 'DejaVu Sans', Arial, sans-serif;
+            font-family: 'Helvetica', 'DejaVu Sans', Arial, sans-serif;
             font-size: 10pt;
-            line-height: 1.4;
-            color: #2d3748;
+            line-height: 1.5;
+            color: #1e293b;
             background: #ffffff;
             margin: 0;
             padding: 0;
@@ -30,148 +36,155 @@
         .page {
             width: 100%;
             min-height: 100%;
-            padding: 25px 35px;
+            padding: 30px 40px;
             position: relative;
         }
 
-        /* Bordure décorative */
+        /* Bordure élégante et discrète */
         .border-frame {
-            border: 2px solid #2563eb;
-            border-radius: 8px;
-            padding: 25px;
+            border: 1px solid #e2e8f0;
+            padding: 35px 40px;
             min-height: 95%;
+            background: #ffffff;
         }
 
-        /* ========== HEADER ========== */
+        /* ========== HEADER - Style Institutionnel ========== */
         .header {
             text-align: center;
-            padding-bottom: 15px;
-            border-bottom: 3px solid #2563eb;
-            margin-bottom: 20px;
+            padding-bottom: 25px;
+            border-bottom: 2px solid #f1f5f9;
+            margin-bottom: 30px;
         }
 
         .logo {
-            font-size: 32pt;
+            font-size: 28pt;
             font-weight: bold;
-            letter-spacing: 3px;
-            margin-bottom: 5px;
+            letter-spacing: -1px;
+            margin-bottom: 8px;
         }
 
         .logo-fre {
-            color: #2563eb;
+            color: #1e3a5f;
         }
 
         .logo-corp {
-            color: #f97316;
+            color: #0ea5e9;
         }
 
         .doc-title {
-            font-size: 18pt;
+            font-size: 16pt;
             font-weight: bold;
-            color: #1e3a5f;
+            color: #0f172a;
             text-transform: uppercase;
-            letter-spacing: 2px;
-            margin-top: 10px;
+            letter-spacing: 3px;
+            margin-top: 12px;
         }
 
         .doc-subtitle {
             font-size: 9pt;
             color: #64748b;
-            margin-top: 5px;
+            margin-top: 6px;
+            font-weight: normal;
         }
 
         .cert-number {
             font-size: 8pt;
             color: #94a3b8;
-            margin-top: 8px;
-            font-family: 'DejaVu Sans Mono', monospace;
+            margin-top: 10px;
+            font-family: 'DejaVu Sans Mono', 'Courier New', monospace;
+            letter-spacing: 1px;
         }
 
-        /* ========== SCORE SECTION ========== */
+        /* ========== SCORE SECTION - Style Card Moderne ========== */
         .score-box {
-            background: #f0f9ff;
-            border: 2px solid #2563eb;
-            border-radius: 10px;
-            padding: 20px;
-            margin-bottom: 20px;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 28px;
             text-align: center;
         }
 
         .score-label {
-            font-size: 10pt;
-            color: #2563eb;
+            font-size: 9pt;
+            color: #64748b;
             text-transform: uppercase;
-            letter-spacing: 2px;
+            letter-spacing: 3px;
             font-weight: bold;
-            margin-bottom: 10px;
+            margin-bottom: 12px;
         }
 
         .score-value {
-            font-size: 48pt;
-            font-weight: bold;
-            color: {{ $health_score['is_perfect'] ? '#16a34a' : '#dc2626' }};
+            font-size: 56pt;
+            font-weight: 800;
+            color: {{ $health_score['is_perfect'] ? '#10b981' : '#ef4444' }};
             line-height: 1;
+            letter-spacing: -3px;
         }
 
         .score-max {
-            font-size: 20pt;
-            color: #64748b;
-            font-weight: normal;
+            font-size: 22pt;
+            color: #94a3b8;
+            font-weight: 400;
         }
 
         .score-badge {
             display: inline-block;
-            padding: 8px 25px;
-            border-radius: 20px;
-            font-size: 11pt;
+            padding: 10px 30px;
+            border-radius: 25px;
+            font-size: 10pt;
             font-weight: bold;
-            margin-top: 12px;
-            background: {{ $health_score['is_perfect'] ? '#dcfce7' : '#fee2e2' }};
-            color: {{ $health_score['is_perfect'] ? '#166534' : '#991b1b' }};
-            border: 1px solid {{ $health_score['is_perfect'] ? '#86efac' : '#fca5a5' }};
+            margin-top: 15px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            background: {{ $health_score['is_perfect'] ? '#ecfdf5' : '#fef2f2' }};
+            color: {{ $health_score['is_perfect'] ? '#047857' : '#b91c1c' }};
+            border: 2px solid {{ $health_score['is_perfect'] ? '#10b981' : '#ef4444' }};
         }
 
-        /* ========== COMPANY INFO ========== */
+        /* ========== COMPANY INFO - Style Discret ========== */
         .company-box {
-            background: #f8fafc;
-            border: 1px solid #e2e8f0;
-            border-radius: 6px;
-            padding: 12px 15px;
-            margin-bottom: 18px;
+            background: #fafafa;
+            border: 1px solid #f1f5f9;
+            border-radius: 8px;
+            padding: 15px 20px;
+            margin-bottom: 25px;
         }
 
         .company-name {
-            font-size: 13pt;
+            font-size: 12pt;
             font-weight: bold;
-            color: #1e293b;
+            color: #0f172a;
         }
 
         .company-info {
-            font-size: 9pt;
+            font-size: 8.5pt;
             color: #64748b;
-            margin-top: 4px;
-        }
-
-        /* ========== SECTION TITLES ========== */
-        .section-title {
-            font-size: 11pt;
-            font-weight: bold;
-            color: #1e3a5f;
-            padding-bottom: 6px;
-            border-bottom: 2px solid #e2e8f0;
-            margin-bottom: 12px;
             margin-top: 5px;
         }
 
-        /* ========== AUDIT CARDS ========== */
+        /* ========== SECTION TITLES - Style Épuré ========== */
+        .section-title {
+            font-size: 10pt;
+            font-weight: bold;
+            color: #334155;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #f1f5f9;
+            margin-bottom: 15px;
+            margin-top: 8px;
+        }
+
+        /* ========== AUDIT CARDS - Style Dashboard Moderne ========== */
         .audit-grid {
             width: 100%;
-            margin-bottom: 18px;
+            margin-bottom: 25px;
         }
 
         .audit-row {
             width: 100%;
-            margin-bottom: 10px;
+            margin-bottom: 12px;
         }
 
         .audit-row:after {
@@ -183,11 +196,13 @@
         .audit-card {
             width: 48%;
             float: left;
-            border: 1px solid #e2e8f0;
-            border-radius: 6px;
-            padding: 12px;
+            border: 1px solid #f1f5f9;
+            border-radius: 8px;
+            padding: 15px;
             margin-right: 2%;
             background: #ffffff;
+            border-top-width: 4px;
+            border-top-style: solid;
         }
 
         .audit-card:last-child {
@@ -195,29 +210,37 @@
         }
 
         .audit-card.valid {
-            border-left: 4px solid #16a34a;
-            background: #f0fdf4;
+            border-top-color: #10b981;
+            background: #ffffff;
         }
 
         .audit-card.invalid {
-            border-left: 4px solid #dc2626;
-            background: #fef2f2;
+            border-top-color: #ef4444;
+            background: #fffbfb;
+        }
+
+        .audit-icon {
+            font-size: 14pt;
+            margin-bottom: 5px;
         }
 
         .audit-title {
-            font-size: 9pt;
+            font-size: 8.5pt;
             font-weight: bold;
-            color: #374151;
-            margin-bottom: 6px;
+            color: #334155;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
         }
 
         .audit-status {
-            font-size: 9pt;
+            font-size: 10pt;
             font-weight: bold;
+            margin-bottom: 6px;
         }
 
         .audit-status.valid {
-            color: #16a34a;
+            color: #059669;
         }
 
         .audit-status.invalid {
@@ -226,22 +249,28 @@
 
         .audit-detail {
             font-size: 7.5pt;
-            color: #6b7280;
-            margin-top: 5px;
-            line-height: 1.3;
+            color: #64748b;
+            margin-top: 8px;
+            line-height: 1.5;
+            border-top: 1px solid #f1f5f9;
+            padding-top: 8px;
         }
 
-        /* ========== STATS TABLE ========== */
+        /* ========== STATS TABLE - Style Minimaliste ========== */
         .stats-table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 18px;
+            margin-bottom: 25px;
             font-size: 9pt;
         }
 
         .stats-table td {
-            padding: 7px 10px;
-            border-bottom: 1px solid #e2e8f0;
+            padding: 10px 12px;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .stats-table tr:last-child td {
+            border-bottom: none;
         }
 
         .stats-table td:first-child {
@@ -251,64 +280,71 @@
 
         .stats-table td:last-child {
             text-align: right;
-            font-weight: bold;
-            color: #1e293b;
-            font-family: 'DejaVu Sans Mono', monospace;
+            font-weight: 600;
+            color: #0f172a;
+            font-family: 'DejaVu Sans Mono', 'Courier New', monospace;
             font-size: 9pt;
         }
 
-        /* ========== HASH SECTION ========== */
+        /* ========== HASH SECTION - Style Code Terminal ========== */
         .hash-box {
-            background: #1e293b;
-            border-radius: 6px;
-            padding: 12px 15px;
-            margin-bottom: 18px;
+            background: #0f172a;
+            border-left: 4px solid #3b82f6;
+            border-radius: 0 6px 6px 0;
+            padding: 15px 18px;
+            margin-bottom: 25px;
         }
 
         .hash-title {
-            font-size: 8pt;
-            color: #94a3b8;
+            font-size: 7.5pt;
+            color: #64748b;
             text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-bottom: 6px;
+            letter-spacing: 2px;
+            margin-bottom: 8px;
         }
 
         .hash-value {
-            font-family: 'DejaVu Sans Mono', monospace;
-            font-size: 7.5pt;
-            color: #22d3ee;
+            font-family: 'DejaVu Sans Mono', 'Courier New', monospace;
+            font-size: 7pt;
+            color: #38bdf8;
             word-break: break-all;
-            line-height: 1.4;
+            line-height: 1.6;
+            letter-spacing: 0.5px;
         }
 
         .hash-algo {
             font-size: 7pt;
-            color: #64748b;
-            margin-top: 6px;
+            color: #475569;
+            margin-top: 8px;
+            font-style: italic;
         }
 
-        /* ========== FOOTER ========== */
+        /* ========== FOOTER - Plus Espacé ========== */
         .footer {
-            margin-top: 15px;
-            padding-top: 15px;
-            border-top: 2px solid #e2e8f0;
+            margin-top: 25px;
+            padding-top: 20px;
+            border-top: 1px solid #e2e8f0;
         }
 
         .attestation {
-            font-size: 8.5pt;
-            color: #374151;
+            font-size: 8pt;
+            color: #475569;
             text-align: justify;
-            line-height: 1.5;
-            margin-bottom: 12px;
+            line-height: 1.6;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #fafafa;
+            border-radius: 6px;
         }
 
         .attestation strong {
-            color: #1e293b;
+            color: #0f172a;
         }
 
         .signature-area {
             width: 100%;
-            margin-top: 20px;
+            margin-top: 35px;
+            padding-top: 15px;
         }
 
         .signature-area:after {
@@ -318,9 +354,10 @@
         }
 
         .signature-block {
-            width: 45%;
+            width: 42%;
             float: left;
             text-align: center;
+            padding: 0 15px;
         }
 
         .signature-block:last-child {
@@ -329,26 +366,27 @@
 
         .signature-line {
             border-top: 1px solid #cbd5e1;
-            margin-top: 50px;
-            padding-top: 5px;
+            margin-top: 60px;
+            padding-top: 8px;
             font-size: 8pt;
             color: #64748b;
         }
 
         .timestamp {
             text-align: center;
-            font-size: 8pt;
+            font-size: 7.5pt;
             color: #94a3b8;
-            margin-top: 20px;
+            margin-top: 30px;
         }
 
         .legal-notice {
             text-align: center;
-            font-size: 7pt;
+            font-size: 6.5pt;
             color: #9ca3af;
             font-style: italic;
-            margin-top: 10px;
-            line-height: 1.4;
+            margin-top: 12px;
+            line-height: 1.5;
+            padding: 0 20px;
         }
 
         /* ========== WATERMARK ========== */
@@ -356,20 +394,23 @@
         .watermark {
             position: fixed;
             top: 45%;
-            left: 15%;
-            font-size: 70pt;
-            color: rgba(220, 38, 38, 0.08);
+            left: 12%;
+            font-size: 65pt;
+            color: rgba(239, 68, 68, 0.06);
             font-weight: bold;
             transform: rotate(-35deg);
             z-index: -1;
-            letter-spacing: 10px;
+            letter-spacing: 8px;
+            text-transform: uppercase;
         }
         @endif
 
-        /* ========== SCORE DETAILS ========== */
+        /* ========== SCORE DETAILS - Style Pill ========== */
         .score-details {
             width: 100%;
-            margin-top: 15px;
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 1px solid #e2e8f0;
         }
 
         .score-details:after {
@@ -383,8 +424,9 @@
             float: left;
             margin-right: 2%;
             text-align: center;
-            padding: 8px 5px;
-            border-radius: 5px;
+            padding: 10px 8px;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
         }
 
         .score-item:last-child {
@@ -392,20 +434,23 @@
         }
 
         .score-item.valid {
-            background: #dcfce7;
+            background: #f0fdf4;
+            border-color: #bbf7d0;
         }
 
         .score-item.invalid {
-            background: #fee2e2;
+            background: #fef2f2;
+            border-color: #fecaca;
         }
 
         .score-item-value {
             font-size: 14pt;
-            font-weight: bold;
+            font-weight: 700;
+            letter-spacing: -1px;
         }
 
         .score-item.valid .score-item-value {
-            color: #16a34a;
+            color: #059669;
         }
 
         .score-item.invalid .score-item-value {
@@ -413,9 +458,11 @@
         }
 
         .score-item-label {
-            font-size: 7pt;
+            font-size: 6.5pt;
             color: #64748b;
-            margin-top: 2px;
+            margin-top: 3px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
         /* Clear float helper */
@@ -501,25 +548,25 @@
                 <!-- Ligne 1 : Ventes & Achats -->
                 <div class="audit-row clearfix">
                     <div class="audit-card {{ $audit_data['sales_integrity']['is_valid'] ? 'valid' : 'invalid' }}">
-                        <div class="audit-title">📊 Intégrité des Ventes</div>
+                        <div class="audit-title">Intégrité des Ventes</div>
                         <div class="audit-status {{ $audit_data['sales_integrity']['is_valid'] ? 'valid' : 'invalid' }}">
-                            {{ $audit_data['sales_integrity']['is_valid'] ? '✓ CONFORME' : '✗ ÉCART DÉTECTÉ' }}
+                            {{ $audit_data['sales_integrity']['is_valid'] ? '✓ Conforme' : '✗ Écart détecté' }}
                         </div>
                         <div class="audit-detail">
-                            {{ $audit_data['sales_integrity']['count'] }} factures<br>
-                            CA métier : {{ number_format($audit_data['sales_integrity']['metier_ht'], 2, ',', ' ') }} €<br>
-                            CA comptable : {{ number_format($audit_data['sales_integrity']['comptable_ht'], 2, ',', ' ') }} €
+                            <strong>{{ $audit_data['sales_integrity']['count'] }}</strong> factures analysées<br>
+                            CA métier : <strong>{{ number_format($audit_data['sales_integrity']['metier_ht'], 2, ',', ' ') }} €</strong><br>
+                            CA comptable : <strong>{{ number_format($audit_data['sales_integrity']['comptable_ht'], 2, ',', ' ') }} €</strong>
                         </div>
                     </div>
                     <div class="audit-card {{ $audit_data['purchases_integrity']['is_valid'] ? 'valid' : 'invalid' }}">
-                        <div class="audit-title">📦 Intégrité des Achats</div>
+                        <div class="audit-title">Intégrité des Achats</div>
                         <div class="audit-status {{ $audit_data['purchases_integrity']['is_valid'] ? 'valid' : 'invalid' }}">
-                            {{ $audit_data['purchases_integrity']['is_valid'] ? '✓ CONFORME' : '✗ ÉCART DÉTECTÉ' }}
+                            {{ $audit_data['purchases_integrity']['is_valid'] ? '✓ Conforme' : '✗ Écart détecté' }}
                         </div>
                         <div class="audit-detail">
-                            {{ $audit_data['purchases_integrity']['count'] }} achats<br>
-                            Charges métier : {{ number_format($audit_data['purchases_integrity']['metier_ht'], 2, ',', ' ') }} €<br>
-                            Charges comptables : {{ number_format($audit_data['purchases_integrity']['comptable_ht'], 2, ',', ' ') }} €
+                            <strong>{{ $audit_data['purchases_integrity']['count'] }}</strong> achats analysés<br>
+                            Charges métier : <strong>{{ number_format($audit_data['purchases_integrity']['metier_ht'], 2, ',', ' ') }} €</strong><br>
+                            Charges comptables : <strong>{{ number_format($audit_data['purchases_integrity']['comptable_ht'], 2, ',', ' ') }} €</strong>
                         </div>
                     </div>
                 </div>
@@ -527,32 +574,32 @@
                 <!-- Ligne 2 : Séquences & TVA -->
                 <div class="audit-row clearfix">
                     <div class="audit-card {{ $audit_data['sequence_audit']['is_valid'] ? 'valid' : 'invalid' }}">
-                        <div class="audit-title">🔢 Continuité des Séquences (NF525)</div>
+                        <div class="audit-title">Continuité des Séquences NF525</div>
                         <div class="audit-status {{ $audit_data['sequence_audit']['is_valid'] ? 'valid' : 'invalid' }}">
-                            {{ $audit_data['sequence_audit']['is_valid'] ? '✓ SÉQUENCES CONTINUES' : '✗ RUPTURES DÉTECTÉES' }}
+                            {{ $audit_data['sequence_audit']['is_valid'] ? '✓ Séquences continues' : '✗ Ruptures détectées' }}
                         </div>
                         <div class="audit-detail">
-                            {{ $audit_data['sequence_audit']['total_entries'] }} écritures FEC<br>
-                            {{ $audit_data['sequence_audit']['total_invoices'] }} factures<br>
+                            <strong>{{ $audit_data['sequence_audit']['total_entries'] }}</strong> écritures FEC<br>
+                            <strong>{{ $audit_data['sequence_audit']['total_invoices'] }}</strong> factures<br>
                             @if(!$audit_data['sequence_audit']['is_valid'])
-                                {{ $audit_data['sequence_audit']['fec_gaps_count'] }} trou(s) FEC, {{ $audit_data['sequence_audit']['invoice_gaps_count'] }} facture(s) manquante(s)
+                                <span style="color: #dc2626;">{{ $audit_data['sequence_audit']['fec_gaps_count'] }} trou(s) FEC, {{ $audit_data['sequence_audit']['invoice_gaps_count'] }} facture(s) manquante(s)</span>
                             @else
-                                Aucune rupture de numérotation
+                                <span style="color: #059669;">Aucune rupture de numérotation</span>
                             @endif
                         </div>
                     </div>
                     <div class="audit-card {{ $audit_data['vat_coherence']['is_valid'] ? 'valid' : 'invalid' }}">
-                        <div class="audit-title">💶 Cohérence TVA</div>
+                        <div class="audit-title">Cohérence TVA</div>
                         <div class="audit-status {{ $audit_data['vat_coherence']['is_valid'] ? 'valid' : 'invalid' }}">
-                            {{ $audit_data['vat_coherence']['is_valid'] ? '✓ TVA COHÉRENTE' : '✗ ÉCART TVA' }}
+                            {{ $audit_data['vat_coherence']['is_valid'] ? '✓ TVA cohérente' : '✗ Écart TVA' }}
                         </div>
                         <div class="audit-detail">
-                            Régime : {{ $audit_data['vat_coherence']['regime'] === 'encaissements' ? 'Encaissements' : 'Débits' }}<br>
-                            TVA théorique : {{ number_format($audit_data['vat_coherence']['theoretical_vat'], 2, ',', ' ') }} €<br>
+                            Régime : <strong>{{ $audit_data['vat_coherence']['regime'] === 'encaissements' ? 'Encaissements' : 'Débits' }}</strong><br>
+                            TVA théorique : <strong>{{ number_format($audit_data['vat_coherence']['theoretical_vat'], 2, ',', ' ') }} €</strong><br>
                             @if($audit_data['vat_coherence']['regime'] === 'encaissements')
-                                TVA en attente : {{ number_format($audit_data['vat_coherence']['pending_vat'], 2, ',', ' ') }} €
+                                TVA en attente : <strong>{{ number_format($audit_data['vat_coherence']['pending_vat'], 2, ',', ' ') }} €</strong>
                             @else
-                                TVA comptabilisée : {{ number_format($audit_data['vat_coherence']['accounted_vat'], 2, ',', ' ') }} €
+                                TVA comptabilisée : <strong>{{ number_format($audit_data['vat_coherence']['accounted_vat'], 2, ',', ' ') }} €</strong>
                             @endif
                         </div>
                     </div>
@@ -590,9 +637,9 @@
 
             <!-- HASH D'INTÉGRITÉ -->
             <div class="hash-box">
-                <div class="hash-title">🔐 Empreinte Numérique d'Intégrité</div>
+                <div class="hash-title">Empreinte Numérique d'Intégrité</div>
                 <div class="hash-value">{{ $integrity_hash }}</div>
-                <div class="hash-algo">Algorithme : {{ $hash_algorithm }} — Cette empreinte garantit l'authenticité et l'intégrité du document</div>
+                <div class="hash-algo">{{ $hash_algorithm }} — Cette empreinte garantit l'authenticité et l'intégrité du document</div>
             </div>
 
             <!-- FOOTER -->
