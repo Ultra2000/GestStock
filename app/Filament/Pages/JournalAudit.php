@@ -12,6 +12,7 @@ use Filament\Pages\Page;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Symfony\Component\HttpFoundation\StreamedResponse;
+use Filament\Facades\Filament;
 
 /**
  * Journal d'Audit - Tableau de Concordance
@@ -34,6 +35,11 @@ class JournalAudit extends Page
     protected static ?string $navigationGroup = 'Comptabilité';
 
     protected static ?int $navigationSort = 9;
+
+    public static function shouldRegisterNavigation(): bool
+    {
+        return Filament::getTenant()?->isModuleEnabled('accounting') ?? true;
+    }
 
     /**
      * Durée du cache en secondes (5 minutes)

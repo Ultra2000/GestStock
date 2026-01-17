@@ -12,12 +12,18 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Form;
 use Filament\Notifications\Notification;
 use Illuminate\Support\Facades\Response;
+use Filament\Facades\Filament;
 
 class AccountingExport extends Page implements HasForms
 {
     use InteractsWithForms;
 
     protected static ?string $navigationIcon = 'heroicon-o-document-arrow-down';
+
+    public static function shouldRegisterNavigation(): bool
+    {
+        return Filament::getTenant()?->isModuleEnabled('accounting') ?? true;
+    }
 
     protected static string $view = 'filament.pages.accounting-export';
 

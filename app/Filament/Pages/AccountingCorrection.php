@@ -13,6 +13,7 @@ use Filament\Forms\Form;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Illuminate\Support\Facades\DB;
+use Filament\Facades\Filament;
 
 class AccountingCorrection extends Page implements HasForms
 {
@@ -24,6 +25,11 @@ class AccountingCorrection extends Page implements HasForms
     protected static ?string $title = 'Opérations Diverses & Corrections';
     protected static ?string $navigationGroup = 'Comptabilité';
     protected static ?int $navigationSort = 8;
+
+    public static function shouldRegisterNavigation(): bool
+    {
+        return Filament::getTenant()?->isModuleEnabled('accounting') ?? true;
+    }
 
     public ?array $data = [];
     public ?array $lines = [];

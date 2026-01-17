@@ -12,12 +12,18 @@ use Filament\Tables\Table;
 use Filament\Tables\Filters\Filter;
 use Filament\Tables\Filters\SelectFilter;
 use Illuminate\Database\Eloquent\Builder;
+use Filament\Facades\Filament;
 
 class AccountingEntryResource extends Resource
 {
     protected static ?string $model = AccountingEntry::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-book-open';
+
+    public static function shouldRegisterNavigation(): bool
+    {
+        return Filament::getTenant()?->isModuleEnabled('accounting') ?? true;
+    }
 
     protected static ?string $navigationLabel = 'Grand Livre';
 

@@ -13,12 +13,18 @@ use Filament\Forms\Components\DatePicker;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Filament\Facades\Filament;
 
 class BalanceGenerale extends Page implements HasTable
 {
     use InteractsWithTable;
 
     protected static ?string $navigationIcon = 'heroicon-o-scale';
+
+    public static function shouldRegisterNavigation(): bool
+    {
+        return Filament::getTenant()?->isModuleEnabled('accounting') ?? true;
+    }
 
     protected static string $view = 'filament.pages.balance-generale';
 

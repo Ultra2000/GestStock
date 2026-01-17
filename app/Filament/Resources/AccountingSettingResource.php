@@ -9,12 +9,18 @@ use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Filament\Facades\Filament;
 
 class AccountingSettingResource extends Resource
 {
     protected static ?string $model = AccountingSetting::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-cog-6-tooth';
+
+    public static function shouldRegisterNavigation(): bool
+    {
+        return Filament::getTenant()?->isModuleEnabled('accounting') ?? true;
+    }
 
     protected static ?string $navigationLabel = 'Paramètres Comptables';
 

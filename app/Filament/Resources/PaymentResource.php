@@ -12,6 +12,7 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Filament\Facades\Filament;
 
 class PaymentResource extends Resource
 {
@@ -28,6 +29,11 @@ class PaymentResource extends Resource
     protected static ?string $navigationGroup = 'Comptabilité';
 
     protected static ?int $navigationSort = 15;
+
+    public static function shouldRegisterNavigation(): bool
+    {
+        return Filament::getTenant()?->isModuleEnabled('accounting') ?? true;
+    }
 
     public static function form(Form $form): Form
     {
