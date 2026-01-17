@@ -651,11 +651,13 @@ class AccountingEntryService
                 );
             }
 
-            // Attribuer le numéro FEC global
+            // Attribuer le numéro FEC global (sans save car déjà fait à la création)
             foreach ($entries as $entry) {
-                $entry->fec_sequence = $this->getNextFecSequence($payment->company_id);
-                $entry->entry_type = 'payment';
-                $entry->save();
+                // Utiliser updateQuietly pour éviter le trigger de verrouillage
+                $entry->updateQuietly([
+                    'fec_sequence' => $this->getNextFecSequence($payment->company_id),
+                    'entry_type' => 'payment',
+                ]);
             }
 
             // Lettrage automatique avec l'écriture de vente/achat
