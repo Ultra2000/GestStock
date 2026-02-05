@@ -4,11 +4,7 @@
 User-agent: *
 Allow: /
 Allow: /index.html
-Allow: /fonctionnalites.html
-Allow: /tarifs.html
 Allow: /demo.html
-Allow: /connexion.html
-Allow: /inscription.html
 
 Disallow: /404.html
 

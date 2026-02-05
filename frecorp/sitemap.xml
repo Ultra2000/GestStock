@@ -4,84 +4,32 @@
     <!-- Homepage - ERP Gratuit -->
     <url>
         <loc>https://frecorp.fr/</loc>
-        <lastmod>2025-01-15</lastmod>
+        <lastmod>2026-02-06</lastmod>
         <changefreq>weekly</changefreq>
         <priority>1.0</priority>
-    </url>
-    
-    <!-- Page Fonctionnalités -->
-    <url>
-        <loc>https://frecorp.fr/fonctionnalites.html</loc>
-        <lastmod>2025-01-15</lastmod>
-        <changefreq>monthly</changefreq>
-        <priority>0.9</priority>
-    </url>
-    
-    <!-- Page Tarifs (100% Gratuit) -->
-    <url>
-        <loc>https://frecorp.fr/tarifs.html</loc>
-        <lastmod>2025-01-15</lastmod>
-        <changefreq>monthly</changefreq>
-        <priority>0.9</priority>
     </url>
     
     <!-- Démo -->
     <url>
         <loc>https://frecorp.fr/demo.html</loc>
-        <lastmod>2025-01-15</lastmod>
+        <lastmod>2026-02-06</lastmod>
         <changefreq>monthly</changefreq>
         <priority>0.8</priority>
     </url>
     
-    <!-- Connexion -->
+    <!-- Application - Connexion -->
     <url>
-        <loc>https://frecorp.fr/connexion.html</loc>
-        <lastmod>2025-01-15</lastmod>
-        <changefreq>yearly</changefreq>
-        <priority>0.5</priority>
-    </url>
-    
-    <!-- Inscription -->
-    <url>
-        <loc>https://frecorp.fr/inscription.html</loc>
-        <lastmod>2025-01-15</lastmod>
+        <loc>https://app.frecorp.fr/login</loc>
+        <lastmod>2026-02-06</lastmod>
         <changefreq>yearly</changefreq>
         <priority>0.6</priority>
     </url>
     
-    <!-- Sections modules -->
+    <!-- Application - Inscription -->
     <url>
-        <loc>https://frecorp.fr/fonctionnalites.html#pos</loc>
-        <lastmod>2025-01-15</lastmod>
-        <changefreq>monthly</changefreq>
-        <priority>0.7</priority>
-    </url>
-    
-    <url>
-        <loc>https://frecorp.fr/fonctionnalites.html#stock</loc>
-        <lastmod>2025-01-15</lastmod>
-        <changefreq>monthly</changefreq>
-        <priority>0.7</priority>
-    </url>
-    
-    <url>
-        <loc>https://frecorp.fr/fonctionnalites.html#facturation</loc>
-        <lastmod>2025-01-15</lastmod>
-        <changefreq>monthly</changefreq>
-        <priority>0.7</priority>
-    </url>
-    
-    <url>
-        <loc>https://frecorp.fr/fonctionnalites.html#rh</loc>
-        <lastmod>2025-01-15</lastmod>
-        <changefreq>monthly</changefreq>
-        <priority>0.7</priority>
-    </url>
-    
-    <url>
-        <loc>https://frecorp.fr/fonctionnalites.html#compta</loc>
-        <lastmod>2025-01-15</lastmod>
-        <changefreq>monthly</changefreq>
+        <loc>https://app.frecorp.fr/register</loc>
+        <lastmod>2026-02-06</lastmod>
+        <changefreq>yearly</changefreq>
         <priority>0.7</priority>
     </url>
     
