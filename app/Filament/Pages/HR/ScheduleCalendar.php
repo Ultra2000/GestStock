@@ -24,20 +24,25 @@ class ScheduleCalendar extends FullCalendarWidget
 {
     public Model | string | null $model = Schedule::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-calendar-days';
+    protected static ?string $navigationIcon = 'heroicon-o-calendar';
 
     protected static ?string $navigationGroup = 'RH';
 
-    protected static ?string $navigationLabel = 'Planning Calendrier';
+    protected static ?string $navigationLabel = 'Calendrier';
 
-    protected static ?string $title = 'Planning des équipes';
+    protected static ?string $title = 'Calendrier des plannings';
 
-    protected static ?int $navigationSort = 99;
+    protected static ?int $navigationSort = 2;
     
-    protected static bool $shouldRegisterNavigation = false; // Accessible via SchedulePlanning
+    protected static bool $shouldRegisterNavigation = true; // Maintenant visible dans la nav
 
     public static function canAccess(): bool
     {
+        $tenant = Filament::getTenant();
+        if (!$tenant?->isModuleEnabled('hr')) {
+            return false;
+        }
+        
         $user = auth()->user();
         if (!$user) return false;
         

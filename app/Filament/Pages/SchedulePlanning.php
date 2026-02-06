@@ -9,6 +9,7 @@ use Filament\Facades\Filament;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TimePicker;
+use Filament\Forms\Components\Textarea;
 use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Forms\Contracts\HasForms;
 use Filament\Notifications\Notification;
@@ -36,6 +37,17 @@ class SchedulePlanning extends Page implements HasForms
     public $employees = [];
     public $schedules = [];
     public $weekDays = [];
+    
+    // Propriétés pour le modal d'édition
+    public ?int $editingScheduleId = null;
+    public ?int $editingEmployeeId = null;
+    public ?string $editingDate = null;
+    public ?string $editStartTime = null;
+    public ?string $editEndTime = null;
+    public ?string $editBreakDuration = null;
+    public ?string $editShiftType = null;
+    public ?string $editNotes = null;
+    public bool $showEditModal = false;
 
     public static function shouldRegisterNavigation(): bool
     {
@@ -116,6 +128,117 @@ class SchedulePlanning extends Page implements HasForms
         return $this->schedules[$key] ?? null;
     }
 
+    /**
+     * Ouvre le modal d'édition pour un créneau existant ou nouveau
+     */
+    public function openEditModal(int $employeeId, string $date, ?int $scheduleId = null): void
+    {
+        $this->editingEmployeeId = $employeeId;
+        $this->editingDate = $date;
+        $this->editingScheduleId = $scheduleId;
+        
+        if ($scheduleId) {
+            $schedule = Schedule::find($scheduleId);
+            if ($schedule) {
+                $this->editStartTime = substr($schedule->start_time, 0, 5);
+                $this->editEndTime = substr($schedule->end_time, 0, 5);
+                $this->editBreakDuration = $schedule->break_duration ? substr($schedule->break_duration, 0, 5) : '01:00';
+                $this->editShiftType = $schedule->shift_type;
+                $this->editNotes = $schedule->notes;
+            }
+        } else {
+            // Valeurs par défaut pour un nouveau créneau
+            $this->editStartTime = '09:00';
+            $this->editEndTime = '17:00';
+            $this->editBreakDuration = '01:00';
+            $this->editShiftType = null;
+            $this->editNotes = null;
+        }
+        
+        $this->showEditModal = true;
+    }
+
+    /**
+     * Ferme le modal d'édition
+     */
+    public function closeEditModal(): void
+    {
+        $this->showEditModal = false;
+        $this->resetEditForm();
+    }
+
+    /**
+     * Réinitialise le formulaire d'édition
+     */
+    protected function resetEditForm(): void
+    {
+        $this->editingScheduleId = null;
+        $this->editingEmployeeId = null;
+        $this->editingDate = null;
+        $this->editStartTime = null;
+        $this->editEndTime = null;
+        $this->editBreakDuration = null;
+        $this->editShiftType = null;
+        $this->editNotes = null;
+    }
+
+    /**
+     * Sauvegarde le créneau depuis le modal
+     */
+    public function saveScheduleFromModal(): void
+    {
+        $companyId = Filament::getTenant()?->id;
+
+        if (empty($this->editStartTime) || empty($this->editEndTime)) {
+            Notification::make()
+                ->title('Erreur')
+                ->body('Les heures de début et de fin sont obligatoires.')
+                ->danger()
+                ->send();
+            return;
+        }
+
+        Schedule::updateOrCreate(
+            [
+                'company_id' => $companyId,
+                'employee_id' => $this->editingEmployeeId,
+                'date' => $this->editingDate,
+            ],
+            [
+                'start_time' => $this->editStartTime,
+                'end_time' => $this->editEndTime,
+                'break_duration' => $this->editBreakDuration ?? '01:00:00',
+                'shift_type' => $this->editShiftType,
+                'notes' => $this->editNotes,
+            ]
+        );
+
+        $this->loadData();
+        $this->closeEditModal();
+
+        Notification::make()
+            ->title('Planning mis à jour')
+            ->success()
+            ->send();
+    }
+
+    /**
+     * Supprime un créneau
+     */
+    public function deleteSchedule(): void
+    {
+        if ($this->editingScheduleId) {
+            Schedule::destroy($this->editingScheduleId);
+            $this->loadData();
+            $this->closeEditModal();
+
+            Notification::make()
+                ->title('Créneau supprimé')
+                ->success()
+                ->send();
+        }
+    }
+
     public function saveSchedule($employeeId, $date, $startTime, $endTime, $shiftType = null): void
     {
         $companyId = Filament::getTenant()?->id;
@@ -175,6 +298,15 @@ class SchedulePlanning extends Page implements HasForms
             ->whereBetween('date', [$previousWeekStart, $previousWeekStart->copy()->addDays(6)])
             ->get();
 
+        if ($previousSchedules->isEmpty()) {
+            Notification::make()
+                ->title('Aucun planning')
+                ->body('Aucun planning trouvé la semaine précédente.')
+                ->warning()
+                ->send();
+            return;
+        }
+
         foreach ($previousSchedules as $schedule) {
             $newDate = Carbon::parse($schedule->date)->addWeek();
             
@@ -190,6 +322,7 @@ class SchedulePlanning extends Page implements HasForms
                     'shift_type' => $schedule->shift_type,
                     'break_duration' => $schedule->break_duration,
                     'location' => $schedule->location,
+                    'notes' => $schedule->notes,
                     'is_published' => false,
                 ]
             );
@@ -199,8 +332,29 @@ class SchedulePlanning extends Page implements HasForms
 
         Notification::make()
             ->title('Planning dupliqué')
-            ->body('Le planning de la semaine précédente a été copié.')
+            ->body($previousSchedules->count() . ' créneaux copiés de la semaine précédente.')
             ->success()
             ->send();
+    }
+
+    /**
+     * Retourne le nom de l'employé pour l'affichage dans le modal
+     */
+    public function getEditingEmployeeName(): string
+    {
+        if (!$this->editingEmployeeId) return '';
+        
+        $employee = $this->employees->firstWhere('id', $this->editingEmployeeId);
+        return $employee ? $employee->first_name . ' ' . $employee->last_name : '';
+    }
+
+    /**
+     * Retourne la date formatée pour l'affichage dans le modal
+     */
+    public function getEditingDateFormatted(): string
+    {
+        if (!$this->editingDate) return '';
+        
+        return Carbon::parse($this->editingDate)->locale('fr')->isoFormat('dddd D MMMM YYYY');
     }
 }
