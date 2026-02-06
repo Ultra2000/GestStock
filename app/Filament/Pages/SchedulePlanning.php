@@ -7,19 +7,22 @@ use App\Models\Schedule;
 use App\Models\ScheduleTemplate;
 use Filament\Pages\Page;
 use Filament\Facades\Filament;
-use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
-use Filament\Forms\Components\TimePicker;
+use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\CheckboxList;
 use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Forms\Contracts\HasForms;
+use Filament\Actions\Action;
+use Filament\Actions\Concerns\InteractsWithActions;
+use Filament\Actions\Contracts\HasActions;
 use Filament\Notifications\Notification;
 use Carbon\Carbon;
 use Carbon\CarbonPeriod;
 
-class SchedulePlanning extends Page implements HasForms
+class SchedulePlanning extends Page implements HasForms, HasActions
 {
-    use InteractsWithForms;
+    use InteractsWithForms, InteractsWithActions;
 
     protected static ?string $navigationIcon = 'heroicon-o-calendar-days';
 
@@ -34,26 +37,9 @@ class SchedulePlanning extends Page implements HasForms
     protected static ?int $navigationSort = 1;
 
     public $weekStart;
-    public $selectedEmployee;
     public $employees = [];
     public $schedules = [];
     public $weekDays = [];
-    
-    // Propriétés pour le modal d'édition
-    public ?int $editingScheduleId = null;
-    public ?int $editingEmployeeId = null;
-    public ?string $editingDate = null;
-    public ?string $editStartTime = null;
-    public ?string $editEndTime = null;
-    public ?string $editBreakDuration = null;
-    public ?string $editShiftType = null;
-    public ?string $editNotes = null;
-    public bool $showEditModal = false;
-    
-    // Pour l'application des templates
-    public bool $showTemplateModal = false;
-    public ?int $selectedTemplateId = null;
-    public array $selectedEmployeesForTemplate = [];
     public array $templates = [];
 
     public static function shouldRegisterNavigation(): bool
@@ -87,7 +73,7 @@ class SchedulePlanning extends Page implements HasForms
         $this->templates = ScheduleTemplate::where('company_id', $companyId)
             ->orderBy('is_default', 'desc')
             ->orderBy('name')
-            ->get()
+            ->pluck('name', 'id')
             ->toArray();
     }
 
@@ -147,147 +133,184 @@ class SchedulePlanning extends Page implements HasForms
     }
 
     /**
-     * Ouvre le modal d'édition pour un créneau existant ou nouveau
+     * Action pour éditer/créer un créneau - Modal Filament natif
      */
-    public function openEditModal(int $employeeId, string $date, ?int $scheduleId = null): void
+    public function editScheduleAction(): Action
     {
-        $this->editingEmployeeId = $employeeId;
-        $this->editingDate = $date;
-        $this->editingScheduleId = $scheduleId;
-        
-        if ($scheduleId) {
-            $schedule = Schedule::find($scheduleId);
-            if ($schedule) {
-                $this->editStartTime = substr($schedule->start_time, 0, 5);
-                $this->editEndTime = substr($schedule->end_time, 0, 5);
-                $this->editBreakDuration = $schedule->break_duration ? substr($schedule->break_duration, 0, 5) : '01:00';
-                $this->editShiftType = $schedule->shift_type;
-                $this->editNotes = $schedule->notes;
-            }
-        } else {
-            // Valeurs par défaut pour un nouveau créneau
-            $this->editStartTime = '09:00';
-            $this->editEndTime = '17:00';
-            $this->editBreakDuration = '01:00';
-            $this->editShiftType = null;
-            $this->editNotes = null;
-        }
-        
-        $this->showEditModal = true;
+        return Action::make('editSchedule')
+            ->label('Modifier le créneau')
+            ->modalHeading(fn (array $arguments) => 
+                isset($arguments['scheduleId']) ? 'Modifier le créneau' : 'Nouveau créneau'
+            )
+            ->modalDescription(fn (array $arguments) => 
+                $this->getEmployeeName($arguments['employeeId'] ?? null) . ' - ' . 
+                $this->formatDate($arguments['date'] ?? null)
+            )
+            ->form([
+                TextInput::make('start_time')
+                    ->label('Heure de début')
+                    ->type('time')
+                    ->required()
+                    ->default('09:00'),
+                    
+                TextInput::make('end_time')
+                    ->label('Heure de fin')
+                    ->type('time')
+                    ->required()
+                    ->default('17:00'),
+                    
+                Select::make('break_duration')
+                    ->label('Durée de pause')
+                    ->options([
+                        '00:00' => 'Pas de pause',
+                        '00:30' => '30 minutes',
+                        '00:45' => '45 minutes',
+                        '01:00' => '1 heure',
+                        '01:30' => '1h30',
+                        '02:00' => '2 heures',
+                    ])
+                    ->default('01:00'),
+                    
+                Select::make('shift_type')
+                    ->label('Type de shift')
+                    ->options([
+                        'morning' => 'Matin',
+                        'afternoon' => 'Après-midi',
+                        'evening' => 'Soir',
+                        'night' => 'Nuit',
+                        'full_day' => 'Journée complète',
+                    ])
+                    ->placeholder('-- Aucun --'),
+                    
+                Textarea::make('notes')
+                    ->label('Notes')
+                    ->rows(2)
+                    ->placeholder('Notes optionnelles...'),
+            ])
+            ->fillForm(function (array $arguments): array {
+                if (isset($arguments['scheduleId'])) {
+                    $schedule = Schedule::find($arguments['scheduleId']);
+                    if ($schedule) {
+                        return [
+                            'start_time' => substr($schedule->start_time ?? '09:00', 0, 5),
+                            'end_time' => substr($schedule->end_time ?? '17:00', 0, 5),
+                            'break_duration' => $schedule->break_duration ? substr($schedule->break_duration, 0, 5) : '01:00',
+                            'shift_type' => $schedule->shift_type,
+                            'notes' => $schedule->notes,
+                        ];
+                    }
+                }
+                return [
+                    'start_time' => '09:00',
+                    'end_time' => '17:00',
+                    'break_duration' => '01:00',
+                ];
+            })
+            ->action(function (array $data, array $arguments): void {
+                $companyId = Filament::getTenant()?->id;
+                
+                Schedule::updateOrCreate(
+                    [
+                        'company_id' => $companyId,
+                        'employee_id' => $arguments['employeeId'],
+                        'date' => $arguments['date'],
+                    ],
+                    [
+                        'start_time' => $data['start_time'],
+                        'end_time' => $data['end_time'],
+                        'break_duration' => $data['break_duration'] . ':00',
+                        'shift_type' => $data['shift_type'],
+                        'notes' => $data['notes'],
+                    ]
+                );
+
+                $this->loadData();
+
+                Notification::make()
+                    ->title('Planning mis à jour')
+                    ->success()
+                    ->send();
+            })
+            ->extraModalFooterActions(fn (Action $action, array $arguments): array => 
+                isset($arguments['scheduleId']) ? [
+                    Action::make('delete')
+                        ->label('Supprimer')
+                        ->color('danger')
+                        ->requiresConfirmation()
+                        ->modalHeading('Supprimer ce créneau ?')
+                        ->modalDescription('Cette action est irréversible.')
+                        ->action(function () use ($arguments) {
+                            if (isset($arguments['scheduleId'])) {
+                                Schedule::destroy($arguments['scheduleId']);
+                                $this->loadData();
+                                
+                                Notification::make()
+                                    ->title('Créneau supprimé')
+                                    ->success()
+                                    ->send();
+                            }
+                        }),
+                ] : []
+            )
+            ->modalSubmitActionLabel('Enregistrer')
+            ->modalCancelActionLabel('Annuler');
     }
 
     /**
-     * Ferme le modal d'édition
+     * Action pour appliquer un template
      */
-    public function closeEditModal(): void
+    public function applyTemplateAction(): Action
     {
-        $this->showEditModal = false;
-        $this->resetEditForm();
-    }
+        return Action::make('applyTemplate')
+            ->label('Appliquer un template')
+            ->icon('heroicon-o-document-duplicate')
+            ->color('gray')
+            ->modalHeading('Appliquer un template')
+            ->modalDescription('Sélectionnez un template et les employés auxquels l\'appliquer pour la semaine en cours.')
+            ->form([
+                Select::make('template_id')
+                    ->label('Template')
+                    ->options($this->templates)
+                    ->required()
+                    ->placeholder('-- Choisir un template --'),
+                    
+                CheckboxList::make('employee_ids')
+                    ->label('Employés')
+                    ->options(fn () => $this->employees->pluck('full_name', 'id')->toArray())
+                    ->required()
+                    ->columns(2)
+                    ->gridDirection('row'),
+            ])
+            ->action(function (array $data): void {
+                $template = ScheduleTemplate::find($data['template_id']);
+                if (!$template) {
+                    Notification::make()
+                        ->title('Erreur')
+                        ->body('Template introuvable.')
+                        ->danger()
+                        ->send();
+                    return;
+                }
 
-    /**
-     * Réinitialise le formulaire d'édition
-     */
-    protected function resetEditForm(): void
-    {
-        $this->editingScheduleId = null;
-        $this->editingEmployeeId = null;
-        $this->editingDate = null;
-        $this->editStartTime = null;
-        $this->editEndTime = null;
-        $this->editBreakDuration = null;
-        $this->editShiftType = null;
-        $this->editNotes = null;
-    }
+                $weekStart = Carbon::parse($this->weekStart);
+                $count = 0;
 
-    /**
-     * Sauvegarde le créneau depuis le modal
-     */
-    public function saveScheduleFromModal(): void
-    {
-        $companyId = Filament::getTenant()?->id;
+                foreach ($data['employee_ids'] as $employeeId) {
+                    $schedules = $template->applyToEmployee($employeeId, $weekStart);
+                    $count += count($schedules);
+                }
 
-        if (empty($this->editStartTime) || empty($this->editEndTime)) {
-            Notification::make()
-                ->title('Erreur')
-                ->body('Les heures de début et de fin sont obligatoires.')
-                ->danger()
-                ->send();
-            return;
-        }
+                $this->loadData();
 
-        Schedule::updateOrCreate(
-            [
-                'company_id' => $companyId,
-                'employee_id' => $this->editingEmployeeId,
-                'date' => $this->editingDate,
-            ],
-            [
-                'start_time' => $this->editStartTime,
-                'end_time' => $this->editEndTime,
-                'break_duration' => $this->editBreakDuration ?? '01:00:00',
-                'shift_type' => $this->editShiftType,
-                'notes' => $this->editNotes,
-            ]
-        );
-
-        $this->loadData();
-        $this->closeEditModal();
-
-        Notification::make()
-            ->title('Planning mis à jour')
-            ->success()
-            ->send();
-    }
-
-    /**
-     * Supprime un créneau
-     */
-    public function deleteSchedule(): void
-    {
-        if ($this->editingScheduleId) {
-            Schedule::destroy($this->editingScheduleId);
-            $this->loadData();
-            $this->closeEditModal();
-
-            Notification::make()
-                ->title('Créneau supprimé')
-                ->success()
-                ->send();
-        }
-    }
-
-    public function saveSchedule($employeeId, $date, $startTime, $endTime, $shiftType = null): void
-    {
-        $companyId = Filament::getTenant()?->id;
-
-        if (empty($startTime) || empty($endTime)) {
-            Schedule::where('company_id', $companyId)
-                ->where('employee_id', $employeeId)
-                ->where('date', $date)
-                ->delete();
-        } else {
-            Schedule::updateOrCreate(
-                [
-                    'company_id' => $companyId,
-                    'employee_id' => $employeeId,
-                    'date' => $date,
-                ],
-                [
-                    'start_time' => $startTime,
-                    'end_time' => $endTime,
-                    'shift_type' => $shiftType,
-                    'break_duration' => '01:00:00',
-                ]
-            );
-        }
-
-        $this->loadData();
-
-        Notification::make()
-            ->title('Planning mis à jour')
-            ->success()
-            ->send();
+                Notification::make()
+                    ->title('Template appliqué')
+                    ->body("{$count} créneaux créés pour " . count($data['employee_ids']) . " employé(s).")
+                    ->success()
+                    ->send();
+            })
+            ->modalSubmitActionLabel('Appliquer')
+            ->modalCancelActionLabel('Annuler')
+            ->visible(fn () => count($this->templates) > 0);
     }
 
     public function publishWeek(): void
@@ -355,114 +378,16 @@ class SchedulePlanning extends Page implements HasForms
             ->send();
     }
 
-    /**
-     * Retourne le nom de l'employé pour l'affichage dans le modal
-     */
-    public function getEditingEmployeeName(): string
+    protected function getEmployeeName(?int $employeeId): string
     {
-        if (!$this->editingEmployeeId) return '';
-        
-        $employee = $this->employees->firstWhere('id', $this->editingEmployeeId);
+        if (!$employeeId) return '';
+        $employee = $this->employees->firstWhere('id', $employeeId);
         return $employee ? $employee->first_name . ' ' . $employee->last_name : '';
     }
 
-    /**
-     * Retourne la date formatée pour l'affichage dans le modal
-     */
-    public function getEditingDateFormatted(): string
+    protected function formatDate(?string $date): string
     {
-        if (!$this->editingDate) return '';
-        
-        return Carbon::parse($this->editingDate)->locale('fr')->isoFormat('dddd D MMMM YYYY');
-    }
-
-    /**
-     * Ouvre le modal pour appliquer un template
-     */
-    public function openTemplateModal(): void
-    {
-        $this->selectedTemplateId = null;
-        $this->selectedEmployeesForTemplate = [];
-        $this->showTemplateModal = true;
-    }
-
-    /**
-     * Ferme le modal de template
-     */
-    public function closeTemplateModal(): void
-    {
-        $this->showTemplateModal = false;
-        $this->selectedTemplateId = null;
-        $this->selectedEmployeesForTemplate = [];
-    }
-
-    /**
-     * Applique un template aux employés sélectionnés
-     */
-    public function applyTemplate(): void
-    {
-        if (!$this->selectedTemplateId) {
-            Notification::make()
-                ->title('Erreur')
-                ->body('Veuillez sélectionner un template.')
-                ->danger()
-                ->send();
-            return;
-        }
-
-        if (empty($this->selectedEmployeesForTemplate)) {
-            Notification::make()
-                ->title('Erreur')
-                ->body('Veuillez sélectionner au moins un employé.')
-                ->danger()
-                ->send();
-            return;
-        }
-
-        $template = ScheduleTemplate::find($this->selectedTemplateId);
-        if (!$template) {
-            Notification::make()
-                ->title('Erreur')
-                ->body('Template introuvable.')
-                ->danger()
-                ->send();
-            return;
-        }
-
-        $weekStart = Carbon::parse($this->weekStart);
-        $count = 0;
-
-        foreach ($this->selectedEmployeesForTemplate as $employeeId) {
-            $schedules = $template->applyToEmployee($employeeId, $weekStart);
-            $count += count($schedules);
-        }
-
-        $this->loadData();
-        $this->closeTemplateModal();
-
-        Notification::make()
-            ->title('Template appliqué')
-            ->body("{$count} créneaux créés pour " . count($this->selectedEmployeesForTemplate) . " employé(s).")
-            ->success()
-            ->send();
-    }
-
-    /**
-     * Sauvegarder la semaine actuelle comme template
-     */
-    public function saveAsTemplate(int $employeeId, string $templateName): void
-    {
-        $companyId = Filament::getTenant()?->id;
-        $weekStart = Carbon::parse($this->weekStart);
-
-        $template = ScheduleTemplate::createFromWeek($companyId, $employeeId, $weekStart, $templateName);
-        
-        $this->loadTemplates();
-
-        Notification::make()
-            ->title('Template créé')
-            ->body("Le template '{$templateName}' a été créé à partir du planning de la semaine.")
-            ->success()
-            ->send();
+        if (!$date) return '';
+        return Carbon::parse($date)->locale('fr')->isoFormat('dddd D MMMM YYYY');
     }
 }

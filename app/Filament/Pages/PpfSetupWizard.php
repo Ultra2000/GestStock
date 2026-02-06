@@ -19,7 +19,17 @@ class PpfSetupWizard extends Page implements Forms\Contracts\HasForms
     protected static ?string $navigationLabel = 'Assistant facturation';
     protected static ?string $title = 'Assistant de configuration - Facturation électronique';
     protected static ?string $navigationGroup = 'Administration';
-    protected static ?int $navigationSort = 4;
+    protected static ?int $navigationSort = 5;
+
+    public static function shouldRegisterNavigation(): bool
+    {
+        // Masquer l'assistant si déjà configuré
+        $company = \Filament\Facades\Filament::getTenant();
+        if (!$company) return false;
+        
+        $integration = $company->integrations()->where('service_name', 'ppf')->first();
+        return !($integration && $integration->is_active && !empty($integration->settings['fournisseur_login']));
+    }
 
     protected static string $view = 'filament.pages.ppf-setup-wizard';
 
@@ -455,15 +465,5 @@ class PpfSetupWizard extends Page implements Forms\Contracts\HasForms
     public function goToSales(): void
     {
         $this->redirect(route('filament.admin.resources.sales.index', ['tenant' => Filament::getTenant()->slug]));
-    }
-
-    public static function shouldRegisterNavigation(): bool
-    {
-        // Masquer si déjà configuré
-        $company = Filament::getTenant();
-        if (!$company) return false;
-
-        $integration = $company->integrations()->where('service_name', 'ppf')->first();
-        return !($integration && $integration->is_active && !empty($integration->settings['fournisseur_login']));
     }
 }

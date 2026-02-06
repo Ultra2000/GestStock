@@ -24,6 +24,22 @@ class ReportsCenter extends Page implements HasForms
 
     protected static string $view = 'filament.pages.reports-center';
 
+    public static function shouldRegisterNavigation(): bool
+    {
+        return \Filament\Facades\Filament::getTenant()?->isModuleEnabled('accounting') ?? true;
+    }
+
+    public static function canAccess(): bool
+    {
+        $tenant = \Filament\Facades\Filament::getTenant();
+        if (!$tenant?->isModuleEnabled('accounting')) return false;
+        
+        $user = auth()->user();
+        if (!$user) return false;
+        
+        return $user->isAdmin() || $user->hasPermission('reports.view') || $user->hasPermission('accounting.view');
+    }
+
     // Formulaire état des stocks
     public ?string $stock_warehouse_id = null;
     public bool $stock_low_only = false;

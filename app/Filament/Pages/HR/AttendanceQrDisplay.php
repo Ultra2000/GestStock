@@ -74,8 +74,25 @@ class AttendanceQrDisplay extends Page
         );
 
         $this->qrContent = $this->currentToken->getQrContent();
+        
+        // Dispatcher l'événement pour mettre à jour le QR code côté JavaScript
+        $this->dispatch('qr-content-updated', qrContent: $this->qrContent);
     }
 
+    /**
+     * Méthode appelée par le polling - ne régénère que si nécessaire
+     */
+    public function checkAndRefreshToken(): void
+    {
+        // Ne régénérer que si le token expire dans moins de 30 secondes
+        if (!$this->currentToken || $this->getExpiresInSeconds() <= 30) {
+            $this->generateNewToken();
+        }
+    }
+
+    /**
+     * Méthode pour forcer un nouveau QR (bouton manuel)
+     */
     public function refreshToken(): void
     {
         $this->generateNewToken();

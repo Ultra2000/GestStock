@@ -19,16 +19,15 @@ class AccountingCategoryResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-tag';
     protected static ?string $navigationGroup = 'Comptabilité';
-    protected static ?int $navigationSort = 1;
-    protected static bool $shouldRegisterNavigation = false;
+    protected static ?string $navigationLabel = 'Catégories comptables';
+    protected static ?int $navigationSort = 3;
 
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
-                Forms\Components\Select::make('company_id')
-                    ->relationship('company', 'name')
-                    ->required(),
+                Forms\Components\Hidden::make('company_id')
+                    ->default(fn () => \Filament\Facades\Filament::getTenant()?->id),
                 Forms\Components\TextInput::make('name')
                     ->required()
                     ->maxLength(255),
@@ -54,10 +53,8 @@ class AccountingCategoryResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('company.name')
-                    ->numeric()
-                    ->sortable(),
                 Tables\Columns\TextColumn::make('name')
+                    ->label('Nom')
                     ->searchable(),
                 Tables\Columns\TextColumn::make('type')
                     ->badge()

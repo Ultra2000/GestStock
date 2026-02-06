@@ -35,26 +35,6 @@ class Schedule extends Model
         'day_of_week' => 'integer',
     ];
 
-    protected static function boot()
-    {
-        parent::boot();
-
-        // Validation de conflit de planning
-        static::saving(function ($schedule) {
-            if ($schedule->date && $schedule->employee_id) {
-                $conflict = static::where('company_id', $schedule->company_id)
-                    ->where('employee_id', $schedule->employee_id)
-                    ->where('date', $schedule->date)
-                    ->where('id', '!=', $schedule->id ?? 0)
-                    ->exists();
-
-                if ($conflict) {
-                    throw new \Exception("Un planning existe déjà pour cet employé à cette date.");
-                }
-            }
-        });
-    }
-
     public function employee(): BelongsTo
     {
         return $this->belongsTo(Employee::class);

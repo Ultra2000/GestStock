@@ -19,7 +19,7 @@ class PpfSettings extends Page implements Forms\Contracts\HasForms
     protected static ?string $navigationLabel = 'Facturation électronique';
     protected static ?string $title = 'Facturation électronique (PPF / Chorus Pro)';
     protected static ?string $navigationGroup = 'Administration';
-    protected static ?int $navigationSort = 3;
+    protected static ?int $navigationSort = 4;
 
     protected static string $view = 'filament.pages.ppf-settings';
 

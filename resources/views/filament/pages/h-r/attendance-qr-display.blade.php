@@ -34,8 +34,8 @@
                     <p class="text-gray-500 dark:text-gray-400 mb-6">Scannez ce QR Code pour pointer</p>
 
                     {{-- QR Code --}}
-                    <div class="inline-block p-6 bg-white rounded-2xl shadow-lg" wire:poll.5s="refreshToken">
-                        <div id="qrcode" class="mx-auto" style="width: 300px; height: 300px;"></div>
+                    <div class="inline-block p-6 bg-white rounded-2xl shadow-lg" wire:poll.10s="checkAndRefreshToken">
+                        <div id="qrcode" class="mx-auto" style="width: 300px; height: 300px; background-color: #ffffff;"></div>
                     </div>
 
                     {{-- Timer d'expiration --}}
@@ -95,22 +95,39 @@
     <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
     <script>
         let qrCodeInstance = null;
+        let currentQrContent = @json($qrContent);
+        let isInitialized = false;
         
-        document.addEventListener('livewire:navigated', generateQR);
-        document.addEventListener('livewire:init', generateQR);
-        
-        Livewire.hook('morph.updated', ({ el, component }) => {
-            generateQR();
+        document.addEventListener('livewire:init', () => {
+            if (!isInitialized) {
+                isInitialized = true;
+                generateQR(currentQrContent);
+                
+                // Écouter l'événement de mise à jour du QR
+                Livewire.on('qr-content-updated', (data) => {
+                    currentQrContent = data.qrContent;
+                    generateQR(currentQrContent);
+                    
+                    // Déclencher l'événement pour réinitialiser le timer
+                    window.dispatchEvent(new CustomEvent('refresh-token'));
+                });
+            }
         });
 
-        function generateQR() {
-            const qrContent = @json($qrContent);
+        function generateQR(qrContent) {
             const container = document.getElementById('qrcode');
             
             if (container && qrContent) {
+                // Détruire l'instance précédente si elle existe
+                if (qrCodeInstance) {
+                    qrCodeInstance.clear();
+                    qrCodeInstance = null;
+                }
+                
+                // Vider complètement le conteneur
                 container.innerHTML = '';
                 
-                // Utiliser QRCode.js (qrcodejs)
+                // Créer nouveau QR Code
                 qrCodeInstance = new QRCode(container, {
                     text: qrContent,
                     width: 300,
@@ -119,6 +136,14 @@
                     colorLight: '#ffffff',
                     correctLevel: QRCode.CorrectLevel.H
                 });
+                
+                // QRCode.js génère un canvas ET une image - garder seulement l'image
+                setTimeout(() => {
+                    const canvas = container.querySelector('canvas');
+                    if (canvas) {
+                        canvas.style.display = 'none';
+                    }
+                }, 50);
             }
         }
     </script>

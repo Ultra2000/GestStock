@@ -28,6 +28,17 @@ class ConsolidatedStock extends Page implements HasTable
         return \Filament\Facades\Filament::getTenant()?->isModuleEnabled('stock') ?? true;
     }
 
+    public static function canAccess(): bool
+    {
+        $tenant = \Filament\Facades\Filament::getTenant();
+        if (!$tenant?->isModuleEnabled('stock')) return false;
+        
+        $user = auth()->user();
+        if (!$user) return false;
+        
+        return $user->isAdmin() || $user->hasPermission('products.view') || $user->hasPermission('warehouses.view') || $user->hasPermission('products.stock');
+    }
+
     public ?int $warehouseFilter = null;
 
     public function table(Table $table): Table

@@ -120,8 +120,10 @@ class RolesAndPermissionsSeeder extends Seeder
                 'quotes.view', 'quotes.create', 'quotes.edit',
                 'deliveries.view', 'deliveries.create', 'deliveries.edit',
                 'pos.access', 'pos.session', 'pos.reports',
-                'warehouses.view', 'transfers.create', 'transfers.approve', 'inventory.manage',
+                'warehouses.view', 'transfers.view', 'transfers.create', 'transfers.approve',
+                'inventory.view', 'inventory.manage',
                 'employees.view', 'schedule.manage', 'leaves.manage', 'attendance.view',
+                'accounting.view', 'banking.view',
                 'reports.view',
             ],
         ],
@@ -153,7 +155,9 @@ class RolesAndPermissionsSeeder extends Seeder
             'permissions' => [
                 'products.view', 'products.stock',
                 'purchases.view',
-                'warehouses.view', 'transfers.create', 'inventory.manage',
+                'warehouses.view', 'warehouses.manage',
+                'transfers.view', 'transfers.create', 'transfers.approve',
+                'inventory.view', 'inventory.manage',
             ],
         ],
         'comptable' => [
@@ -165,7 +169,19 @@ class RolesAndPermissionsSeeder extends Seeder
                 'purchases.view',
                 'customers.view',
                 'suppliers.view',
+                'accounting.view', 'accounting.manage',
+                'banking.view', 'banking.manage',
                 'reports.view',
+            ],
+        ],
+        'hr' => [
+            'name' => 'Responsable RH',
+            'description' => 'Gestion des ressources humaines',
+            'permissions' => [
+                'employees.view', 'employees.create', 'employees.edit', 'employees.delete',
+                'schedule.manage',
+                'leaves.manage',
+                'attendance.view', 'attendance.manage',
             ],
         ],
         'user' => [
