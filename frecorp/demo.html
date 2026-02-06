@@ -66,10 +66,6 @@
             background: rgba(255, 255, 255, 0.06);
             border-color: rgba(99, 102, 241, 0.3);
         }
-        .nav-glass {
-            background: rgba(15, 23, 42, 0.85);
-            backdrop-filter: blur(12px);
-        }
         .floating-orb {
             position: absolute;
             border-radius: 50%;
@@ -78,8 +74,9 @@
             opacity: 0.5;
             pointer-events: none;
         }
-        .orb-1 { width: 400px; height: 400px; background: #4338ca; top: -100px; right: -100px; }
-        .orb-2 { width: 300px; height: 300px; background: #7c3aed; bottom: 20%; left: -100px; }
+        .orb-1 { width: 500px; height: 500px; background: #4338ca; top: -150px; left: -150px; }
+        .orb-2 { width: 400px; height: 400px; background: #7c3aed; bottom: 10%; right: -100px; }
+        .orb-3 { width: 300px; height: 300px; background: #06b6d4; top: 50%; left: 30%; }
         .gradient-text {
             background: linear-gradient(135deg, #6366f1 0%, #a855f7 50%, #ec4899 100%);
             -webkit-background-clip: text;
@@ -132,6 +129,127 @@
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
         }
+        
+        /* Modern Navbar Styles */
+        .nav-modern {
+            background: linear-gradient(135deg, rgba(15, 23, 42, 0.9) 0%, rgba(30, 41, 59, 0.85) 100%);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(99, 102, 241, 0.15);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+            animation: navGlow 4s ease-in-out infinite;
+        }
+        
+        @keyframes navGlow {
+            0%, 100% { box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.05); }
+            50% { box-shadow: 0 4px 40px rgba(99, 102, 241, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.08); }
+        }
+        
+        .nav-link {
+            position: relative;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .nav-link::before {
+            content: '';
+            position: absolute;
+            bottom: -4px;
+            left: 50%;
+            transform: translateX(-50%) scaleX(0);
+            width: 20px;
+            height: 2px;
+            background: linear-gradient(90deg, #6366f1, #8b5cf6);
+            border-radius: 2px;
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .nav-link:hover::before {
+            transform: translateX(-50%) scaleX(1);
+        }
+        
+        .nav-link:hover {
+            color: #fff;
+            background: rgba(99, 102, 241, 0.1);
+        }
+        
+        .btn-cta {
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #a855f7 100%);
+            box-shadow: 0 8px 25px -5px rgba(99, 102, 241, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.1) inset;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-cta:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 35px -5px rgba(99, 102, 241, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.15) inset;
+        }
+        
+        .btn-login {
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            border: 1px solid rgba(99, 102, 241, 0.3);
+            transition: all 0.3s ease;
+        }
+        
+        .btn-login:hover {
+            background: rgba(99, 102, 241, 0.1);
+            border-color: rgba(99, 102, 241, 0.5);
+            color: #fff;
+        }
+        
+        /* Mobile Menu Styles */
+        .mobile-menu-btn {
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            background: rgba(99, 102, 241, 0.1);
+            border: 1px solid rgba(99, 102, 241, 0.2);
+            transition: all 0.3s ease;
+        }
+        
+        .mobile-menu-btn:hover {
+            background: rgba(99, 102, 241, 0.2);
+            border-color: rgba(99, 102, 241, 0.4);
+        }
+        
+        .mobile-menu {
+            max-height: 0;
+            overflow: hidden;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            background: linear-gradient(180deg, rgba(15, 23, 42, 0.98) 0%, rgba(30, 41, 59, 0.95) 100%);
+            border-top: 1px solid rgba(99, 102, 241, 0.1);
+        }
+        
+        .mobile-menu.open {
+            max-height: 500px;
+            padding-top: 1rem;
+            padding-bottom: 1.5rem;
+        }
+        
+        .mobile-link {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 0.875rem 1rem;
+            border-radius: 0.75rem;
+            transition: all 0.3s ease;
+            border: 1px solid transparent;
+        }
+        
+        .mobile-link:hover {
+            background: rgba(99, 102, 241, 0.1);
+            border-color: rgba(99, 102, 241, 0.2);
+            transform: translateX(4px);
+        }
+        
+        .mobile-link i {
+            width: 20px;
+            text-align: center;
+            color: #6366f1;
+        }
     </style>
 </head>
 <body class="bg-[#0f172a] text-slate-200 overflow-x-hidden min-h-screen">
@@ -140,29 +258,92 @@
     <div class="fixed inset-0 overflow-hidden pointer-events-none">
         <div class="floating-orb orb-1"></div>
         <div class="floating-orb orb-2"></div>
+        <div class="floating-orb orb-3"></div>
     </div>
 
-    <!-- Navigation -->
-    <nav class="fixed top-0 w-full z-50 nav-glass border-b border-white/5">
+    <!-- Navigation Moderne -->
+    <nav class="fixed top-0 w-full z-50 nav-modern">
         <div class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
-            <a href="index.html" class="flex items-center gap-3">
-                <div class="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-500/30">
+            <!-- Logo -->
+            <a href="index.html" class="logo-container flex items-center gap-3 group">
+                <div class="logo-icon w-11 h-11 bg-gradient-to-br from-indigo-500 via-purple-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-500/40 group-hover:shadow-indigo-500/60 transition-shadow duration-300">
                     <i class="fas fa-boxes-stacked text-white text-xl"></i>
                 </div>
-                <span class="text-2xl font-extrabold tracking-tight bg-gradient-to-r from-white to-indigo-400 bg-clip-text text-transparent">FRECORP</span>
+                <div class="flex flex-col">
+                    <span class="text-2xl font-black tracking-tight bg-gradient-to-r from-white via-indigo-200 to-indigo-400 bg-clip-text text-transparent">FRECORP</span>
+                    <span class="text-[10px] font-medium text-indigo-400/60 tracking-widest uppercase -mt-1 hidden sm:block">ERP Solution</span>
+                </div>
             </a>
             
-            <div class="hidden lg:flex items-center space-x-10 text-sm font-medium text-slate-400">
-                <a href="index.html#modules" class="hover:text-white transition">Modules</a>
-                <a href="index.html#pricing" class="hover:text-white transition">Tarifs</a>
-                <a href="index.html#faq" class="hover:text-white transition">FAQ</a>
-                <a href="#contact" class="hover:text-white transition">Contact</a>
+            <!-- Navigation Links - Desktop -->
+            <div class="hidden lg:flex items-center">
+                <div class="flex items-center bg-slate-800/30 rounded-2xl p-1.5 border border-slate-700/50">
+                    <a href="index.html#modules" class="nav-link text-sm font-medium text-slate-400">
+                        <i class="fas fa-cube mr-2 text-xs opacity-70"></i>Modules
+                    </a>
+                    <a href="index.html#chorus" class="nav-link text-sm font-medium text-slate-400">
+                        <i class="fas fa-file-invoice mr-2 text-xs opacity-70"></i>Chorus Pro
+                    </a>
+                    <a href="index.html#pricing" class="nav-link text-sm font-medium text-slate-400">
+                        <i class="fas fa-tag mr-2 text-xs opacity-70"></i>Tarifs
+                    </a>
+                    <a href="index.html#faq" class="nav-link text-sm font-medium text-slate-400">
+                        <i class="fas fa-circle-question mr-2 text-xs opacity-70"></i>FAQ
+                    </a>
+                    <a href="#contact" class="nav-link text-sm font-medium text-indigo-400">
+                        <i class="fas fa-play-circle mr-2 text-xs opacity-70"></i>Démo
+                    </a>
+                </div>
             </div>
 
-            <div class="flex items-center gap-4">
-                <a href="https://app.frecorp.fr/login" class="hidden sm:block text-slate-300 hover:text-white font-medium transition">Connexion</a>
-                <a href="https://app.frecorp.fr/register" class="btn-primary text-white px-6 py-2.5 rounded-full font-bold">
-                    Essai Gratuit
+            <!-- CTA Buttons -->
+            <div class="flex items-center gap-3">
+                <a href="https://app.frecorp.fr/login" class="btn-login hidden sm:flex items-center gap-2 text-slate-300 font-medium text-sm">
+                    <i class="fas fa-arrow-right-to-bracket text-xs"></i>
+                    <span>Connexion</span>
+                </a>
+                <a href="https://app.frecorp.fr/register" class="btn-cta text-white px-5 py-2.5 rounded-xl font-bold text-sm flex items-center gap-2">
+                    <i class="fas fa-rocket text-xs"></i>
+                    <span class="hidden sm:inline">Essai Gratuit</span>
+                    <span class="sm:hidden">Essai</span>
+                </a>
+                <button id="mobile-menu-toggle" class="mobile-menu-btn lg:hidden flex items-center justify-center">
+                    <i class="fas fa-bars text-lg text-indigo-400" id="menu-icon"></i>
+                </button>
+            </div>
+        </div>
+        
+        <!-- Mobile Menu Premium -->
+        <div id="mobile-menu" class="mobile-menu lg:hidden px-6">
+            <div class="flex flex-col space-y-1">
+                <a href="index.html#modules" class="mobile-link text-slate-300">
+                    <i class="fas fa-cube"></i>
+                    <span>Modules</span>
+                </a>
+                <a href="index.html#chorus" class="mobile-link text-slate-300">
+                    <i class="fas fa-file-invoice"></i>
+                    <span>Chorus Pro 2026</span>
+                </a>
+                <a href="index.html#pricing" class="mobile-link text-slate-300">
+                    <i class="fas fa-tag"></i>
+                    <span>Tarifs</span>
+                </a>
+                <a href="index.html#faq" class="mobile-link text-slate-300">
+                    <i class="fas fa-circle-question"></i>
+                    <span>FAQ</span>
+                </a>
+                <a href="#contact" class="mobile-link text-indigo-400">
+                    <i class="fas fa-play-circle"></i>
+                    <span>Démo</span>
+                </a>
+                <div class="border-t border-slate-700/50 my-3"></div>
+                <a href="https://app.frecorp.fr/login" class="mobile-link text-slate-300">
+                    <i class="fas fa-arrow-right-to-bracket"></i>
+                    <span>Connexion</span>
+                </a>
+                <a href="https://app.frecorp.fr/register" class="btn-cta text-white px-5 py-3 rounded-xl font-bold text-sm flex items-center justify-center gap-2 mt-2">
+                    <i class="fas fa-rocket"></i>
+                    <span>Démarrer l'essai gratuit</span>
                 </a>
             </div>
         </div>
@@ -259,6 +440,9 @@
                     <button class="module-tab glass-card px-5 py-3 rounded-xl font-semibold text-sm transition" data-module="hr">
                         <i class="fas fa-user-clock mr-2 text-pink-400"></i>RH
                     </button>
+                    <button class="module-tab glass-card px-5 py-3 rounded-xl font-semibold text-sm transition" data-module="accounting">
+                        <i class="fas fa-calculator mr-2 text-cyan-400"></i>Comptabilité
+                    </button>
                 </div>
 
                 <!-- Screenshots Content -->
@@ -267,12 +451,8 @@
                     <div class="module-content active" data-module="dashboard">
                         <div class="grid md:grid-cols-2 gap-6">
                             <div class="screenshot-card glass-card rounded-2xl overflow-hidden">
-                                <div class="aspect-video bg-gradient-to-br from-slate-800 to-slate-900 flex items-center justify-center">
-                                    <div class="text-center p-8">
-                                        <i class="fas fa-chart-pie text-6xl text-indigo-500/50 mb-4"></i>
-                                        <p class="text-slate-400">Dashboard principal</p>
-                                        <p class="text-slate-500 text-sm mt-2">Vue d'ensemble avec KPIs et graphiques</p>
-                                    </div>
+                                <div class="aspect-video bg-slate-900">
+                                    <img src="assets/dashboard-1.png" alt="Dashboard FRECORP - Vue d'ensemble" class="w-full h-full object-cover">
                                 </div>
                                 <div class="p-4">
                                     <h4 class="font-bold">Tableau de bord</h4>
@@ -280,12 +460,8 @@
                                 </div>
                             </div>
                             <div class="screenshot-card glass-card rounded-2xl overflow-hidden">
-                                <div class="aspect-video bg-gradient-to-br from-slate-800 to-slate-900 flex items-center justify-center">
-                                    <div class="text-center p-8">
-                                        <i class="fas fa-bell text-6xl text-yellow-500/50 mb-4"></i>
-                                        <p class="text-slate-400">Alertes & Notifications</p>
-                                        <p class="text-slate-500 text-sm mt-2">Stock bas, paiements en retard, etc.</p>
-                                    </div>
+                                <div class="aspect-video bg-slate-900">
+                                    <img src="assets/dashboard-2.png" alt="Dashboard FRECORP - KPIs et graphiques" class="w-full h-full object-cover">
                                 </div>
                                 <div class="p-4">
                                     <h4 class="font-bold">Centre de notifications</h4>
@@ -299,12 +475,8 @@
                     <div class="module-content" data-module="pos">
                         <div class="grid md:grid-cols-2 gap-6">
                             <div class="screenshot-card glass-card rounded-2xl overflow-hidden">
-                                <div class="aspect-video bg-gradient-to-br from-slate-800 to-slate-900 flex items-center justify-center">
-                                    <div class="text-center p-8">
-                                        <i class="fas fa-cash-register text-6xl text-emerald-500/50 mb-4"></i>
-                                        <p class="text-slate-400">Interface de caisse</p>
-                                        <p class="text-slate-500 text-sm mt-2">Design tactile optimisé</p>
-                                    </div>
+                                <div class="aspect-video bg-slate-900">
+                                    <img src="assets/pos-1.png" alt="Point de Vente FRECORP - Interface de caisse" class="w-full h-full object-cover">
                                 </div>
                                 <div class="p-4">
                                     <h4 class="font-bold">Point de Vente tactile</h4>
@@ -312,12 +484,8 @@
                                 </div>
                             </div>
                             <div class="screenshot-card glass-card rounded-2xl overflow-hidden">
-                                <div class="aspect-video bg-gradient-to-br from-slate-800 to-slate-900 flex items-center justify-center">
-                                    <div class="text-center p-8">
-                                        <i class="fas fa-receipt text-6xl text-emerald-500/50 mb-4"></i>
-                                        <p class="text-slate-400">Sessions de caisse</p>
-                                        <p class="text-slate-500 text-sm mt-2">Ouverture, fermeture, écarts</p>
-                                    </div>
+                                <div class="aspect-video bg-slate-900">
+                                    <img src="assets/pos-2.png" alt="Point de Vente FRECORP - Sessions de caisse" class="w-full h-full object-cover">
                                 </div>
                                 <div class="p-4">
                                     <h4 class="font-bold">Gestion des sessions</h4>
@@ -331,12 +499,8 @@
                     <div class="module-content" data-module="stock">
                         <div class="grid md:grid-cols-2 gap-6">
                             <div class="screenshot-card glass-card rounded-2xl overflow-hidden">
-                                <div class="aspect-video bg-gradient-to-br from-slate-800 to-slate-900 flex items-center justify-center">
-                                    <div class="text-center p-8">
-                                        <i class="fas fa-warehouse text-6xl text-purple-500/50 mb-4"></i>
-                                        <p class="text-slate-400">Multi-entrepôts</p>
-                                        <p class="text-slate-500 text-sm mt-2">Vue consolidée du stock</p>
-                                    </div>
+                                <div class="aspect-video bg-slate-900">
+                                    <img src="assets/stock-1.png" alt="Gestion Stock FRECORP - Multi-entrepôts" class="w-full h-full object-cover">
                                 </div>
                                 <div class="p-4">
                                     <h4 class="font-bold">Gestion multi-entrepôts</h4>
@@ -344,12 +508,8 @@
                                 </div>
                             </div>
                             <div class="screenshot-card glass-card rounded-2xl overflow-hidden">
-                                <div class="aspect-video bg-gradient-to-br from-slate-800 to-slate-900 flex items-center justify-center">
-                                    <div class="text-center p-8">
-                                        <i class="fas fa-truck-loading text-6xl text-purple-500/50 mb-4"></i>
-                                        <p class="text-slate-400">Transferts de stock</p>
-                                        <p class="text-slate-500 text-sm mt-2">Inter-entrepôts automatisés</p>
-                                    </div>
+                                <div class="aspect-video bg-slate-900">
+                                    <img src="assets/stock-2.png" alt="Gestion Stock FRECORP - Transferts" class="w-full h-full object-cover">
                                 </div>
                                 <div class="p-4">
                                     <h4 class="font-bold">Transferts & Inventaires</h4>
@@ -363,12 +523,8 @@
                     <div class="module-content" data-module="sales">
                         <div class="grid md:grid-cols-2 gap-6">
                             <div class="screenshot-card glass-card rounded-2xl overflow-hidden">
-                                <div class="aspect-video bg-gradient-to-br from-slate-800 to-slate-900 flex items-center justify-center">
-                                    <div class="text-center p-8">
-                                        <i class="fas fa-file-invoice text-6xl text-orange-500/50 mb-4"></i>
-                                        <p class="text-slate-400">Création de devis</p>
-                                        <p class="text-slate-500 text-sm mt-2">Conversion en facture en 1 clic</p>
-                                    </div>
+                                <div class="aspect-video bg-slate-900">
+                                    <img src="assets/sales-1.png" alt="Ventes FRECORP - Devis et factures" class="w-full h-full object-cover">
                                 </div>
                                 <div class="p-4">
                                     <h4 class="font-bold">Devis & Factures</h4>
@@ -376,12 +532,8 @@
                                 </div>
                             </div>
                             <div class="screenshot-card glass-card rounded-2xl overflow-hidden">
-                                <div class="aspect-video bg-gradient-to-br from-slate-800 to-slate-900 flex items-center justify-center">
-                                    <div class="text-center p-8">
-                                        <i class="fas fa-users text-6xl text-orange-500/50 mb-4"></i>
-                                        <p class="text-slate-400">Fichier clients</p>
-                                        <p class="text-slate-500 text-sm mt-2">Historique et statistiques</p>
-                                    </div>
+                                <div class="aspect-video bg-slate-900">
+                                    <img src="assets/sales-2.png" alt="Ventes FRECORP - Gestion clients" class="w-full h-full object-cover">
                                 </div>
                                 <div class="p-4">
                                     <h4 class="font-bold">Gestion clients</h4>
@@ -395,12 +547,8 @@
                     <div class="module-content" data-module="hr">
                         <div class="grid md:grid-cols-2 gap-6">
                             <div class="screenshot-card glass-card rounded-2xl overflow-hidden">
-                                <div class="aspect-video bg-gradient-to-br from-slate-800 to-slate-900 flex items-center justify-center">
-                                    <div class="text-center p-8">
-                                        <i class="fas fa-qrcode text-6xl text-pink-500/50 mb-4"></i>
-                                        <p class="text-slate-400">Pointage QR Code</p>
-                                        <p class="text-slate-500 text-sm mt-2">Code rotatif anti-fraude</p>
-                                    </div>
+                                <div class="aspect-video bg-slate-900">
+                                    <img src="assets/hr-1.png" alt="RH FRECORP - Pointage QR Code" class="w-full h-full object-cover">
                                 </div>
                                 <div class="p-4">
                                     <h4 class="font-bold">Pointage sécurisé</h4>
@@ -408,16 +556,36 @@
                                 </div>
                             </div>
                             <div class="screenshot-card glass-card rounded-2xl overflow-hidden">
-                                <div class="aspect-video bg-gradient-to-br from-slate-800 to-slate-900 flex items-center justify-center">
-                                    <div class="text-center p-8">
-                                        <i class="fas fa-calendar-days text-6xl text-pink-500/50 mb-4"></i>
-                                        <p class="text-slate-400">Planning & Congés</p>
-                                        <p class="text-slate-500 text-sm mt-2">Vue calendrier</p>
-                                    </div>
+                                <div class="aspect-video bg-slate-900">
+                                    <img src="assets/hr-2.png" alt="RH FRECORP - Planning et congés" class="w-full h-full object-cover">
                                 </div>
                                 <div class="p-4">
                                     <h4 class="font-bold">Plannings & Congés</h4>
                                     <p class="text-slate-400 text-sm">Gestion des shifts et demandes de congés</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Comptabilité -->
+                    <div class="module-content" data-module="accounting">
+                        <div class="grid md:grid-cols-2 gap-6">
+                            <div class="screenshot-card glass-card rounded-2xl overflow-hidden">
+                                <div class="aspect-video bg-slate-900">
+                                    <img src="assets/accounting-1.png" alt="Comptabilité FRECORP - Plan comptable" class="w-full h-full object-cover">
+                                </div>
+                                <div class="p-4">
+                                    <h4 class="font-bold">Plan Comptable Général</h4>
+                                    <p class="text-slate-400 text-sm">Gestion des comptes, journaux et écritures comptables</p>
+                                </div>
+                            </div>
+                            <div class="screenshot-card glass-card rounded-2xl overflow-hidden">
+                                <div class="aspect-video bg-slate-900">
+                                    <img src="assets/accounting-2.png" alt="Comptabilité FRECORP - États financiers" class="w-full h-full object-cover">
+                                </div>
+                                <div class="p-4">
+                                    <h4 class="font-bold">États Financiers</h4>
+                                    <p class="text-slate-400 text-sm">Balance générale, grand livre et journal d'audit</p>
                                 </div>
                             </div>
                         </div>
@@ -434,7 +602,7 @@
                     <p class="text-slate-400">Les fonctionnalités qui font la différence</p>
                 </div>
 
-                <div class="grid md:grid-cols-3 gap-8">
+                <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
                     <div class="glass-card p-8 rounded-2xl text-center">
                         <div class="w-16 h-16 bg-gradient-to-br from-green-500/20 to-emerald-500/20 rounded-2xl flex items-center justify-center mx-auto mb-6">
                             <i class="fas fa-building text-green-400 text-2xl"></i>
@@ -457,6 +625,14 @@
                         </div>
                         <h3 class="text-xl font-bold mb-3">Chorus Pro Ready</h3>
                         <p class="text-slate-400 text-sm">Factures Factur-X générées automatiquement. Prêt pour l'obligation 2026-2028.</p>
+                    </div>
+
+                    <div class="glass-card p-8 rounded-2xl text-center">
+                        <div class="w-16 h-16 bg-gradient-to-br from-cyan-500/20 to-blue-500/20 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                            <i class="fas fa-calculator text-cyan-400 text-2xl"></i>
+                        </div>
+                        <h3 class="text-xl font-bold mb-3">Comptabilité Intégrée</h3>
+                        <p class="text-slate-400 text-sm">Plan comptable français, écritures automatiques depuis ventes/achats, balance et grand livre.</p>
                     </div>
                 </div>
             </div>
@@ -507,56 +683,64 @@
                         </div>
 
                         <div>
-                            <form id="demo-form" class="space-y-5">
+                            <form id="demo-form" class="space-y-5" action="https://api.web3forms.com/submit" method="POST">
+                                <!-- Web3Forms Access Key -->
+                                <input type="hidden" name="access_key" value="66c0ee8e-b05b-4bd7-960a-610fc222a6b9">
+                                <input type="hidden" name="subject" value="🎯 Nouvelle demande de démo FRECORP">
+                                <input type="hidden" name="from_name" value="FRECORP - Demande Démo">
+                                <!-- Honeypot anti-spam -->
+                                <input type="checkbox" name="botcheck" class="hidden" style="display: none;">
+                                <input type="hidden" name="redirect" value="https://www.frecorp.fr/demo.html?success=true">
+                                
                                 <div>
                                     <label class="block text-sm font-semibold mb-2">Nom complet *</label>
-                                    <input type="text" required 
+                                    <input type="text" name="nom" required 
                                         class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl focus:border-indigo-500 focus:outline-none transition"
                                         placeholder="Jean Dupont">
                                 </div>
                                 
                                 <div>
                                     <label class="block text-sm font-semibold mb-2">Email professionnel *</label>
-                                    <input type="email" required 
+                                    <input type="email" name="email" required 
                                         class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl focus:border-indigo-500 focus:outline-none transition"
                                         placeholder="jean@entreprise.fr">
                                 </div>
                                 
                                 <div>
                                     <label class="block text-sm font-semibold mb-2">Téléphone</label>
-                                    <input type="tel" 
+                                    <input type="tel" name="telephone"
                                         class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl focus:border-indigo-500 focus:outline-none transition"
                                         placeholder="06 12 34 56 78">
                                 </div>
                                 
                                 <div>
                                     <label class="block text-sm font-semibold mb-2">Nom de l'entreprise *</label>
-                                    <input type="text" required 
+                                    <input type="text" name="entreprise" required 
                                         class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl focus:border-indigo-500 focus:outline-none transition"
                                         placeholder="Ma Société SARL">
                                 </div>
                                 
                                 <div>
                                     <label class="block text-sm font-semibold mb-2">Secteur d'activité</label>
-                                    <select class="w-full px-4 py-3 bg-slate-800 border border-white/10 rounded-xl focus:border-indigo-500 focus:outline-none transition text-slate-300">
+                                    <select name="secteur" class="w-full px-4 py-3 bg-slate-800 border border-white/10 rounded-xl focus:border-indigo-500 focus:outline-none transition text-slate-300">
                                         <option value="">Sélectionnez...</option>
-                                        <option value="retail">Commerce / Retail</option>
-                                        <option value="restaurant">Restauration</option>
-                                        <option value="services">Services</option>
-                                        <option value="industrie">Industrie</option>
-                                        <option value="logistique">Logistique</option>
-                                        <option value="autre">Autre</option>
+                                        <option value="Commerce / Retail">Commerce / Retail</option>
+                                        <option value="Restauration">Restauration</option>
+                                        <option value="Services">Services</option>
+                                        <option value="Industrie">Industrie</option>
+                                        <option value="Logistique">Logistique</option>
+                                        <option value="Autre">Autre</option>
                                     </select>
                                 </div>
                                 
                                 <div>
                                     <label class="block text-sm font-semibold mb-2">Nombre d'employés</label>
-                                    <select class="w-full px-4 py-3 bg-slate-800 border border-white/10 rounded-xl focus:border-indigo-500 focus:outline-none transition text-slate-300">
+                                    <select name="employes" class="w-full px-4 py-3 bg-slate-800 border border-white/10 rounded-xl focus:border-indigo-500 focus:outline-none transition text-slate-300">
                                         <option value="">Sélectionnez...</option>
-                                        <option value="1-5">1 - 5</option>
-                                        <option value="6-20">6 - 20</option>
-                                        <option value="21-50">21 - 50</option>
-                                        <option value="50+">Plus de 50</option>
+                                        <option value="1 - 5">1 - 5</option>
+                                        <option value="6 - 20">6 - 20</option>
+                                        <option value="21 - 50">21 - 50</option>
+                                        <option value="Plus de 50">Plus de 50</option>
                                     </select>
                                 </div>
                                 
@@ -595,21 +779,62 @@
     </main>
 
     <!-- Footer -->
-    <footer class="py-12 border-t border-white/5 relative z-10">
-        <div class="max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-4">
-            <div class="flex items-center gap-2">
-                <div class="w-8 h-8 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center">
-                    <i class="fas fa-boxes-stacked text-white text-sm"></i>
+    <footer class="py-16 border-t border-white/5 bg-slate-950/50 relative z-10">
+        <div class="max-w-7xl mx-auto px-6 grid md:grid-cols-4 gap-12">
+            <div>
+                <div class="flex items-center gap-2 mb-6">
+                    <div class="w-8 h-8 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-boxes-stacked text-white text-sm"></i>
+                    </div>
+                    <span class="text-xl font-bold text-white">FRECORP</span>
                 </div>
-                <span class="font-bold text-white">FRECORP</span>
+                <p class="text-slate-500 text-sm">L'ERP complet pour les entreprises modernes. Simplifiez votre gestion.</p>
             </div>
-            <p class="text-slate-500 text-sm">
-                © <span id="current-year"></span> FRECORP. Made with ❤️ in France 🇫🇷
+            <div>
+                <h5 class="text-white font-bold mb-6">Produit</h5>
+                <ul class="text-slate-500 space-y-3 text-sm">
+                    <li><a href="index.html#modules" class="hover:text-indigo-400 transition">Modules</a></li>
+                    <li><a href="index.html#pricing" class="hover:text-indigo-400 transition">Tarifs</a></li>
+                    <li><a href="#contact" class="hover:text-indigo-400 transition">Démo</a></li>
+                    <li><a href="index.html#chorus" class="hover:text-indigo-400 transition">Chorus Pro</a></li>
+                </ul>
+            </div>
+            <div>
+                <h5 class="text-white font-bold mb-6">Ressources</h5>
+                <ul class="text-slate-500 space-y-3 text-sm">
+                    <li><a href="index.html#faq" class="hover:text-indigo-400 transition">FAQ</a></li>
+                    <li><a href="mailto:contact@frecorp.fr" class="hover:text-indigo-400 transition">Contact</a></li>
+                    <li><a href="https://app.frecorp.fr/login" class="hover:text-indigo-400 transition">Connexion</a></li>
+                    <li><a href="https://app.frecorp.fr/register" class="hover:text-indigo-400 transition">Inscription</a></li>
+                </ul>
+            </div>
+            <div>
+                <h5 class="text-white font-bold mb-6">Légal</h5>
+                <ul class="text-slate-500 space-y-3 text-sm">
+                    <li><a href="mentions-legales.html" class="hover:text-indigo-400 transition">Mentions légales</a></li>
+                    <li><a href="cgu.html" class="hover:text-indigo-400 transition">CGU</a></li>
+                    <li><a href="confidentialite.html" class="hover:text-indigo-400 transition">Confidentialité</a></li>
+                    <li><a href="rgpd.html" class="hover:text-indigo-400 transition">RGPD</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="max-w-7xl mx-auto px-6 pt-12 mt-12 border-t border-white/5 flex flex-col md:flex-row items-center justify-between gap-4">
+            <p class="text-slate-600 text-sm">
+                © <span id="current-year"></span> FRECORP. Tous droits réservés. Made with ❤️ in France 🇫🇷
             </p>
-            <div class="flex items-center gap-4">
-                <a href="index.html" class="text-slate-400 hover:text-white transition text-sm">Accueil</a>
-                <a href="index.html#pricing" class="text-slate-400 hover:text-white transition text-sm">Tarifs</a>
-                <a href="mailto:contact@frecorp.fr" class="text-slate-400 hover:text-white transition text-sm">Contact</a>
+            <div class="flex items-center space-x-6">
+                <a href="#" class="text-slate-500 hover:text-indigo-400 transition">
+                    <i class="fab fa-twitter text-xl"></i>
+                </a>
+                <a href="#" class="text-slate-500 hover:text-indigo-400 transition">
+                    <i class="fab fa-linkedin text-xl"></i>
+                </a>
+                <a href="#" class="text-slate-500 hover:text-indigo-400 transition">
+                    <i class="fab fa-github text-xl"></i>
+                </a>
+                <a href="#" class="text-slate-500 hover:text-indigo-400 transition">
+                    <i class="fab fa-discord text-xl"></i>
+                </a>
             </div>
         </div>
     </footer>
@@ -617,6 +842,33 @@
     <script>
         // Current year
         document.getElementById('current-year').textContent = new Date().getFullYear();
+
+        // Mobile menu toggle avec animation
+        const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
+        const mobileMenu = document.getElementById('mobile-menu');
+        const menuIcon = document.getElementById('menu-icon');
+        
+        mobileMenuToggle?.addEventListener('click', function() {
+            mobileMenu.classList.toggle('open');
+            
+            // Animer l'icône
+            if (mobileMenu.classList.contains('open')) {
+                menuIcon.classList.remove('fa-bars');
+                menuIcon.classList.add('fa-xmark');
+            } else {
+                menuIcon.classList.remove('fa-xmark');
+                menuIcon.classList.add('fa-bars');
+            }
+        });
+        
+        // Fermer le menu mobile au clic sur un lien
+        document.querySelectorAll('.mobile-link').forEach(link => {
+            link.addEventListener('click', () => {
+                mobileMenu.classList.remove('open');
+                menuIcon.classList.remove('fa-xmark');
+                menuIcon.classList.add('fa-bars');
+            });
+        });
 
         // Module tabs
         const tabs = document.querySelectorAll('.module-tab');
@@ -640,30 +892,34 @@
             });
         });
 
-        // Form submission
-        document.getElementById('demo-form').addEventListener('submit', function(e) {
-            e.preventDefault();
+        // Form submission avec Web3Forms
+        const demoForm = document.getElementById('demo-form');
+        
+        // Vérifier si on revient d'une soumission réussie
+        if (window.location.search.includes('success=true')) {
+            const successBanner = document.createElement('div');
+            successBanner.className = 'fixed top-24 left-1/2 transform -translate-x-1/2 z-50 bg-green-600 text-white px-8 py-4 rounded-2xl shadow-2xl flex items-center gap-3 animate-bounce';
+            successBanner.innerHTML = '<i class="fas fa-check-circle text-2xl"></i><div><strong>Demande envoyée !</strong><br><span class="text-sm">Notre équipe vous contactera sous 24h.</span></div>';
+            document.body.appendChild(successBanner);
             
-            // Simulate form submission
+            setTimeout(() => {
+                successBanner.style.transition = 'opacity 0.5s';
+                successBanner.style.opacity = '0';
+                setTimeout(() => successBanner.remove(), 500);
+            }, 5000);
+            
+            // Nettoyer l'URL
+            window.history.replaceState({}, document.title, window.location.pathname);
+        }
+        
+        demoForm.addEventListener('submit', function(e) {
             const btn = this.querySelector('button[type="submit"]');
             const originalText = btn.innerHTML;
             btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Envoi en cours...';
             btn.disabled = true;
             
-            setTimeout(() => {
-                btn.innerHTML = '<i class="fas fa-check mr-2"></i> Demande envoyée !';
-                btn.classList.remove('btn-primary');
-                btn.classList.add('bg-green-600');
-                
-                setTimeout(() => {
-                    alert('Merci ! Notre équipe vous contactera sous 24h pour organiser votre démo personnalisée.');
-                    this.reset();
-                    btn.innerHTML = originalText;
-                    btn.disabled = false;
-                    btn.classList.add('btn-primary');
-                    btn.classList.remove('bg-green-600');
-                }, 1000);
-            }, 1500);
+            // Le formulaire se soumettra normalement à Web3Forms
+            // qui redirigera vers la page avec ?success=true
         });
 
         // Smooth scroll

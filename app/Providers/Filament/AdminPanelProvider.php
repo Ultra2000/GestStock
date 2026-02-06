@@ -139,6 +139,10 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->authGuard('web')
             ->renderHook(
+                PanelsRenderHook::HEAD_END,
+                fn () => new HtmlString('<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">')
+            )
+            ->renderHook(
                 PanelsRenderHook::BODY_END,
                 fn () => new HtmlString('
                     <script>

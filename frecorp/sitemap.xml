@@ -17,6 +17,38 @@
         <priority>0.8</priority>
     </url>
     
+    <!-- Mentions légales -->
+    <url>
+        <loc>https://frecorp.fr/mentions-legales.html</loc>
+        <lastmod>2026-02-06</lastmod>
+        <changefreq>yearly</changefreq>
+        <priority>0.3</priority>
+    </url>
+    
+    <!-- CGU -->
+    <url>
+        <loc>https://frecorp.fr/cgu.html</loc>
+        <lastmod>2026-02-06</lastmod>
+        <changefreq>yearly</changefreq>
+        <priority>0.3</priority>
+    </url>
+    
+    <!-- Confidentialité -->
+    <url>
+        <loc>https://frecorp.fr/confidentialite.html</loc>
+        <lastmod>2026-02-06</lastmod>
+        <changefreq>yearly</changefreq>
+        <priority>0.3</priority>
+    </url>
+    
+    <!-- RGPD -->
+    <url>
+        <loc>https://frecorp.fr/rgpd.html</loc>
+        <lastmod>2026-02-06</lastmod>
+        <changefreq>yearly</changefreq>
+        <priority>0.3</priority>
+    </url>
+    
     <!-- Application - Connexion -->
     <url>
         <loc>https://app.frecorp.fr/login</loc>
