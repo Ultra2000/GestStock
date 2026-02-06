@@ -57,6 +57,14 @@
         </image:image>
     </url>
     
+    <!-- Roadmap -->
+    <url>
+        <loc>https://frecorp.fr/roadmap.html</loc>
+        <lastmod>2026-02-06</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.7</priority>
+    </url>
+    
     <!-- Mentions légales -->
     <url>
         <loc>https://frecorp.fr/mentions-legales.html</loc>
