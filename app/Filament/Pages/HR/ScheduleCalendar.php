@@ -24,17 +24,9 @@ class ScheduleCalendar extends FullCalendarWidget
 {
     public Model | string | null $model = Schedule::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-calendar';
-
-    protected static ?string $navigationGroup = 'RH';
-
-    protected static ?string $navigationLabel = 'Calendrier';
-
-    protected static ?string $title = 'Calendrier des plannings';
-
-    protected static ?int $navigationSort = 2;
-    
-    protected static bool $shouldRegisterNavigation = true; // Maintenant visible dans la nav
+    // Ce widget est utilisé via ScheduleCalendarPage
+    // Ne pas l'enregistrer directement dans la navigation
+    protected static bool $shouldRegisterNavigation = false;
 
     public static function canAccess(): bool
     {
