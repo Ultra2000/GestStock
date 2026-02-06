@@ -43,8 +43,8 @@
   <text x="700" y="450" font-family="Inter, Arial, sans-serif" font-size="24" fill="#94a3b8">✓ RH &amp; Pointage</text>
   
   <!-- CTA Badge -->
-  <rect x="100" y="500" width="280" height="50" rx="25" fill="url(#accent-grad)"/>
-  <text x="145" y="533" font-family="Inter, Arial, sans-serif" font-size="20" font-weight="700" fill="white">2 ans gratuits • frecorp.fr</text>
+  <rect x="100" y="500" width="300" height="50" rx="25" fill="url(#accent-grad)"/>
+  <text x="135" y="533" font-family="Inter, Arial, sans-serif" font-size="20" font-weight="700" fill="white">6 mois gratuits • frecorp.fr</text>
   
   <!-- France flag hint -->
   <text x="1050" y="580" font-family="Arial" font-size="36">🇫🇷</text>

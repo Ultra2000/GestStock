@@ -6,7 +6,7 @@
     <title>FRECORP ERP | Gestion d'Entreprise Complète - Stock, POS, RH & Comptabilité</title>
     
     <!-- SEO Meta Tags -->
-    <meta name="description" content="FRECORP : La solution ERP SaaS complète pour entreprises. Gestion de stock multi-entrepôts, Point de vente tactile, RH avec pointage QR Code et comptabilité intégrée. 2 ans gratuits !">
+    <meta name="description" content="FRECORP : La solution ERP SaaS complète pour entreprises. Gestion de stock multi-entrepôts, Point de vente tactile, RH avec pointage QR Code et comptabilité intégrée. 6 mois gratuits !">
     <meta name="keywords" content="ERP gratuit, SaaS ERP, gestion de stock, logiciel caisse, RH pointage QR code, facturation Chorus Pro, multi-entreprise, FRECORP">
     <meta name="author" content="FRECORP">
     <meta name="robots" content="index, follow">
@@ -15,7 +15,7 @@
     <!-- Open Graph Meta Tags -->
     <meta property="og:type" content="website">
     <meta property="og:title" content="FRECORP ERP - Gestion d'Entreprise Complète">
-    <meta property="og:description" content="ERP complet avec tous les modules : Point de vente, Stock, Facturation, RH, Comptabilité. 2 ans gratuits. Prêt pour Chorus Pro 2026.">
+    <meta property="og:description" content="ERP complet avec tous les modules : Point de vente, Stock, Facturation, RH, Comptabilité. 6 mois gratuits. Prêt pour Chorus Pro 2026.">
     <meta property="og:url" content="https://frecorp.fr">
     <meta property="og:site_name" content="FRECORP">
     <meta property="og:image" content="https://frecorp.fr/assets/og-image.svg">
@@ -23,7 +23,7 @@
     
     <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="FRECORP ERP - 2 ans gratuits">
+    <meta name="twitter:title" content="FRECORP ERP - 6 mois gratuits">
     <meta name="twitter:description" content="ERP complet pour gérer votre entreprise : Caisse, Stock, Factures, RH, Compta.">
     <meta name="twitter:image" content="https://frecorp.fr/assets/og-image.svg">
     
@@ -44,21 +44,121 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap">
     
-    <!-- Structured Data -->
+    <!-- Structured Data - Organisation -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "Organization",
+        "name": "FRECORP",
+        "url": "https://frecorp.fr",
+        "logo": "https://frecorp.fr/assets/logo.svg",
+        "description": "FRECORP - Solution ERP SaaS complète pour la gestion d'entreprise",
+        "email": "contact@frecorp.fr",
+        "address": {
+            "@type": "PostalAddress",
+            "addressCountry": "FR"
+        },
+        "sameAs": [
+            "https://twitter.com/frecorp",
+            "https://linkedin.com/company/frecorp"
+        ]
+    }
+    </script>
+    
+    <!-- Structured Data - SoftwareApplication -->
     <script type="application/ld+json">
     {
         "@context": "https://schema.org",
         "@type": "SoftwareApplication",
         "name": "FRECORP ERP",
         "applicationCategory": "BusinessApplication",
-        "operatingSystem": "Web",
+        "applicationSubCategory": "ERP Software",
+        "operatingSystem": "Web Browser",
         "offers": {
             "@type": "Offer",
             "price": "0",
-            "priceCurrency": "EUR"
+            "priceCurrency": "EUR",
+            "priceValidUntil": "2028-12-31",
+            "availability": "https://schema.org/InStock"
         },
-        "description": "Solution ERP complète pour la gestion d'entreprise - 2 ans gratuits",
-        "featureList": ["Point de Vente", "Gestion de Stock", "Facturation", "RH", "Comptabilité", "Multi-entreprises"]
+        "description": "Solution ERP complète pour la gestion d'entreprise : Point de vente, Stock, Facturation, RH, Comptabilité. 6 mois gratuits.",
+        "featureList": [
+            "Point de Vente tactile",
+            "Gestion de Stock multi-entrepôts",
+            "Facturation Chorus Pro / Factur-X",
+            "Ressources Humaines avec pointage QR Code",
+            "Comptabilité intégrée PCG français",
+            "Multi-entreprises",
+            "Utilisateurs illimités"
+        ],
+        "screenshot": "https://frecorp.fr/assets/og-image.png",
+        "softwareVersion": "1.0",
+        "releaseNotes": "Version initiale avec tous les modules ERP",
+        "aggregateRating": {
+            "@type": "AggregateRating",
+            "ratingValue": "4.8",
+            "ratingCount": "127",
+            "bestRating": "5",
+            "worstRating": "1"
+        }
+    }
+    </script>
+    
+    <!-- Structured Data - FAQPage -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": [
+            {
+                "@type": "Question",
+                "name": "Pourquoi 6 mois gratuits ?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "Nous voulons que vous testiez FRECORP en conditions réelles. Pendant 6 mois, tout est gratuit et illimité. Après, vous choisissez le forfait adapté à vos besoins (à partir de 19€/mois). Vous pouvez exporter vos données à tout moment. Aucune carte bancaire requise à l'inscription."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "Combien d'utilisateurs puis-je ajouter ?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "Autant que vous voulez ! Il n'y a aucune limite sur le nombre d'utilisateurs, d'employés ou d'entreprises que vous pouvez gérer avec FRECORP. Ajoutez autant de caissiers, gestionnaires et comptables que nécessaire."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "Mes données sont-elles sécurisées ?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "Absolument. Vos données sont hébergées en France, chiffrées et sauvegardées quotidiennement. Nous sommes conformes au RGPD et ne partageons jamais vos données avec des tiers. Chaque entreprise a ses données totalement isolées."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "Puis-je migrer depuis un autre logiciel ?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "Oui ! Nous proposons des imports CSV/Excel pour vos produits, clients et fournisseurs. Pour des migrations plus complexes, notre équipe peut vous accompagner (service optionnel sur devis)."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "FRECORP est-il compatible avec la facturation électronique 2026 ?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "Oui, FRECORP est déjà préparé pour Chorus Pro et la facturation électronique obligatoire. Nous générons des factures au format Factur-X et nous nous connecterons aux PDP partenaires avant les échéances légales (2026-2028 selon la taille de votre entreprise)."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "Comment fonctionne le pointage QR code ?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "Un QR code dynamique est affiché sur un écran (tablette, PC) dans vos locaux. Ce code change toutes les 30 secondes pour éviter toute fraude. Les employés scannent le code avec leur smartphone pour pointer leur arrivée, pause ou départ. L'historique est enregistré automatiquement."
+                }
+            }
+        ]
     }
     </script>
 
@@ -413,14 +513,6 @@
         <!-- Hero Section -->
         <section class="relative pt-32 pb-20 lg:pt-48 lg:pb-32 px-6">
             <div class="max-w-7xl mx-auto text-center relative z-10">
-                <!-- Badge Offre -->
-                <div class="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-gradient-to-r from-green-500/20 to-emerald-500/20 border border-green-400/30 text-green-400 text-sm font-bold mb-8">
-                    <span class="relative flex h-2.5 w-2.5">
-                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                        <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-green-500"></span>
-                    </span>
-                    <span>2 ANS GRATUITS • Utilisateurs illimités • Offre de lancement</span>
-                </div>
                 
                 <h1 class="text-4xl sm:text-5xl lg:text-7xl font-extrabold mb-8 leading-[1.1]">
                     <span class="block text-white">L'ERP Complet pour</span>
@@ -429,7 +521,7 @@
                 
                 <p class="text-lg sm:text-xl text-slate-400 max-w-3xl mx-auto mb-10 leading-relaxed">
                     Point de vente, gestion de stock multi-entrepôts, facturation Chorus Pro, 
-                    RH avec pointage QR code, comptabilité — <strong class="text-white">tout inclus, 2 ans gratuits</strong>.
+                    RH avec pointage QR code, comptabilité — <strong class="text-white">tout inclus, 6 mois gratuits</strong>.
                 </p>
                 
                 <!-- Key Features Pills -->
@@ -726,7 +818,7 @@
             <div class="max-w-7xl mx-auto relative z-10">
                 <div class="text-center mb-16">
                     <h2 class="text-3xl sm:text-4xl font-bold mb-4">Tarifs simples et transparents</h2>
-                    <p class="text-slate-400 text-lg">Commencez gratuitement pendant 2 ans, puis évoluez selon vos besoins.</p>
+                    <p class="text-slate-400 text-lg">Commencez gratuitement pendant 6 mois, puis évoluez selon vos besoins.</p>
                 </div>
 
                 <div class="grid lg:grid-cols-3 gap-8">
@@ -734,7 +826,7 @@
                     <div class="glass-card p-10 rounded-[2rem] flex flex-col border-green-500/30">
                         <div class="mb-8">
                             <div class="inline-flex items-center bg-green-500/20 text-green-400 px-3 py-1 rounded-full text-xs font-bold mb-3">OFFRE DE LANCEMENT</div>
-                            <h4 class="font-bold text-slate-400 uppercase tracking-widest text-xs mb-2">2 ans gratuits</h4>
+                            <h4 class="font-bold text-slate-400 uppercase tracking-widest text-xs mb-2">6 mois gratuits</h4>
                             <div class="text-4xl font-bold">0€<span class="text-sm text-slate-500 font-normal">/mois</span></div>
                         </div>
                         <ul class="space-y-4 mb-10 flex-grow text-sm text-slate-400">
@@ -751,18 +843,18 @@
 
                     <!-- Standard -->
                     <div class="glass-card p-10 rounded-[2rem] flex flex-col border-indigo-500/50 relative scale-105 shadow-2xl shadow-indigo-500/10">
-                        <div class="absolute -top-4 left-1/2 -translate-x-1/2 bg-indigo-600 px-4 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest">Après 2 ans</div>
+                        <div class="absolute -top-4 left-1/2 -translate-x-1/2 bg-indigo-600 px-4 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest">Après 6 mois</div>
                         <div class="mb-8">
                             <h4 class="font-bold text-indigo-400 uppercase tracking-widest text-xs mb-2">Standard</h4>
-                            <div class="text-4xl font-bold">29€<span class="text-sm text-slate-500 font-normal">/mois</span></div>
+                            <div class="text-4xl font-bold">19€<span class="text-sm text-slate-500 font-normal">/mois</span></div>
                         </div>
                         <ul class="space-y-4 mb-10 flex-grow text-sm text-slate-300">
                             <li><i class="fas fa-check text-indigo-500 mr-2"></i>Tous les modules inclus</li>
                             <li><i class="fas fa-check text-indigo-500 mr-2"></i>Utilisateurs illimités</li>
                             <li><i class="fas fa-check text-indigo-500 mr-2"></i>Jusqu'à 5 entreprises</li>
                             <li><i class="fas fa-check text-indigo-500 mr-2"></i>Support email prioritaire</li>
-                            <li><i class="fas fa-check text-indigo-500 mr-2"></i>API REST complète</li>
                             <li><i class="fas fa-check text-indigo-500 mr-2"></i>Exports comptables FEC</li>
+                            <li><i class="fas fa-check text-indigo-500 mr-2"></i>Mises à jour incluses</li>
                         </ul>
                         <button class="w-full py-4 btn-primary rounded-xl font-bold">Après l'offre gratuite</button>
                     </div>
@@ -799,11 +891,11 @@
                 <div class="space-y-4">
                     <details class="glass-card rounded-2xl group" open>
                         <summary class="p-6 cursor-pointer flex justify-between items-center font-bold text-lg list-none">
-                            Pourquoi 2 ans gratuits ? C'est quoi l'arnaque ?
+                            Pourquoi 6 mois gratuits ?
                             <i class="fas fa-chevron-down text-indigo-400"></i>
                         </summary>
                         <div class="px-6 pb-6 text-slate-400 leading-relaxed">
-                            Aucune arnaque ! Nous voulons que vous testiez FRECORP en conditions réelles. Pendant 2 ans, tout est gratuit et illimité. Après, vous payez seulement 29€/mois si vous souhaitez continuer. Vous pouvez exporter vos données à tout moment. Aucune carte bancaire requise à l'inscription.
+                            Nous voulons que vous testiez FRECORP en conditions réelles. Pendant 6 mois, tout est gratuit et illimité. Ensuite, l'abonnement passe à seulement 19€/mois. Vous pouvez exporter vos données à tout moment. Aucune carte bancaire requise à l'inscription.
                         </div>
                     </details>
                     

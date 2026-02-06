@@ -3,10 +3,27 @@
 
 User-agent: *
 Allow: /
+
+# Pages principales
 Allow: /index.html
 Allow: /demo.html
 
+# Pages légales
+Allow: /mentions-legales.html
+Allow: /cgu.html
+Allow: /confidentialite.html
+Allow: /rgpd.html
+
+# Assets (images, logos)
+Allow: /assets/
+Allow: /favicon.svg
+Allow: /favicon.ico
+
+# Pages à ne pas indexer
 Disallow: /404.html
+
+# Crawl-delay pour éviter la surcharge
+Crawl-delay: 1
 
 # Sitemap
 Sitemap: https://frecorp.fr/sitemap.xml

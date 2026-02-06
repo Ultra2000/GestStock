@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
     
     <!-- Homepage - ERP Gratuit -->
     <url>
@@ -7,14 +8,53 @@
         <lastmod>2026-02-06</lastmod>
         <changefreq>weekly</changefreq>
         <priority>1.0</priority>
+        <image:image>
+            <image:loc>https://frecorp.fr/assets/og-image.png</image:loc>
+            <image:title>FRECORP ERP - Solution de gestion d'entreprise</image:title>
+            <image:caption>Interface FRECORP ERP avec modules Point de Vente, Stock, RH et Comptabilité</image:caption>
+        </image:image>
+        <image:image>
+            <image:loc>https://frecorp.fr/assets/logo.svg</image:loc>
+            <image:title>Logo FRECORP</image:title>
+        </image:image>
     </url>
     
-    <!-- Démo -->
+    <!-- Démo avec screenshots -->
     <url>
         <loc>https://frecorp.fr/demo.html</loc>
         <lastmod>2026-02-06</lastmod>
         <changefreq>monthly</changefreq>
         <priority>0.8</priority>
+        <image:image>
+            <image:loc>https://frecorp.fr/assets/dashboard-1.png</image:loc>
+            <image:title>Dashboard FRECORP - Vue d'ensemble</image:title>
+            <image:caption>Tableau de bord avec statistiques en temps réel</image:caption>
+        </image:image>
+        <image:image>
+            <image:loc>https://frecorp.fr/assets/pos-1.png</image:loc>
+            <image:title>Point de Vente FRECORP</image:title>
+            <image:caption>Interface de caisse tactile</image:caption>
+        </image:image>
+        <image:image>
+            <image:loc>https://frecorp.fr/assets/stock-1.png</image:loc>
+            <image:title>Gestion de Stock FRECORP</image:title>
+            <image:caption>Gestion multi-entrepôts</image:caption>
+        </image:image>
+        <image:image>
+            <image:loc>https://frecorp.fr/assets/sales-1.png</image:loc>
+            <image:title>Facturation FRECORP</image:title>
+            <image:caption>Devis et factures Chorus Pro</image:caption>
+        </image:image>
+        <image:image>
+            <image:loc>https://frecorp.fr/assets/hr-1.png</image:loc>
+            <image:title>Module RH FRECORP</image:title>
+            <image:caption>Pointage QR Code et gestion des congés</image:caption>
+        </image:image>
+        <image:image>
+            <image:loc>https://frecorp.fr/assets/accounting-1.png</image:loc>
+            <image:title>Comptabilité FRECORP</image:title>
+            <image:caption>Plan comptable et écritures automatiques</image:caption>
+        </image:image>
     </url>
     
     <!-- Mentions légales -->
