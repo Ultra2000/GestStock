@@ -10,14 +10,13 @@
                     Visualisez et gérez les plannings en mode calendrier interactif
                 </p>
             </div>
-            <a href="{{ route('filament.company.pages.schedule-planning') }}" 
+            <a href="{{ \App\Filament\Pages\SchedulePlanning::getUrl() }}" 
                class="px-4 py-2 text-sm bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition flex items-center gap-2">
                 <x-heroicon-o-table-cells class="w-4 h-4"/>
                 Vue Grille
             </a>
         </div>
 
-        {{-- Le widget calendrier sera affiché ici --}}
-        @livewire(\App\Filament\Pages\HR\ScheduleCalendar::class)
+        {{-- Le calendrier est affiché via getHeaderWidgets() dans la Page --}}
     </div>
 </x-filament-panels::page>
