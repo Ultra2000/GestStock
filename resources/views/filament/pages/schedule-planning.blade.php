@@ -25,6 +25,12 @@
             </div>
 
             <div class="flex items-center gap-2">
+                @if(count($templates) > 0)
+                    <button wire:click="openTemplateModal" class="px-4 py-2 text-sm bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 rounded-lg hover:bg-indigo-200 dark:hover:bg-indigo-900/50 transition flex items-center gap-2">
+                        <x-heroicon-o-document-text class="w-4 h-4"/>
+                        Appliquer template
+                    </button>
+                @endif
                 <button wire:click="duplicatePreviousWeek" class="px-4 py-2 text-sm bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition flex items-center gap-2">
                     <x-heroicon-o-document-duplicate class="w-4 h-4"/>
                     Dupliquer semaine précédente
@@ -280,6 +286,89 @@
                     @endif
                     
                     <button wire:click="closeEditModal" type="button"
+                        class="mt-3 w-full inline-flex justify-center rounded-lg border border-gray-300 dark:border-gray-600 shadow-sm px-4 py-2 bg-white dark:bg-gray-800 text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 sm:mt-0 sm:w-auto sm:text-sm">
+                        Annuler
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    @endif
+
+    {{-- Modal pour appliquer un template --}}
+    @if($showTemplateModal)
+    <div class="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+        <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            {{-- Overlay --}}
+            <div wire:click="closeTemplateModal" class="fixed inset-0 bg-gray-500 dark:bg-gray-900 bg-opacity-75 dark:bg-opacity-75 transition-opacity"></div>
+
+            {{-- Modal panel --}}
+            <div class="inline-block align-bottom bg-white dark:bg-gray-800 rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+                <div class="bg-white dark:bg-gray-800 px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                    <div class="sm:flex sm:items-start">
+                        <div class="mt-3 text-center sm:mt-0 sm:text-left w-full">
+                            <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-white" id="modal-title">
+                                Appliquer un template
+                            </h3>
+                            
+                            <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
+                                Sélectionnez un template et les employés auxquels l'appliquer pour la semaine en cours.
+                            </p>
+
+                            <div class="mt-6 space-y-4">
+                                {{-- Sélection du template --}}
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                        Template *
+                                    </label>
+                                    <select wire:model="selectedTemplateId"
+                                        class="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-primary-500 focus:ring-primary-500">
+                                        <option value="">-- Choisir un template --</option>
+                                        @foreach($templates as $template)
+                                            <option value="{{ $template['id'] }}">
+                                                {{ $template['name'] }} ({{ $template['total_hours'] ?? 0 }}h/semaine)
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                </div>
+
+                                {{-- Sélection des employés --}}
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                        Employés *
+                                    </label>
+                                    <div class="max-h-48 overflow-y-auto border border-gray-200 dark:border-gray-600 rounded-lg p-2 space-y-2">
+                                        @foreach($employees as $employee)
+                                            <label class="flex items-center gap-2 p-2 hover:bg-gray-50 dark:hover:bg-gray-700 rounded cursor-pointer">
+                                                <input type="checkbox" 
+                                                    wire:model="selectedEmployeesForTemplate" 
+                                                    value="{{ $employee->id }}"
+                                                    class="rounded border-gray-300 text-primary-600 focus:ring-primary-500">
+                                                <span class="text-sm text-gray-700 dark:text-gray-300">
+                                                    {{ $employee->first_name }} {{ $employee->last_name }}
+                                                </span>
+                                                <span class="text-xs text-gray-500">
+                                                    ({{ $employee->position ?? 'Employé' }})
+                                                </span>
+                                            </label>
+                                        @endforeach
+                                    </div>
+                                    <p class="text-xs text-gray-500 mt-1">
+                                        {{ count($selectedEmployeesForTemplate) }} employé(s) sélectionné(s)
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-gray-50 dark:bg-gray-700 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse gap-2">
+                    <button wire:click="applyTemplate" type="button"
+                        class="w-full inline-flex justify-center rounded-lg border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:w-auto sm:text-sm">
+                        Appliquer
+                    </button>
+                    
+                    <button wire:click="closeTemplateModal" type="button"
                         class="mt-3 w-full inline-flex justify-center rounded-lg border border-gray-300 dark:border-gray-600 shadow-sm px-4 py-2 bg-white dark:bg-gray-800 text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 sm:mt-0 sm:w-auto sm:text-sm">
                         Annuler
                     </button>

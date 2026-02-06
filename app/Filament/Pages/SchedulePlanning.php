@@ -4,6 +4,7 @@ namespace App\Filament\Pages;
 
 use App\Models\Employee;
 use App\Models\Schedule;
+use App\Models\ScheduleTemplate;
 use Filament\Pages\Page;
 use Filament\Facades\Filament;
 use Filament\Forms\Components\DatePicker;
@@ -48,6 +49,12 @@ class SchedulePlanning extends Page implements HasForms
     public ?string $editShiftType = null;
     public ?string $editNotes = null;
     public bool $showEditModal = false;
+    
+    // Pour l'application des templates
+    public bool $showTemplateModal = false;
+    public ?int $selectedTemplateId = null;
+    public array $selectedEmployeesForTemplate = [];
+    public array $templates = [];
 
     public static function shouldRegisterNavigation(): bool
     {
@@ -71,6 +78,17 @@ class SchedulePlanning extends Page implements HasForms
     {
         $this->weekStart = now()->startOfWeek()->format('Y-m-d');
         $this->loadData();
+        $this->loadTemplates();
+    }
+
+    protected function loadTemplates(): void
+    {
+        $companyId = Filament::getTenant()?->id;
+        $this->templates = ScheduleTemplate::where('company_id', $companyId)
+            ->orderBy('is_default', 'desc')
+            ->orderBy('name')
+            ->get()
+            ->toArray();
     }
 
     public function loadData(): void
@@ -356,5 +374,95 @@ class SchedulePlanning extends Page implements HasForms
         if (!$this->editingDate) return '';
         
         return Carbon::parse($this->editingDate)->locale('fr')->isoFormat('dddd D MMMM YYYY');
+    }
+
+    /**
+     * Ouvre le modal pour appliquer un template
+     */
+    public function openTemplateModal(): void
+    {
+        $this->selectedTemplateId = null;
+        $this->selectedEmployeesForTemplate = [];
+        $this->showTemplateModal = true;
+    }
+
+    /**
+     * Ferme le modal de template
+     */
+    public function closeTemplateModal(): void
+    {
+        $this->showTemplateModal = false;
+        $this->selectedTemplateId = null;
+        $this->selectedEmployeesForTemplate = [];
+    }
+
+    /**
+     * Applique un template aux employés sélectionnés
+     */
+    public function applyTemplate(): void
+    {
+        if (!$this->selectedTemplateId) {
+            Notification::make()
+                ->title('Erreur')
+                ->body('Veuillez sélectionner un template.')
+                ->danger()
+                ->send();
+            return;
+        }
+
+        if (empty($this->selectedEmployeesForTemplate)) {
+            Notification::make()
+                ->title('Erreur')
+                ->body('Veuillez sélectionner au moins un employé.')
+                ->danger()
+                ->send();
+            return;
+        }
+
+        $template = ScheduleTemplate::find($this->selectedTemplateId);
+        if (!$template) {
+            Notification::make()
+                ->title('Erreur')
+                ->body('Template introuvable.')
+                ->danger()
+                ->send();
+            return;
+        }
+
+        $weekStart = Carbon::parse($this->weekStart);
+        $count = 0;
+
+        foreach ($this->selectedEmployeesForTemplate as $employeeId) {
+            $schedules = $template->applyToEmployee($employeeId, $weekStart);
+            $count += count($schedules);
+        }
+
+        $this->loadData();
+        $this->closeTemplateModal();
+
+        Notification::make()
+            ->title('Template appliqué')
+            ->body("{$count} créneaux créés pour " . count($this->selectedEmployeesForTemplate) . " employé(s).")
+            ->success()
+            ->send();
+    }
+
+    /**
+     * Sauvegarder la semaine actuelle comme template
+     */
+    public function saveAsTemplate(int $employeeId, string $templateName): void
+    {
+        $companyId = Filament::getTenant()?->id;
+        $weekStart = Carbon::parse($this->weekStart);
+
+        $template = ScheduleTemplate::createFromWeek($companyId, $employeeId, $weekStart, $templateName);
+        
+        $this->loadTemplates();
+
+        Notification::make()
+            ->title('Template créé')
+            ->body("Le template '{$templateName}' a été créé à partir du planning de la semaine.")
+            ->success()
+            ->send();
     }
 }

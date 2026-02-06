@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Models\Traits\BelongsToCompany;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Schedule extends Model
 {
@@ -12,6 +13,8 @@ class Schedule extends Model
 
     protected $fillable = [
         'company_id',
+        'template_id',
+        'parent_schedule_id',
         'employee_id',
         'date',
         'day_of_week',
@@ -55,6 +58,32 @@ class Schedule extends Model
     public function employee(): BelongsTo
     {
         return $this->belongsTo(Employee::class);
+    }
+
+    public function template(): BelongsTo
+    {
+        return $this->belongsTo(ScheduleTemplate::class, 'template_id');
+    }
+
+    public function exceptions(): HasMany
+    {
+        return $this->hasMany(ScheduleException::class);
+    }
+
+    /**
+     * Obtenir l'exception pour une date spécifique (si existante)
+     */
+    public function getExceptionForDate(\Carbon\Carbon $date): ?ScheduleException
+    {
+        return $this->exceptions()->where('exception_date', $date)->first();
+    }
+
+    /**
+     * Vérifie si ce créneau a une exception pour une date donnée
+     */
+    public function hasExceptionForDate(\Carbon\Carbon $date): bool
+    {
+        return $this->exceptions()->where('exception_date', $date)->exists();
     }
 
     public function getHoursAttribute(): float
@@ -139,5 +168,8 @@ class Schedule extends Model
         static::where('company_id', $companyId)
             ->whereBetween('date', [$weekStart, $weekStart->copy()->addDays(6)])
             ->update(['is_published' => true]);
+
+        // Envoyer les notifications aux employés
+        ScheduleNotification::notifyWeekPublished($companyId, $weekStart);
     }
 }
