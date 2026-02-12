@@ -203,25 +203,20 @@ class Sale extends Model
             if ($sale->wasChanged('status') && $sale->status === 'completed') {
                 try {
                     $accountingService = app(\App\Services\AccountingEntryService::class);
-                    $accountingService->createEntriesForSale($sale);
-                } catch (\Exception $e) {
-                    \Illuminate\Support\Facades\Log::error(
-                        "Erreur génération écritures comptables vente {$sale->invoice_number}: " . $e->getMessage()
-                    );
-                }
-            }
-
-            // Générer les écritures de contre-passation pour un avoir
-            if ($sale->wasChanged('status') && $sale->status === 'completed' && $sale->type === 'credit_note' && $sale->parent_id) {
-                try {
-                    $accountingService = app(\App\Services\AccountingEntryService::class);
-                    $originalSale = Sale::find($sale->parent_id);
-                    if ($originalSale) {
-                        $accountingService->reverseEntries($originalSale, $sale);
+                    
+                    // Avoir avec facture parente : contre-passer les écritures originales
+                    if ($sale->type === 'credit_note' && $sale->parent_id) {
+                        $originalSale = Sale::find($sale->parent_id);
+                        if ($originalSale) {
+                            $accountingService->reverseEntries($originalSale, $sale);
+                        }
+                    } else {
+                        // Vente normale : créer les écritures standard
+                        $accountingService->createEntriesForSale($sale);
                     }
                 } catch (\Exception $e) {
                     \Illuminate\Support\Facades\Log::error(
-                        "Erreur génération écritures avoir {$sale->invoice_number}: " . $e->getMessage()
+                        "Erreur génération écritures comptables {$sale->type} {$sale->invoice_number}: " . $e->getMessage()
                     );
                 }
             }
@@ -256,7 +251,12 @@ class Sale extends Model
 
         static::saving(function ($sale) {
             if ($sale->isDirty('status') && $sale->status === 'completed') {
-                $sale->processStockDeduction();
+                // Avoir : reconstituer le stock au lieu de le déduire
+                if ($sale->type === 'credit_note') {
+                    $sale->reverseStockDeduction();
+                } else {
+                    $sale->processStockDeduction();
+                }
             }
         });
 
@@ -426,11 +426,11 @@ class Sale extends Model
         // On utilise created_at si dispo, sinon now()
         $dateStr = ($this->created_at ?? now())->format('YmdHis');
         
-        $dataToSign = implode('', [
+        $dataToSign = implode('|', [
             $dateStr,
-            $this->invoice_number,
-            number_format($this->total, 2, '.', ''),
-            $this->customer_id,
+            $this->invoice_number ?? '',
+            number_format($this->total ?? 0, 2, '.', ''),
+            $this->customer_id ?? '0',
             $previousHash
         ]);
 
