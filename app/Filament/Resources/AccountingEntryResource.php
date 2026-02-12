@@ -25,6 +25,12 @@ class AccountingEntryResource extends Resource
         return Filament::getTenant()?->isModuleEnabled('accounting') ?? true;
     }
 
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()
+            ->where('company_id', Filament::getTenant()?->id);
+    }
+
     protected static ?string $navigationLabel = 'Grand Livre';
 
     protected static ?string $modelLabel = 'Écriture comptable';

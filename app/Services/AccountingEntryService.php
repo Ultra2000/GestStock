@@ -143,6 +143,62 @@ class AccountingEntryService
                 }
             }
 
+            // 5. Écriture DÉBIT Remise (709000) si remise appliquée
+            // Nécessaire pour équilibrer : Débit Client (TTC après remise) = Crédits Produits (HT brut) + TVA - Remise
+            $discountPercent = floatval($sale->discount_percent ?? 0);
+            if ($discountPercent > 0) {
+                $totalItemsHt = collect($salesByAccount)->sum('total_ht');
+                $totalItemsVat = collect($this->groupVatByRate($sale->items, $settings))->sum('total_vat');
+                $totalItemsTtc = $totalItemsHt + $totalItemsVat;
+                $discountAmount = round($totalItemsTtc - $sale->total, 2);
+                
+                if ($discountAmount > 0.01) {
+                    // Répartir la remise : HT et TVA
+                    $discountHt = round($totalItemsHt - ($sale->total_ht ?? $totalItemsHt), 2);
+                    $discountVat = round($discountAmount - $discountHt, 2);
+                    
+                    // Remise sur ventes (709000) - débit pour réduire le chiffre d'affaires
+                    if ($discountHt > 0.01) {
+                        $entries[] = AccountingEntry::create([
+                            'company_id' => $sale->company_id,
+                            'source_type' => Sale::class,
+                            'source_id' => $sale->id,
+                            'entry_date' => $sale->created_at->toDateString(),
+                            'piece_number' => $sale->invoice_number,
+                            'journal_code' => $settings->journal_sales ?? 'VTE',
+                            'account_number' => $settings->account_discounts_granted ?? '709000',
+                            'label' => "Remise {$discountPercent}% - {$sale->invoice_number}",
+                            'debit' => $discountHt,
+                            'credit' => 0,
+                            'created_by' => auth()->id(),
+                        ]);
+                    }
+                    
+                    // Ajustement TVA sur remise - débit pour réduire la TVA
+                    if ($discountVat > 0.01) {
+                        $vatAccount = AccountingSetting::isVatFranchise($sale->company_id)
+                            ? null
+                            : ($settings->account_vat_collected ?? '445710');
+                        
+                        if ($vatAccount) {
+                            $entries[] = AccountingEntry::create([
+                                'company_id' => $sale->company_id,
+                                'source_type' => Sale::class,
+                                'source_id' => $sale->id,
+                                'entry_date' => $sale->created_at->toDateString(),
+                                'piece_number' => $sale->invoice_number,
+                                'journal_code' => $settings->journal_sales ?? 'VTE',
+                                'account_number' => $vatAccount,
+                                'label' => "TVA sur remise {$discountPercent}% - {$sale->invoice_number}",
+                                'debit' => $discountVat,
+                                'credit' => 0,
+                                'created_by' => auth()->id(),
+                            ]);
+                        }
+                    }
+                }
+            }
+
             // Vérifier l'équilibre
             $totalDebit = collect($entries)->sum('debit');
             $totalCredit = collect($entries)->sum('credit');
@@ -274,6 +330,63 @@ class AccountingEntryService
                         ]);
                     }
                 }
+            }
+
+            // 4. Écriture CRÉDIT Remise obtenue (609000) si remise appliquée
+            $discountPercent = floatval($purchase->discount_percent ?? 0);
+            if ($discountPercent > 0) {
+                $totalItemsHt = collect($purchasesByAccount)->sum('total_ht');
+                $totalItemsVat = collect($this->groupVatByRateForPurchase($purchase->items, $settings))->sum('total_vat');
+                $totalItemsTtc = $totalItemsHt + $totalItemsVat;
+                $discountAmount = round($totalItemsTtc - $purchase->total, 2);
+                
+                if ($discountAmount > 0.01) {
+                    $discountHt = round($totalItemsHt - ($purchase->total_ht ?? $totalItemsHt), 2);
+                    $discountVat = round($discountAmount - $discountHt, 2);
+                    
+                    // RRR obtenus (609000) - crédit pour réduire les charges
+                    if ($discountHt > 0.01) {
+                        $entries[] = AccountingEntry::create([
+                            'company_id' => $purchase->company_id,
+                            'source_type' => Purchase::class,
+                            'source_id' => $purchase->id,
+                            'entry_date' => $purchase->created_at->toDateString(),
+                            'piece_number' => $purchase->reference ?? 'ACH-' . $purchase->id,
+                            'journal_code' => $settings->journal_purchases ?? 'ACH',
+                            'account_number' => $settings->account_discounts_received ?? '609000',
+                            'label' => "Remise obtenue {$discountPercent}% - {$purchase->reference}",
+                            'debit' => 0,
+                            'credit' => $discountHt,
+                            'created_by' => auth()->id(),
+                        ]);
+                    }
+                    
+                    // Ajustement TVA sur remise
+                    if ($discountVat > 0.01 && !AccountingSetting::isVatFranchise($purchase->company_id)) {
+                        $vatAccount = $settings->account_vat_deductible ?? '445660';
+                        $entries[] = AccountingEntry::create([
+                            'company_id' => $purchase->company_id,
+                            'source_type' => Purchase::class,
+                            'source_id' => $purchase->id,
+                            'entry_date' => $purchase->created_at->toDateString(),
+                            'piece_number' => $purchase->reference ?? 'ACH-' . $purchase->id,
+                            'journal_code' => $settings->journal_purchases ?? 'ACH',
+                            'account_number' => $vatAccount,
+                            'label' => "TVA sur remise obtenue {$discountPercent}%",
+                            'debit' => 0,
+                            'credit' => $discountVat,
+                            'created_by' => auth()->id(),
+                        ]);
+                    }
+                }
+            }
+
+            // 5. Vérification de l'équilibre Débit = Crédit
+            $totalDebit = collect($entries)->sum('debit');
+            $totalCredit = collect($entries)->sum('credit');
+            
+            if (abs($totalDebit - $totalCredit) > 0.01) {
+                Log::warning("Déséquilibre écritures achat {$purchase->reference}: Débit={$totalDebit}, Crédit={$totalCredit}");
             }
 
             DB::commit();
@@ -489,7 +602,7 @@ class AccountingEntryService
                 ];
             }
 
-            $grouped[$key]['total_ht'] += $item->total_ht ?? ($item->quantity * $item->unit_price);
+            $grouped[$key]['total_ht'] += $item->total_price_ht ?? ($item->quantity * $item->unit_price);
         }
 
         return $grouped;
@@ -517,7 +630,7 @@ class AccountingEntryService
                 ];
             }
 
-            $itemHt = $item->total_ht ?? ($item->quantity * $item->unit_price);
+            $itemHt = $item->total_price_ht ?? ($item->quantity * $item->unit_price);
             $itemVat = $item->vat_amount ?? ($itemHt * $vatRate / 100);
             
             $grouped[$key]['total_ht'] += $itemHt;
@@ -549,7 +662,7 @@ class AccountingEntryService
                 ];
             }
 
-            $grouped[$key]['total_ht'] += $item->total_ht ?? ($item->quantity * $item->unit_price);
+            $grouped[$key]['total_ht'] += $item->total_price_ht ?? ($item->quantity * $item->unit_price);
         }
 
         return $grouped;
@@ -577,7 +690,7 @@ class AccountingEntryService
                 ];
             }
 
-            $itemHt = $item->total_ht ?? ($item->quantity * $item->unit_price);
+            $itemHt = $item->total_price_ht ?? ($item->quantity * $item->unit_price);
             $itemVat = $item->vat_amount ?? ($itemHt * $vatRate / 100);
             
             $grouped[$key]['total_ht'] += $itemHt;

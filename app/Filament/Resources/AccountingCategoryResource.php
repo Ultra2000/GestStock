@@ -12,6 +12,7 @@ use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Filament\Facades\Filament;
 
 class AccountingCategoryResource extends Resource
 {
@@ -21,6 +22,12 @@ class AccountingCategoryResource extends Resource
     protected static ?string $navigationGroup = 'Comptabilité';
     protected static ?string $navigationLabel = 'Catégories comptables';
     protected static ?int $navigationSort = 3;
+
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()
+            ->where('company_id', Filament::getTenant()?->id);
+    }
 
     public static function form(Form $form): Form
     {
@@ -41,7 +48,9 @@ class AccountingCategoryResource extends Resource
                 Forms\Components\Toggle::make('is_system')
                     ->required(),
                 Forms\Components\Select::make('parent_id')
-                    ->relationship('parent', 'name')
+                    ->relationship('parent', 'name', fn ($query) => 
+                        $query->where('company_id', Filament::getTenant()?->id)
+                    )
                     ->searchable()
                     ->preload(),
                 Forms\Components\Textarea::make('description')
