@@ -25,6 +25,17 @@ class AccountingEntryResource extends Resource
         return Filament::getTenant()?->isModuleEnabled('accounting') ?? true;
     }
 
+    public static function canAccess(): bool
+    {
+        $tenant = Filament::getTenant();
+        if (!$tenant?->isModuleEnabled('accounting')) return false;
+
+        $user = auth()->user();
+        if (!$user) return false;
+
+        return $user->isAdmin() || $user->hasPermission('accounting.view') || $user->hasPermission('accounting.manage');
+    }
+
     public static function getEloquentQuery(): Builder
     {
         return parent::getEloquentQuery()

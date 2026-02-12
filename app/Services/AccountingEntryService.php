@@ -37,22 +37,24 @@ class AccountingEntryService
             return [];
         }
 
-        // Vérifier si les écritures existent déjà
-        $existingEntries = AccountingEntry::where('source_type', Sale::class)
-            ->where('source_id', $sale->id)
-            ->exists();
-
-        if ($existingEntries) {
-            Log::warning("Écritures déjà existantes pour la vente {$sale->invoice_number}");
-            return [];
-        }
-
         $settings = AccountingSetting::getForCompany($sale->company_id);
         $entries = [];
 
         DB::beginTransaction();
 
         try {
+            // Vérification anti-doublon DANS la transaction pour éviter les race conditions
+            $existingEntries = AccountingEntry::where('source_type', Sale::class)
+                ->where('source_id', $sale->id)
+                ->lockForUpdate()
+                ->exists();
+
+            if ($existingEntries) {
+                DB::rollBack();
+                Log::warning("Écritures déjà existantes pour la vente {$sale->invoice_number}");
+                return [];
+            }
+
             $sale->load(['customer', 'items.product.accountingCategory']);
             
             // 1. Écriture DÉBIT Client (TTC)
@@ -240,20 +242,23 @@ class AccountingEntryService
             return [];
         }
 
-        $existingEntries = AccountingEntry::where('source_type', Purchase::class)
-            ->where('source_id', $purchase->id)
-            ->exists();
-
-        if ($existingEntries) {
-            return [];
-        }
-
         $settings = AccountingSetting::getForCompany($purchase->company_id);
         $entries = [];
 
         DB::beginTransaction();
 
         try {
+            // Vérification anti-doublon DANS la transaction pour éviter les race conditions
+            $existingEntries = AccountingEntry::where('source_type', Purchase::class)
+                ->where('source_id', $purchase->id)
+                ->lockForUpdate()
+                ->exists();
+
+            if ($existingEntries) {
+                DB::rollBack();
+                return [];
+            }
+
             $purchase->load(['supplier', 'items.product.accountingCategory']);
             
             // 1. Écriture CRÉDIT Fournisseur (TTC)

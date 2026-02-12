@@ -23,6 +23,17 @@ class AccountingCategoryResource extends Resource
     protected static ?string $navigationLabel = 'Catégories comptables';
     protected static ?int $navigationSort = 3;
 
+    public static function canAccess(): bool
+    {
+        $tenant = Filament::getTenant();
+        if (!$tenant?->isModuleEnabled('accounting')) return false;
+
+        $user = auth()->user();
+        if (!$user) return false;
+
+        return $user->isAdmin() || $user->hasPermission('accounting.manage');
+    }
+
     public static function getEloquentQuery(): Builder
     {
         return parent::getEloquentQuery()

@@ -118,8 +118,8 @@ class BalanceGenerale extends Page implements HasTable
                     ])
                     ->query(function (Builder $query, array $data): Builder {
                         return $query
-                            ->when($data['date_from'], fn ($q) => $q->having('min_date', '>=', $data['date_from']))
-                            ->when($data['date_to'], fn ($q) => $q->having('max_date', '<=', $data['date_to']));
+                            ->when($data['date_from'], fn ($q) => $q->where('entry_date', '>=', $data['date_from']))
+                            ->when($data['date_to'], fn ($q) => $q->where('entry_date', '<=', $data['date_to']));
                     })
                     ->indicateUsing(function (array $data): ?string {
                         if ($data['date_from'] && $data['date_to']) {

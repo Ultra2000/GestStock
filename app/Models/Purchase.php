@@ -110,6 +110,15 @@ class Purchase extends Model
                         "Erreur génération écritures comptables achat (création) {$purchase->invoice_number}: " . $e->getMessage()
                     );
                 }
+
+                // Réceptionner le stock si créé directement en completed
+                try {
+                    $purchase->processStockReception();
+                } catch (\Exception $e) {
+                    \Illuminate\Support\Facades\Log::error(
+                        "Erreur réception stock achat (création) {$purchase->invoice_number}: " . $e->getMessage()
+                    );
+                }
             }
         });
 
@@ -145,7 +154,7 @@ class Purchase extends Model
                 }
             }
 
-            if ($purchase->isDirty('status')) {
+            if ($purchase->wasChanged('status')) {
                 $oldStatus = $purchase->getOriginal('status');
                 $newStatus = $purchase->status;
 
