@@ -201,9 +201,4 @@ class AccountingExport extends Page implements HasForms
             throw $e;
         }
     }
-
-    public static function canAccess(): bool
-    {
-        return true; // Ajuster selon vos permissions
-    }
 }

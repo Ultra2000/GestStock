@@ -7,9 +7,11 @@ use App\Models\ScheduleTemplate;
 use Filament\Facades\Filament;
 use Filament\Forms;
 use Filament\Forms\Form;
+use Filament\Forms\Get;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Illuminate\Support\Facades\Auth;
 
 class ScheduleTemplateResource extends Resource
 {
@@ -27,13 +29,94 @@ class ScheduleTemplateResource extends Resource
 
     protected static ?int $navigationSort = 4;
 
+    public static function canAccess(): bool
+    {
+        $user = Auth::user();
+        if (! $user) {
+            return false;
+        }
+
+        return $user->isAdmin() || $user->hasPermission('schedule.view') || $user->hasPermission('schedule.manage');
+    }
+
     public static function shouldRegisterNavigation(): bool
     {
+        if (! static::canAccess()) {
+            return false;
+        }
+
         return Filament::getTenant()?->isModuleEnabled('hr') ?? false;
+    }
+
+    /**
+     * Options de durée de pause réutilisables
+     */
+    protected static function breakDurationOptions(): array
+    {
+        return [
+            '00:00:00' => 'Pas de pause',
+            '00:30:00' => '30 min',
+            '00:45:00' => '45 min',
+            '01:00:00' => '1h',
+            '01:30:00' => '1h30',
+            '02:00:00' => '2h',
+        ];
+    }
+
+    /**
+     * Options de type de shift réutilisables
+     */
+    protected static function shiftTypeOptions(): array
+    {
+        return [
+            'morning' => 'Matin',
+            'afternoon' => 'Après-midi',
+            'evening' => 'Soir',
+            'night' => 'Nuit',
+            'full_day' => 'Journée',
+        ];
+    }
+
+    /**
+     * Génère un fieldset pour un jour de la semaine
+     */
+    protected static function dayFieldset(string $label, int $dayNumber): Forms\Components\Fieldset
+    {
+        return Forms\Components\Fieldset::make($label)
+            ->schema([
+                Forms\Components\TimePicker::make("schedule_data.{$dayNumber}.start_time")
+                    ->label('Début')
+                    ->seconds(false),
+                Forms\Components\TimePicker::make("schedule_data.{$dayNumber}.end_time")
+                    ->label('Fin')
+                    ->seconds(false)
+                    ->after("schedule_data.{$dayNumber}.start_time")
+                    ->validationMessages([
+                        'after' => 'L\'heure de fin doit être après l\'heure de début.',
+                    ]),
+                Forms\Components\Select::make("schedule_data.{$dayNumber}.break_duration")
+                    ->label('Pause')
+                    ->options(static::breakDurationOptions())
+                    ->default('01:00:00'),
+                Forms\Components\Select::make("schedule_data.{$dayNumber}.shift_type")
+                    ->label('Type')
+                    ->options(static::shiftTypeOptions()),
+            ])
+            ->columns(4);
     }
 
     public static function form(Form $form): Form
     {
+        $days = [
+            1 => 'Lundi',
+            2 => 'Mardi',
+            3 => 'Mercredi',
+            4 => 'Jeudi',
+            5 => 'Vendredi',
+            6 => 'Samedi',
+            7 => 'Dimanche',
+        ];
+
         return $form
             ->schema([
                 Forms\Components\Section::make('Informations générales')
@@ -51,236 +134,16 @@ class ScheduleTemplateResource extends Resource
 
                         Forms\Components\Toggle::make('is_default')
                             ->label('Template par défaut')
-                            ->helperText('Ce template sera proposé en premier lors de la création de plannings'),
+                            ->helperText('Ce template sera proposé en premier lors de la création de plannings. Les autres templates par défaut seront automatiquement décochés.'),
                     ]),
 
                 Forms\Components\Section::make('Horaires par jour')
                     ->description('Définissez les horaires pour chaque jour de la semaine. Laissez vide pour les jours de repos.')
-                    ->schema([
-                        // Lundi
-                        Forms\Components\Fieldset::make('Lundi')
-                            ->schema([
-                                Forms\Components\TimePicker::make('schedule_data.1.start_time')
-                                    ->label('Début')
-                                    ->seconds(false),
-                                Forms\Components\TimePicker::make('schedule_data.1.end_time')
-                                    ->label('Fin')
-                                    ->seconds(false),
-                                Forms\Components\Select::make('schedule_data.1.break_duration')
-                                    ->label('Pause')
-                                    ->options([
-                                        '00:00:00' => 'Pas de pause',
-                                        '00:30:00' => '30 min',
-                                        '00:45:00' => '45 min',
-                                        '01:00:00' => '1h',
-                                        '01:30:00' => '1h30',
-                                        '02:00:00' => '2h',
-                                    ])
-                                    ->default('01:00:00'),
-                                Forms\Components\Select::make('schedule_data.1.shift_type')
-                                    ->label('Type')
-                                    ->options([
-                                        'morning' => 'Matin',
-                                        'afternoon' => 'Après-midi',
-                                        'evening' => 'Soir',
-                                        'night' => 'Nuit',
-                                        'full_day' => 'Journée',
-                                    ]),
-                            ])
-                            ->columns(4),
-
-                        // Mardi
-                        Forms\Components\Fieldset::make('Mardi')
-                            ->schema([
-                                Forms\Components\TimePicker::make('schedule_data.2.start_time')
-                                    ->label('Début')
-                                    ->seconds(false),
-                                Forms\Components\TimePicker::make('schedule_data.2.end_time')
-                                    ->label('Fin')
-                                    ->seconds(false),
-                                Forms\Components\Select::make('schedule_data.2.break_duration')
-                                    ->label('Pause')
-                                    ->options([
-                                        '00:00:00' => 'Pas de pause',
-                                        '00:30:00' => '30 min',
-                                        '00:45:00' => '45 min',
-                                        '01:00:00' => '1h',
-                                        '01:30:00' => '1h30',
-                                        '02:00:00' => '2h',
-                                    ])
-                                    ->default('01:00:00'),
-                                Forms\Components\Select::make('schedule_data.2.shift_type')
-                                    ->label('Type')
-                                    ->options([
-                                        'morning' => 'Matin',
-                                        'afternoon' => 'Après-midi',
-                                        'evening' => 'Soir',
-                                        'night' => 'Nuit',
-                                        'full_day' => 'Journée',
-                                    ]),
-                            ])
-                            ->columns(4),
-
-                        // Mercredi
-                        Forms\Components\Fieldset::make('Mercredi')
-                            ->schema([
-                                Forms\Components\TimePicker::make('schedule_data.3.start_time')
-                                    ->label('Début')
-                                    ->seconds(false),
-                                Forms\Components\TimePicker::make('schedule_data.3.end_time')
-                                    ->label('Fin')
-                                    ->seconds(false),
-                                Forms\Components\Select::make('schedule_data.3.break_duration')
-                                    ->label('Pause')
-                                    ->options([
-                                        '00:00:00' => 'Pas de pause',
-                                        '00:30:00' => '30 min',
-                                        '00:45:00' => '45 min',
-                                        '01:00:00' => '1h',
-                                        '01:30:00' => '1h30',
-                                        '02:00:00' => '2h',
-                                    ])
-                                    ->default('01:00:00'),
-                                Forms\Components\Select::make('schedule_data.3.shift_type')
-                                    ->label('Type')
-                                    ->options([
-                                        'morning' => 'Matin',
-                                        'afternoon' => 'Après-midi',
-                                        'evening' => 'Soir',
-                                        'night' => 'Nuit',
-                                        'full_day' => 'Journée',
-                                    ]),
-                            ])
-                            ->columns(4),
-
-                        // Jeudi
-                        Forms\Components\Fieldset::make('Jeudi')
-                            ->schema([
-                                Forms\Components\TimePicker::make('schedule_data.4.start_time')
-                                    ->label('Début')
-                                    ->seconds(false),
-                                Forms\Components\TimePicker::make('schedule_data.4.end_time')
-                                    ->label('Fin')
-                                    ->seconds(false),
-                                Forms\Components\Select::make('schedule_data.4.break_duration')
-                                    ->label('Pause')
-                                    ->options([
-                                        '00:00:00' => 'Pas de pause',
-                                        '00:30:00' => '30 min',
-                                        '00:45:00' => '45 min',
-                                        '01:00:00' => '1h',
-                                        '01:30:00' => '1h30',
-                                        '02:00:00' => '2h',
-                                    ])
-                                    ->default('01:00:00'),
-                                Forms\Components\Select::make('schedule_data.4.shift_type')
-                                    ->label('Type')
-                                    ->options([
-                                        'morning' => 'Matin',
-                                        'afternoon' => 'Après-midi',
-                                        'evening' => 'Soir',
-                                        'night' => 'Nuit',
-                                        'full_day' => 'Journée',
-                                    ]),
-                            ])
-                            ->columns(4),
-
-                        // Vendredi
-                        Forms\Components\Fieldset::make('Vendredi')
-                            ->schema([
-                                Forms\Components\TimePicker::make('schedule_data.5.start_time')
-                                    ->label('Début')
-                                    ->seconds(false),
-                                Forms\Components\TimePicker::make('schedule_data.5.end_time')
-                                    ->label('Fin')
-                                    ->seconds(false),
-                                Forms\Components\Select::make('schedule_data.5.break_duration')
-                                    ->label('Pause')
-                                    ->options([
-                                        '00:00:00' => 'Pas de pause',
-                                        '00:30:00' => '30 min',
-                                        '00:45:00' => '45 min',
-                                        '01:00:00' => '1h',
-                                        '01:30:00' => '1h30',
-                                        '02:00:00' => '2h',
-                                    ])
-                                    ->default('01:00:00'),
-                                Forms\Components\Select::make('schedule_data.5.shift_type')
-                                    ->label('Type')
-                                    ->options([
-                                        'morning' => 'Matin',
-                                        'afternoon' => 'Après-midi',
-                                        'evening' => 'Soir',
-                                        'night' => 'Nuit',
-                                        'full_day' => 'Journée',
-                                    ]),
-                            ])
-                            ->columns(4),
-
-                        // Samedi
-                        Forms\Components\Fieldset::make('Samedi')
-                            ->schema([
-                                Forms\Components\TimePicker::make('schedule_data.6.start_time')
-                                    ->label('Début')
-                                    ->seconds(false),
-                                Forms\Components\TimePicker::make('schedule_data.6.end_time')
-                                    ->label('Fin')
-                                    ->seconds(false),
-                                Forms\Components\Select::make('schedule_data.6.break_duration')
-                                    ->label('Pause')
-                                    ->options([
-                                        '00:00:00' => 'Pas de pause',
-                                        '00:30:00' => '30 min',
-                                        '00:45:00' => '45 min',
-                                        '01:00:00' => '1h',
-                                        '01:30:00' => '1h30',
-                                        '02:00:00' => '2h',
-                                    ])
-                                    ->default('01:00:00'),
-                                Forms\Components\Select::make('schedule_data.6.shift_type')
-                                    ->label('Type')
-                                    ->options([
-                                        'morning' => 'Matin',
-                                        'afternoon' => 'Après-midi',
-                                        'evening' => 'Soir',
-                                        'night' => 'Nuit',
-                                        'full_day' => 'Journée',
-                                    ]),
-                            ])
-                            ->columns(4),
-
-                        // Dimanche
-                        Forms\Components\Fieldset::make('Dimanche')
-                            ->schema([
-                                Forms\Components\TimePicker::make('schedule_data.7.start_time')
-                                    ->label('Début')
-                                    ->seconds(false),
-                                Forms\Components\TimePicker::make('schedule_data.7.end_time')
-                                    ->label('Fin')
-                                    ->seconds(false),
-                                Forms\Components\Select::make('schedule_data.7.break_duration')
-                                    ->label('Pause')
-                                    ->options([
-                                        '00:00:00' => 'Pas de pause',
-                                        '00:30:00' => '30 min',
-                                        '00:45:00' => '45 min',
-                                        '01:00:00' => '1h',
-                                        '01:30:00' => '1h30',
-                                        '02:00:00' => '2h',
-                                    ])
-                                    ->default('01:00:00'),
-                                Forms\Components\Select::make('schedule_data.7.shift_type')
-                                    ->label('Type')
-                                    ->options([
-                                        'morning' => 'Matin',
-                                        'afternoon' => 'Après-midi',
-                                        'evening' => 'Soir',
-                                        'night' => 'Nuit',
-                                        'full_day' => 'Journée',
-                                    ]),
-                            ])
-                            ->columns(4),
-                    ]),
+                    ->schema(
+                        collect($days)->map(
+                            fn (string $label, int $dayNumber) => static::dayFieldset($label, $dayNumber)
+                        )->values()->all()
+                    ),
             ]);
     }
 

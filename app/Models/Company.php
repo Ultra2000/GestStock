@@ -40,9 +40,16 @@ class Company extends Model
         parent::boot();
 
         static::creating(function ($company) {
-            if (empty($company->slug)) {
-                $company->slug = Str::slug($company->name);
+            // Toujours normaliser le slug (minuscules, tirets, pas d'espaces)
+            $baseSlug = Str::slug($company->slug ?: $company->name);
+            $slug = $baseSlug;
+            $counter = 1;
+
+            while (self::where('slug', $slug)->exists()) {
+                $slug = $baseSlug . '-' . ++$counter;
             }
+
+            $company->slug = $slug;
             // Si aucune devise n'est configurée, détecter par IP
             if (empty($company->currency)) {
                 $geoService = new \App\Services\GeoLocationService();

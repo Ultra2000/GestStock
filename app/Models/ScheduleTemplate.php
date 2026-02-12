@@ -24,6 +24,21 @@ class ScheduleTemplate extends Model
         'is_default' => 'boolean',
     ];
 
+    protected static function boot()
+    {
+        parent::boot();
+
+        // Quand un template est marqué "par défaut", décocher les autres du même tenant
+        static::saving(function (self $template) {
+            if ($template->is_default && $template->company_id) {
+                static::where('company_id', $template->company_id)
+                    ->where('id', '!=', $template->id ?? 0)
+                    ->where('is_default', true)
+                    ->update(['is_default' => false]);
+            }
+        });
+    }
+
     public function schedules(): HasMany
     {
         return $this->hasMany(Schedule::class, 'template_id');
@@ -36,7 +51,7 @@ class ScheduleTemplate extends Model
     {
         $createdSchedules = [];
 
-        foreach ($this->schedule_data as $dayOfWeek => $dayData) {
+        foreach ($this->schedule_data ?? [] as $dayOfWeek => $dayData) {
             if (empty($dayData) || empty($dayData['start_time']) || empty($dayData['end_time'])) {
                 continue;
             }
@@ -101,7 +116,7 @@ class ScheduleTemplate extends Model
         $days = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
         $summary = [];
 
-        foreach ($this->schedule_data as $dayOfWeek => $dayData) {
+        foreach ($this->schedule_data ?? [] as $dayOfWeek => $dayData) {
             if (!empty($dayData['start_time']) && !empty($dayData['end_time'])) {
                 $summary[] = $days[$dayOfWeek - 1] . ': ' . substr($dayData['start_time'], 0, 5) . '-' . substr($dayData['end_time'], 0, 5);
             }
@@ -117,23 +132,27 @@ class ScheduleTemplate extends Model
     {
         $total = 0;
 
-        foreach ($this->schedule_data as $dayData) {
+        foreach ($this->schedule_data ?? [] as $dayData) {
             if (empty($dayData['start_time']) || empty($dayData['end_time'])) {
                 continue;
             }
 
             $start = \Carbon\Carbon::parse($dayData['start_time']);
             $end = \Carbon\Carbon::parse($dayData['end_time']);
-            $breakMinutes = 60;
 
+            // Calculer la pause en minutes à partir du format HH:MM:SS
+            $breakMinutes = 60; // défaut 1h
             if (!empty($dayData['break_duration'])) {
-                $break = \Carbon\Carbon::parse($dayData['break_duration']);
-                $breakMinutes = $break->hour * 60 + $break->minute;
+                $parts = explode(':', $dayData['break_duration']);
+                if (count($parts) >= 2) {
+                    $breakMinutes = ((int) $parts[0]) * 60 + ((int) $parts[1]);
+                }
             }
 
-            $total += max(0, ($start->diffInMinutes($end) - $breakMinutes) / 60);
+            $workedMinutes = $start->diffInMinutes($end);
+            $total += max(0, ($workedMinutes - $breakMinutes) / 60);
         }
 
-        return $total;
+        return round($total, 2);
     }
 }

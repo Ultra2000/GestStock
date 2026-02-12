@@ -131,12 +131,4 @@ class ReportsCenter extends Page implements HasForms
             ->pluck('name', 'id')
             ->toArray();
     }
-
-    public static function shouldRegisterNavigation(): bool
-    {
-        $company = Filament::getTenant();
-        if (!$company) return true;
-        
-        return $company->isModuleEnabled('accounting');
-    }
 }

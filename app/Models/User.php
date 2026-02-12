@@ -5,8 +5,9 @@ namespace App\Models;
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use App\Models\Traits\HasRoles;
 use Filament\Models\Contracts\FilamentUser;
+use Filament\Models\Contracts\HasDefaultTenant;
 use Filament\Models\Contracts\HasTenants;
-use Filament\Panel; 
+use Filament\Panel;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -17,7 +18,7 @@ use Laravel\Sanctum\HasApiTokens;
 use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\Activitylog\LogOptions;
 
-class User extends Authenticatable implements FilamentUser, HasTenants
+class User extends Authenticatable implements FilamentUser, HasTenants, HasDefaultTenant
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasApiTokens, HasFactory, Notifiable, HasRoles, LogsActivity;
@@ -33,6 +34,7 @@ class User extends Authenticatable implements FilamentUser, HasTenants
         'password',
         'is_active',
         'is_super_admin',
+        'last_company_id',
     ];
 
     /**
@@ -75,7 +77,38 @@ class User extends Authenticatable implements FilamentUser, HasTenants
 
     public function getTenants(Panel $panel): Collection
     {
-        return $this->companies;
+        // Les super admins voient toutes les entreprises
+        if ($this->is_super_admin) {
+            return Company::all();
+        }
+
+        return $this->companies()->get();
+    }
+
+    public function getDefaultTenant(Panel $panel): ?Model
+    {
+        // Retourner la dernière entreprise visitée si elle existe et est accessible
+        if ($this->last_company_id) {
+            $lastCompany = Company::find($this->last_company_id);
+            if ($lastCompany && $this->canAccessTenant($lastCompany)) {
+                return $lastCompany;
+            }
+        }
+
+        // Fallback : première entreprise disponible
+        if ($this->is_super_admin) {
+            return Company::first();
+        }
+
+        return $this->companies()->first();
+    }
+
+    /**
+     * Relation vers la dernière entreprise visitée
+     */
+    public function lastCompany(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(Company::class, 'last_company_id');
     }
 
     public function canAccessTenant(Model $tenant): bool
@@ -83,7 +116,7 @@ class User extends Authenticatable implements FilamentUser, HasTenants
         if ($this->is_super_admin) {
             return true;
         }
-        return $this->companies->contains($tenant);
+        return $this->companies()->where('companies.id', $tenant->id)->exists();
     }
 
     /**

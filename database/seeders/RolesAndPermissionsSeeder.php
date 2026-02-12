@@ -197,11 +197,29 @@ class RolesAndPermissionsSeeder extends Seeder
     ];
 
     /**
+     * S'assurer que toutes les permissions existent (appelable hors artisan)
+     */
+    public function ensurePermissionsExist(): void
+    {
+        foreach ($this->permissions as $permission) {
+            Permission::firstOrCreate(
+                ['slug' => $permission['slug']],
+                [
+                    'name' => $permission['name'],
+                    'description' => $permission['description'] ?? $permission['name'],
+                    'module' => $permission['module'],
+                    'action' => $permission['action'],
+                ]
+            );
+        }
+    }
+
+    /**
      * Run the database seeds.
      */
     public function run(): void
     {
-        $this->command->info('Création des permissions...');
+        $this->log('Création des permissions...');
         
         // Créer les permissions globales (sans company_id pour les partager)
         foreach ($this->permissions as $permission) {
@@ -216,13 +234,13 @@ class RolesAndPermissionsSeeder extends Seeder
             );
         }
 
-        $this->command->info(count($this->permissions) . ' permissions créées.');
+        $this->log(count($this->permissions) . ' permissions créées.');
 
         // Créer les rôles pour chaque entreprise existante
         $companies = Company::all();
         
         if ($companies->isEmpty()) {
-            $this->command->warn('Aucune entreprise trouvée. Les rôles seront créés lors de la création d\'entreprise.');
+            $this->log('Aucune entreprise trouvée. Les rôles seront créés lors de la création d\'entreprise.', 'warn');
             return;
         }
 
@@ -230,7 +248,17 @@ class RolesAndPermissionsSeeder extends Seeder
             $this->createRolesForCompany($company);
         }
 
-        $this->command->info('Rôles créés pour ' . $companies->count() . ' entreprise(s).');
+        $this->log('Rôles créés pour ' . $companies->count() . ' entreprise(s).');
+    }
+
+    /**
+     * Log un message (compatible artisan et appel direct)
+     */
+    protected function log(string $message, string $level = 'info'): void
+    {
+        if ($this->command) {
+            $this->command->{$level}($message);
+        }
     }
 
     /**
@@ -238,7 +266,7 @@ class RolesAndPermissionsSeeder extends Seeder
      */
     public function createRolesForCompany(Company $company): void
     {
-        $this->command->info("Création des rôles pour {$company->name}...");
+        $this->log("Création des rôles pour {$company->name}...");
 
         foreach ($this->defaultRoles as $slug => $roleData) {
             $role = Role::updateOrCreate(

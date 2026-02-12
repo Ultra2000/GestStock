@@ -38,7 +38,11 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        // Remplacer le LoginResponse de Filament pour forcer la redirection vers le tenant
+        $this->app->bind(
+            \Filament\Http\Responses\Auth\Contracts\LoginResponse::class,
+            \App\Http\Responses\LoginResponse::class,
+        );
     }
 
     /**
@@ -46,6 +50,19 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Sauvegarder la dernière entreprise visitée quand le tenant change
+        \Illuminate\Support\Facades\Event::listen(
+            \Filament\Events\TenantSet::class,
+            function (\Filament\Events\TenantSet $event) {
+                $user = $event->getUser();
+                $tenant = $event->getTenant();
+
+                if ($user instanceof \App\Models\User && $user->last_company_id !== $tenant->id) {
+                    $user->updateQuietly(['last_company_id' => $tenant->id]);
+                }
+            }
+        );
+
         // ==========================================
         // OPTIMISATIONS DE PERFORMANCE
         // ==========================================
