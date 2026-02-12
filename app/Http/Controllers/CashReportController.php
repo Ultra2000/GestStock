@@ -7,16 +7,50 @@ use App\Models\Sale;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Filament\Facades\Filament;
 
 class CashReportController extends Controller
 {
+    /**
+     * Résoudre le company_id de manière sécurisée
+     */
+    protected function resolveCompanyId(Request $request): ?int
+    {
+        $user = auth()->user();
+        if (!$user) return null;
+
+        // 1. Tenant Filament
+        $tenant = Filament::getTenant();
+        if ($tenant) return $tenant->id;
+
+        // 2. Header ou query — vérifier l'appartenance
+        $candidateId = $request->header('X-Company-Id') ?? $request->query('company_id');
+        if ($candidateId) {
+            $candidateId = (int) $candidateId;
+            if (method_exists($user, 'companies') && $user->companies()->where('companies.id', $candidateId)->exists()) {
+                return $candidateId;
+            }
+            if (method_exists($user, 'isSuperAdmin') && $user->isSuperAdmin()) {
+                return $candidateId;
+            }
+            return null;
+        }
+
+        // 3. Fallback
+        if (method_exists($user, 'companies')) {
+            return $user->companies()->first()?->id;
+        }
+
+        return $user->company_id ?? null;
+    }
+
     /**
      * Récupérer les données du rapport de session
      */
     public function getSessionReport(Request $request)
     {
         $sessionId = $request->query('session_id');
-        $companyId = $request->header('X-Company-Id');
+        $companyId = $this->resolveCompanyId($request);
 
         if (!$companyId) {
             return response()->json(['error' => 'Company ID required'], 400);
@@ -61,8 +95,9 @@ class CashReportController extends Controller
         $totalSalesCount = intval($session->sales_count);
 
         $getPaymentStat = function ($method) use ($paymentStats, $totalSalesAmount) {
-            $count = $paymentStats->get($method)->count ?? 0;
-            $total = floatval($paymentStats->get($method)->total ?? 0);
+            $stat = $paymentStats->get($method);
+            $count = $stat?->count ?? 0;
+            $total = floatval($stat?->total ?? 0);
             $percentage = $totalSalesAmount > 0 ? ($total / $totalSalesAmount) * 100 : 0;
             return [
                 'count' => $count,
@@ -159,7 +194,7 @@ class CashReportController extends Controller
      */
     public function exportPdf(Request $request, $sessionId)
     {
-        $companyId = $request->header('X-Company-Id') ?? $request->query('company_id');
+        $companyId = $this->resolveCompanyId($request);
 
         $session = CashSession::with('user')
             ->where('id', $sessionId)
@@ -219,7 +254,7 @@ class CashReportController extends Controller
      */
     public function exportExcel(Request $request, $sessionId)
     {
-        $companyId = $request->header('X-Company-Id') ?? $request->query('company_id');
+        $companyId = $this->resolveCompanyId($request);
 
         $session = CashSession::with('user')
             ->where('id', $sessionId)
@@ -316,7 +351,7 @@ class CashReportController extends Controller
      */
     public function getSessionHistory(Request $request)
     {
-        $companyId = $request->header('X-Company-Id');
+        $companyId = $this->resolveCompanyId($request);
 
         if (!$companyId) {
             return response()->json(['error' => 'Company ID required'], 400);

@@ -16,35 +16,42 @@ class CaisseController extends Controller
 {
     protected function getCompanyId(Request $request): ?int
     {
-        // Essayer de récupérer le tenant de Filament
+        $user = auth()->user();
+        if (!$user) return null;
+
+        // 1. Essayer le tenant Filament
         $tenant = Filament::getTenant();
         if ($tenant) {
             return $tenant->id;
         }
-        
-        // Sinon, prendre le company_id de la session ou du header
+
+        // 2. Header ou session — mais vérifier que l'utilisateur appartient à l'entreprise
+        $candidateId = null;
+
         if ($request->hasHeader('X-Company-Id')) {
-            return (int) $request->header('X-Company-Id');
+            $candidateId = (int) $request->header('X-Company-Id');
+        } elseif (session()->has('filament_tenant_id')) {
+            $candidateId = (int) session('filament_tenant_id');
         }
-        
-        // Ou de la session
-        if (session()->has('filament_tenant_id')) {
-            return (int) session('filament_tenant_id');
+
+        if ($candidateId) {
+            // Vérifier que l'utilisateur a accès à cette entreprise
+            if (method_exists($user, 'companies') && $user->companies()->where('companies.id', $candidateId)->exists()) {
+                return $candidateId;
+            }
+            // Super admin peut accéder à tout
+            if (method_exists($user, 'isSuperAdmin') && $user->isSuperAdmin()) {
+                return $candidateId;
+            }
+            return null; // Accès refusé — l'utilisateur n'appartient pas à cette entreprise
         }
-        
-        // Récupérer la première company de l'utilisateur
-        $user = auth()->user();
-        if ($user && method_exists($user, 'companies')) {
-            $company = $user->companies()->first();
-            return $company?->id;
+
+        // 3. Fallback: première company de l'utilisateur
+        if (method_exists($user, 'companies')) {
+            return $user->companies()->first()?->id;
         }
-        
-        // Fallback: récupérer via la relation directe si l'user a company_id
-        if ($user && isset($user->company_id)) {
-            return $user->company_id;
-        }
-        
-        return null;
+
+        return $user->company_id ?? null;
     }
 
     protected function getOpenSession(Request $request)
@@ -115,6 +122,7 @@ class CaisseController extends Controller
             'user_id' => auth()->id(),
             'opening_amount' => $openingAmount,
             'opened_at' => now(),
+            'status' => 'open',
             'total_sales' => 0,
             'total_cash' => 0,
             'total_card' => 0,
@@ -149,12 +157,16 @@ class CaisseController extends Controller
             ], 400);
         }
 
+        // Recalculer les totaux avant fermeture
+        $session->recalculate();
+        
         $closingAmount = floatval($request->input('closing_amount', 0));
         $expectedCash = $session->opening_amount + $session->total_cash;
         
         $session->update([
             'closing_amount' => $closingAmount,
             'closed_at' => now(),
+            'status' => 'closed',
             'difference' => $closingAmount - $expectedCash,
             'notes' => $request->input('notes'),
         ]);
@@ -268,19 +280,20 @@ class CaisseController extends Controller
             ], 400);
         }
 
-        $items = $request->input('items', []);
-        $paymentMethod = $request->input('payment_method', 'cash');
-        $total = floatval($request->input('total', 0));
+        // Validation des entrées
+        $request->validate([
+            'items' => 'required|array|min:1',
+            'items.*.product_id' => 'required|integer',
+            'items.*.quantity' => 'required|integer|min:1',
+            'items.*.price' => 'required|numeric|min:0',
+            'payment_method' => 'required|in:cash,card,mobile,mixed',
+        ]);
 
-        if (empty($items)) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Le panier est vide'
-            ], 400);
-        }
+        $items = $request->input('items');
+        $paymentMethod = $request->input('payment_method', 'cash');
 
         try {
-            $sale = DB::transaction(function () use ($items, $paymentMethod, $total, $companyId, $session) {
+            $sale = DB::transaction(function () use ($items, $paymentMethod, $companyId, $session) {
                 // Client comptoir par défaut
                 $walkIn = Customer::firstOrCreate(
                     ['email' => 'walkin@example.com', 'company_id' => $companyId],
@@ -301,7 +314,7 @@ class CaisseController extends Controller
                     'cash_session_id' => $session->id,
                     'payment_method' => $paymentMethod,
                     'status' => 'completed',
-                    'total' => $total,
+                    'total' => 0, // Sera recalculé après ajout des items
                     'discount_percent' => 0,
                     'tax_percent' => 0,
                 ]);
@@ -328,6 +341,9 @@ class CaisseController extends Controller
                         'total_price' => $qty * $price,
                     ]);
                 }
+
+                // Recalculer le total côté serveur (ne jamais faire confiance au client)
+                $sale->calculateTotal();
 
                 // Mettre à jour la session
                 $session->recalculate();

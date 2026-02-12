@@ -51,8 +51,8 @@ class CashSessionPage extends Page implements HasForms
         }
 
         $this->currentSession = CashSession::openSession(
-            $tenant->id,
             auth()->id(),
+            $tenant->id,
             $this->openingAmount ?? 0
         );
 
