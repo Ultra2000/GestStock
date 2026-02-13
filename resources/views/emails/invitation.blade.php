@@ -3,7 +3,7 @@
 
 Bonjour,
 
-**{{ $inviterName }}** vous invite à rejoindre l'équipe de **{{ $companyName }}** sur GestStock.
+**{{ $inviterName }}** vous invite à rejoindre l'équipe de **{{ $companyName }}** sur FRECORP ERP.
 
 Vous aurez le rôle : **{{ $roleName }}**
 

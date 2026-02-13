@@ -1,4 +1,4 @@
-<h1 align="center">GestStock</h1>
+<h1 align="center">FRECORP ERP</h1>
 <p align="center">Application de gestion de stock, facturation & point de vente (POS) construite avec Laravel 12 & Filament v3.</p>
 
 <p align="center">
@@ -39,8 +39,8 @@
 ## 🚀 Installation (développement)
 
 ```bash
-git clone <url-du-repo> geststock
-cd geststock
+git clone <url-du-repo> frecorp-erp
+cd frecorp-erp
 composer install
 cp .env.example .env
 touch database/database.sqlite
@@ -123,7 +123,7 @@ MAIL_USERNAME=...
 MAIL_PASSWORD=...
 MAIL_ENCRYPTION=tls
 MAIL_FROM_ADDRESS=no-reply@exemple.com
-MAIL_FROM_NAME="GestStock"
+MAIL_FROM_NAME="FRECORP ERP"
 ```
 
 ## 🗃 Commandes Artisan utiles
@@ -186,4 +186,4 @@ Projet distribué sous licence MIT. Voir le fichier `LICENSE` si présent ou ajo
 
 ---
 
-Pour toute question ou amélioration, ouvrez une issue ou proposez une PR. Bon usage de GestStock !
+Pour toute question ou amélioration, ouvrez une issue ou proposez une PR. Bon usage de FRECORP ERP !

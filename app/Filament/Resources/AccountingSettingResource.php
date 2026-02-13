@@ -59,7 +59,7 @@ class AccountingSettingResource extends Resource
                     ->schema([
                         Forms\Components\Toggle::make('is_vat_franchise')
                             ->label('Franchise en base de TVA')
-                            ->helperText('Activez cette option si vous êtes en "Franchise en base de TVA" (Auto-entrepreneur, micro-entreprise). GestStock appliquera automatiquement un taux à 0% et ajoutera la mention obligatoire "Art. 293 B du CGI" sur tous vos documents.')
+                            ->helperText('Activez cette option si vous êtes en "Franchise en base de TVA" (Auto-entrepreneur, micro-entreprise). FRECORP ERP appliquera automatiquement un taux à 0% et ajoutera la mention obligatoire "Art. 293 B du CGI" sur tous vos documents.')
                             ->onIcon('heroicon-m-check')
                             ->offIcon('heroicon-m-x-mark')
                             ->onColor('success')
@@ -119,7 +119,7 @@ class AccountingSettingResource extends Resource
                                         <li><strong>Micro-entrepreneurs & Freelances</strong> : Si vous ne dépassez pas les plafonds de CA et ne facturez pas de TVA</li>
                                         <li><strong>Associations</strong> : Pour les activités non lucratives exonérées</li>
                                     </ul>
-                                    <p class="mt-3 font-semibold text-blue-700 dark:text-blue-300 mb-2">Ce que GestStock automatise :</p>
+                                    <p class="mt-3 font-semibold text-blue-700 dark:text-blue-300 mb-2">Ce que FRECORP ERP automatise :</p>
                                     <ul class="list-disc list-inside space-y-1 ml-2">
                                         <li><strong>Ventes & POS</strong> : Prix traités en "Net à payer", sans TVA</li>
                                         <li><strong>PDF</strong> : Mention légale "TVA non applicable, art. 293 B du CGI"</li>
@@ -154,7 +154,7 @@ class AccountingSettingResource extends Resource
 
                         Forms\Components\TextInput::make('accounting_software')
                             ->label('Logiciel comptable')
-                            ->default('GestStock')
+                            ->default('FRECORP ERP')
                             ->maxLength(255),
 
                         Forms\Components\TextInput::make('accounting_software_version')

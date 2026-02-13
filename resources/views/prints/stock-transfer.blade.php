@@ -176,7 +176,7 @@
 
     <div class="header">
         <div class="company-info">
-            <h1>{{ filament()->getTenant()?->name ?? 'GestStock' }}</h1>
+            <h1>{{ filament()->getTenant()?->name ?? 'FRECORP ERP' }}</h1>
             <p>Bon de Transfert Inter-Entrepôts</p>
         </div>
         <div class="document-info">

@@ -37,7 +37,7 @@ return new class extends Migration
             // Paramètres FEC
             $table->string('fec_siren')->nullable(); // SIREN de l'entreprise
             $table->string('fec_company_name')->nullable(); // Raison sociale
-            $table->string('accounting_software')->default('GestStock'); // Logiciel comptable
+            $table->string('accounting_software')->default('FRECORP ERP'); // Logiciel comptable
             $table->string('accounting_software_version')->default('1.0');
             
             $table->timestamps();

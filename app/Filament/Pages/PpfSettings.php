@@ -96,7 +96,7 @@ class PpfSettings extends Page implements Forms\Contracts\HasForms
                                     <div class="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
                                         <h4 class="font-semibold text-blue-700 dark:text-blue-300 mb-2">ℹ️ Information</h4>
                                         <p class="text-blue-600 dark:text-blue-400">
-                                            La connexion à l\'API PISTE est gérée automatiquement par GestStock. 
+                                            La connexion à l\'API PISTE est gérée automatiquement par FRECORP ERP. 
                                             Vous n\'avez qu\'à créer votre compte technique Chorus Pro.
                                         </p>
                                     </div>

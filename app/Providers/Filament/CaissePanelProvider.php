@@ -37,7 +37,7 @@ class CaissePanelProvider extends PanelProvider
             ])
             ->font('Inter')
             ->darkMode(false)
-            ->brandName('GestStock POS')
+            ->brandName('FRECORP ERP POS')
             ->pages([
                 PointOfSale::class,
                 CashSessionPage::class,

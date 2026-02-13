@@ -485,7 +485,7 @@
     @endif
 
     <div class="footer">
-        {{ $company->name ?? 'GestStock' }} - Bilan comptable généré le {{ $generatedAt->format('d/m/Y à H:i') }}<br>
+        {{ $company->name ?? 'FRECORP ERP' }} - Bilan comptable généré le {{ $generatedAt->format('d/m/Y à H:i') }}<br>
         Ce document est un récapitulatif à usage interne et ne constitue pas un document comptable officiel.
     </div>
 </body>

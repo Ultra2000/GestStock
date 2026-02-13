@@ -393,7 +393,7 @@
         @endif
 
         <div class="footer">
-            Rapport généré le {{ now()->format('d/m/Y à H:i') }} | GestStock POS
+            Rapport généré le {{ now()->format('d/m/Y à H:i') }} | FRECORP ERP POS
         </div>
     </div>
 </body>

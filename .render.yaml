@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: geststock
+    name: frecorp-erp
     env: php
     buildCommand: |
       composer install --no-dev --optimize-autoloader

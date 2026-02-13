@@ -28,7 +28,7 @@ class OptimizeProduction extends Command
      */
     public function handle(): int
     {
-        $this->info('🚀 Optimisation de GestStock pour la production...');
+        $this->info('🚀 Optimisation de FRECORP ERP pour la production...');
         $this->newLine();
 
         // Étape 1: Vider les caches si demandé

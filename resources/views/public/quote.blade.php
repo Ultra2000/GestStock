@@ -365,7 +365,7 @@
 <body>
     <div class="container">
         <div class="header-banner">
-            <div class="company-name">{{ $quote->user->company->name ?? 'GestStock' }}</div>
+            <div class="company-name">{{ $quote->user->company->name ?? 'FRECORP ERP' }}</div>
             <div class="quote-title">Devis N° {{ $quote->quote_number }}</div>
         </div>
 

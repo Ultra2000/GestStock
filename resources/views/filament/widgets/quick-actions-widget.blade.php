@@ -10,7 +10,7 @@
                         Bonjour, {{ filament()->auth()->user()->name }} 👋
                     </h2>
                     <p class="text-sm text-gray-500 dark:text-gray-400">
-                        Bienvenue sur votre tableau de bord GestStock.
+                        Bienvenue sur votre tableau de bord FRECORP ERP.
                     </p>
                 </div>
             </div>

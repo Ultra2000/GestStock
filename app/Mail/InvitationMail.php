@@ -20,7 +20,7 @@ class InvitationMail extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: "Invitation à rejoindre {$this->invitation->company->name} sur GestStock",
+            subject: "Invitation à rejoindre {$this->invitation->company->name} sur FRECORP ERP",
         );
     }
 

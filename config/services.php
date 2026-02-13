@@ -39,7 +39,7 @@ return [
         // Environnement global : 'sandbox' ou 'production'
         'environment' => env('PISTE_ENVIRONMENT', 'sandbox'),
         
-        // Credentials PISTE (compte GestStock mutualisé)
+        // Credentials PISTE (compte FRECORP ERP mutualisé)
         'client_id' => env('PISTE_CLIENT_ID'),
         'client_secret' => env('PISTE_CLIENT_SECRET'),
         'api_key' => env('PISTE_API_KEY'),

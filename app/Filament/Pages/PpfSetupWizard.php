@@ -91,7 +91,7 @@ class PpfSetupWizard extends Page implements Forms\Contracts\HasForms
                                         </div>
                                         <div class="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
                                             <div class="font-semibold text-blue-700 dark:text-blue-300 mb-1">⚡ Automatique</div>
-                                            <div class="text-sm text-blue-600 dark:text-blue-400">Envoi direct depuis GestStock</div>
+                                            <div class="text-sm text-blue-600 dark:text-blue-400">Envoi direct depuis FRECORP ERP</div>
                                         </div>
                                         <div class="p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
                                             <div class="font-semibold text-purple-700 dark:text-purple-300 mb-1">📊 Suivi</div>
@@ -293,7 +293,7 @@ class PpfSetupWizard extends Page implements Forms\Contracts\HasForms
                                                 <svg class="w-5 h-5 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
                                                     <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
                                                 </svg>
-                                                <span>Créez une vente dans GestStock</span>
+                                                <span>Créez une vente dans FRECORP ERP</span>
                                             </li>
                                             <li class="flex items-start gap-2">
                                                 <svg class="w-5 h-5 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">

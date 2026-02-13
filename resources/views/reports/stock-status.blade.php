@@ -251,7 +251,7 @@
     @endforeach
 
     <div class="footer">
-        {{ $company->name ?? 'GestStock' }} - État des stocks généré le {{ $generatedAt->format('d/m/Y H:i') }} - Page <span class="pagenum"></span>
+        {{ $company->name ?? 'FRECORP ERP' }} - État des stocks généré le {{ $generatedAt->format('d/m/Y H:i') }} - Page <span class="pagenum"></span>
     </div>
 </body>
 </html>

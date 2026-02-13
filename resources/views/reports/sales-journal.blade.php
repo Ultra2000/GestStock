@@ -200,7 +200,7 @@
     </table>
 
     <div class="footer">
-        {{ $company->name ?? 'GestStock' }} - Journal des ventes du {{ \Carbon\Carbon::parse($startDate)->format('d/m/Y') }} au {{ \Carbon\Carbon::parse($endDate)->format('d/m/Y') }} - Généré le {{ $generatedAt->format('d/m/Y H:i') }}
+        {{ $company->name ?? 'FRECORP ERP' }} - Journal des ventes du {{ \Carbon\Carbon::parse($startDate)->format('d/m/Y') }} au {{ \Carbon\Carbon::parse($endDate)->format('d/m/Y') }} - Généré le {{ $generatedAt->format('d/m/Y H:i') }}
     </div>
 </body>
 </html>

@@ -137,7 +137,7 @@
                                 <tr>
                                     <td style="padding-top: 16px;">
                                         <p style="margin: 0; font-size: 12px; color: #94a3b8; line-height: 1.5;">
-                                            Cet email a été généré automatiquement par GestStock. 
+                                            Cet email a été généré automatiquement par FRECORP ERP. 
                                             Le lien de consultation du devis expire à la date de validité indiquée.
                                         </p>
                                     </td>

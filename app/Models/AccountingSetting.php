@@ -82,7 +82,7 @@ class AccountingSetting extends Model
                 'journal_bank' => 'BQ',
                 'journal_cash' => 'CAI',
                 'journal_misc' => 'OD',
-                'accounting_software' => 'GestStock',
+                'accounting_software' => 'FRECORP ERP',
                 'accounting_software_version' => '1.0',
                 'vat_regime' => 'debits', // Par défaut : TVA sur les débits
             ]

@@ -3,7 +3,7 @@
     <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GestStock - Gestion de Stock Simplifiée</title>
+    <title>FRECORP ERP - Gestion de Stock Simplifiée</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     </head>
@@ -13,7 +13,7 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between h-16">
                 <div class="flex items-center">
-                    <span class="text-2xl font-bold text-indigo-600">GestStock</span>
+                    <span class="text-2xl font-bold text-indigo-600">FRECORP ERP</span>
                 </div>
                 <div class="flex items-center">
                     <a href="/admin" class="text-gray-600 hover:text-indigo-600">Connexion</a>
@@ -142,7 +142,7 @@
             </div>
             <div class="mt-8 md:mt-0 md:order-1">
                 <p class="text-center text-base text-gray-400">
-                    &copy; 2024 GestStock. Tous droits réservés.
+                    &copy; 2024 FRECORP ERP. Tous droits réservés.
                 </p>
             </div>
         </div>

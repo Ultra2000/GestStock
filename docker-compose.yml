@@ -8,7 +8,7 @@ services:
     volumes:
       - .:/var/www/html
     networks:
-      - geststock
+      - frecorp-erp
 
   nginx:
     image: nginx:alpine
@@ -20,8 +20,8 @@ services:
     depends_on:
       - app
     networks:
-      - geststock
+      - frecorp-erp
 
 networks:
-  geststock:
+  frecorp-erp:
     driver: bridge 
