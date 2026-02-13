@@ -61,7 +61,7 @@ class CaisseController extends Controller
 
         return CashSession::where('company_id', $companyId)
             ->where('user_id', auth()->id())
-            ->whereNull('closed_at')
+            ->where('status', 'open')
             ->first();
     }
 

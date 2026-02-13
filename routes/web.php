@@ -115,27 +115,44 @@ Route::get('/delivery-notes/{deliveryNote}/pdf/preview', [DeliveryNotePdfControl
 // API légère pour la caisse (panel caisse ou admin) - protégée auth
 // OPTIMISÉ: Sélection uniquement des champs nécessaires + index utilisés
 Route::middleware('auth')->group(function () {
-    Route::get('/admin/api/products', function (\Illuminate\Http\Request $request) {
+    // Helper: résoudre le company_id depuis l'utilisateur connecté
+    $resolveCompanyId = function (\Illuminate\Http\Request $request): ?int {
+        return $request->user()->companies()->first()?->id;
+    };
+
+    Route::get('/admin/api/products', function (\Illuminate\Http\Request $request) use ($resolveCompanyId) {
+        $companyId = $resolveCompanyId($request);
+        if (!$companyId) {
+            return response()->json(['error' => 'Aucune entreprise associée'], 400);
+        }
+
         $q = $request->query('q');
         if(!$q){ return []; }
         
         // Optimisation: Utiliser select explicite et limit strict
         return \App\Models\Product::query()
-            ->select(['id', 'name', 'code', 'price', 'stock', 'min_stock']) // Sélection explicite
+            ->select(['id', 'name', 'code', 'price', 'stock', 'min_stock'])
+            ->where('company_id', $companyId)
             ->where(function($w) use ($q){
                 $w->where('name', 'like', "%$q%")
                   ->orWhere('code', 'like', "%$q%");
             })
             ->orderBy('name')
-            ->limit(20) // Limite réduite pour performance
+            ->limit(20)
             ->get();
     });
 
-    Route::post('/admin/api/cash-sale', function (\Illuminate\Http\Request $request) {
+    Route::post('/admin/api/cash-sale', function (\Illuminate\Http\Request $request) use ($resolveCompanyId) {
         $user = $request->user();
         if(!in_array($user->role, ['admin','cashier'])){
             return response()->json(['success'=>false,'message'=>'Non autorisé'], 403);
         }
+
+        $companyId = $resolveCompanyId($request);
+        if (!$companyId) {
+            return response()->json(['success'=>false,'message'=>'Aucune entreprise associée'], 400);
+        }
+
         $data = $request->validate([
             'items' => 'required|array|min:1',
             'items.*.product_id' => 'required|exists:products,id',
@@ -144,14 +161,68 @@ Route::middleware('auth')->group(function () {
             'discount_percent' => 'nullable|numeric|min:0|max:100',
             'tax_percent' => 'nullable|numeric|min:0|max:100',
         ]);
+
+        // Vérifier session de caisse ouverte
+        $session = \App\Models\CashSession::getOpenSession($companyId, $user->id);
+        if (!$session) {
+            return response()->json(['success'=>false,'message'=>'Veuillez ouvrir une session de caisse'], 422);
+        }
+
         try {
-            $page = new \App\Filament\Pages\Cashier\CashRegisterPage();
-            $saleId = $page->recordSale([
-                'customer_id' => null,
-                'items' => $data['items'],
-                'discount_percent' => $data['discount_percent'] ?? 0,
-                'tax_percent' => $data['tax_percent'] ?? 0,
-            ]);
+            $saleId = \Illuminate\Support\Facades\DB::transaction(function () use ($data, $companyId, $session, $user) {
+                $sale = new \App\Models\Sale();
+                $sale->company_id = $companyId;
+                $sale->cash_session_id = $session->id;
+                $sale->payment_method = 'cash';
+                $sale->status = 'completed';
+
+                // Client comptoir par défaut
+                $walkIn = \App\Models\Customer::firstOrCreate(
+                    ['email' => 'walkin@example.com', 'company_id' => $companyId],
+                    ['name' => 'Client comptoir', 'company_id' => $companyId]
+                );
+                $sale->customer_id = $walkIn->id;
+
+                $sale->discount_percent = $data['discount_percent'] ?? 0;
+                $sale->tax_percent = $data['tax_percent'] ?? 0;
+                $sale->save();
+
+                $subtotal = 0;
+                foreach ($data['items'] as $line) {
+                    $product = \App\Models\Product::where('company_id', $companyId)
+                        ->lockForUpdate()
+                        ->findOrFail($line['product_id']);
+
+                    $qty = max(1, (int) $line['quantity']);
+                    if ($product->stock < $qty) {
+                        throw new \RuntimeException("Stock insuffisant pour {$product->name}");
+                    }
+
+                    $unit = $line['unit_price'] ?? $product->price;
+                    $subtotal += ($qty * $unit);
+                    $product->stock -= $qty;
+                    $product->save();
+
+                    \App\Models\SaleItem::create([
+                        'sale_id' => $sale->id,
+                        'product_id' => $product->id,
+                        'quantity' => $qty,
+                        'unit_price' => $unit,
+                        'total_price' => $qty * $unit,
+                    ]);
+                }
+
+                $discount = $subtotal * (($sale->discount_percent ?? 0) / 100);
+                $afterDiscount = $subtotal - $discount;
+                $tax = $afterDiscount * (($sale->tax_percent ?? 0) / 100);
+                $sale->total = round($afterDiscount + $tax, 2);
+                $sale->save();
+
+                $session->recalculate();
+
+                return $sale->id;
+            });
+
             return ['success'=>true,'sale_id'=>$saleId];
         } catch (\Throwable $e) {
             return ['success'=>false,'message'=>$e->getMessage()];
@@ -160,9 +231,15 @@ Route::middleware('auth')->group(function () {
 
     // Recherche directe par code barre / code produit (pour scan)
     // OPTIMISÉ: Utilise l'index sur code + sélection minimale
-    Route::get('/admin/api/product-code/{code}', function (string $code) {
+    Route::get('/admin/api/product-code/{code}', function (\Illuminate\Http\Request $request, string $code) use ($resolveCompanyId) {
+        $companyId = $resolveCompanyId($request);
+        if (!$companyId) {
+            return response()->json(['error' => 'Aucune entreprise associée'], 400);
+        }
+
         $product = \App\Models\Product::query()
             ->select(['id', 'name', 'code', 'price', 'stock', 'min_stock'])
+            ->where('company_id', $companyId)
             ->where('code', $code)
             ->first();
             

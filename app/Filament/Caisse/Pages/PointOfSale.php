@@ -29,7 +29,11 @@ class PointOfSale extends Page
      */
     public function searchProducts(string $query = '', ?int $categoryId = null): array
     {
+        $tenant = Filament::getTenant();
+        if (!$tenant) return [];
+
         $products = Product::query()
+            ->where('company_id', $tenant->id)
             ->when($query, fn($q) => $q->where(function($q) use ($query) {
                 $q->where('name', 'like', "%{$query}%")
                   ->orWhere('code', 'like', "%{$query}%")
@@ -48,8 +52,14 @@ class PointOfSale extends Page
      */
     public function getProductByBarcode(string $barcode): ?array
     {
-        $product = Product::where('code', $barcode)
-            ->orWhere('barcode', $barcode)
+        $tenant = Filament::getTenant();
+        if (!$tenant) return null;
+
+        $product = Product::where('company_id', $tenant->id)
+            ->where(function ($q) use ($barcode) {
+                $q->where('code', $barcode)
+                  ->orWhere('barcode', $barcode);
+            })
             ->first(['id', 'name', 'code', 'price', 'stock', 'min_stock', 'barcode']);
 
         return $product?->toArray();
@@ -60,7 +70,11 @@ class PointOfSale extends Page
      */
     public function getCustomers(): array
     {
-        return Customer::orderBy('name')
+        $tenant = Filament::getTenant();
+        if (!$tenant) return [];
+
+        return Customer::where('company_id', $tenant->id)
+            ->orderBy('name')
             ->limit(100)
             ->get(['id', 'name', 'phone', 'email'])
             ->toArray();
@@ -125,7 +139,7 @@ class PointOfSale extends Page
                     $sale->customer_id = $payload['customer_id'];
                 } else {
                     $walkIn = Customer::firstOrCreate(
-                        ['email' => 'walkin@pos.local', 'company_id' => $tenant->id],
+                        ['email' => 'walkin@example.com', 'company_id' => $tenant->id],
                         [
                             'name' => 'Client comptoir',
                             'company_id' => $tenant->id,
@@ -141,7 +155,7 @@ class PointOfSale extends Page
 
                 $subtotal = 0;
                 foreach ($payload['items'] as $line) {
-                    $product = Product::lockForUpdate()->findOrFail($line['product_id']);
+                    $product = Product::where('company_id', $tenant->id)->lockForUpdate()->findOrFail($line['product_id']);
                     $qty = max(1, (int) $line['quantity']);
                     
                     if ($product->stock < $qty) {
