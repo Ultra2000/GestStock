@@ -268,38 +268,55 @@ class CashRegisterPage extends Page
                 $sale->status = 'completed';
                 $sale->save();
 
-                $subtotal = 0;
-                foreach ($payload['items'] as $line) {
-                    $product = Product::where('company_id', $companyId)
-                        ->lockForUpdate()
-                        ->findOrFail($line['product_id']);
-                    
-                    $qty = (int) $line['quantity'];
-                    if ($qty < 1) $qty = 1;
-                    
-                    if ($product->stock < $qty) {
-                        throw new \RuntimeException('Stock insuffisant pour ' . $product->name);
+                // Désactiver le recalcul automatique pendant la création en lot
+                Sale::$skipRecalc = true;
+
+                try {
+                    foreach ($payload['items'] as $line) {
+                        $product = Product::where('company_id', $companyId)
+                            ->lockForUpdate()
+                            ->findOrFail($line['product_id']);
+                        
+                        $qty = (int) $line['quantity'];
+                        if ($qty < 1) $qty = 1;
+                        
+                        if ($product->stock < $qty) {
+                            throw new \RuntimeException('Stock insuffisant pour ' . $product->name);
+                        }
+
+                        $unit = $line['unit_price'] ?? $product->price;
+                        $product->stock -= $qty;
+                        $product->save();
+
+                        SaleItem::create([
+                            'sale_id' => $sale->id,
+                            'product_id' => $product->id,
+                            'quantity' => $qty,
+                            'unit_price' => $unit,
+                            'vat_rate' => $product->vat_rate_sale ?? 20,
+                            'vat_category' => $product->vat_category ?? 'S',
+                            'total_price' => $qty * $unit,
+                        ]);
                     }
-
-                    $unit = $line['unit_price'] ?? $product->price;
-                    $subtotal += ($qty * $unit);
-                    $product->stock -= $qty;
-                    $product->save();
-
-                    SaleItem::create([
-                        'sale_id' => $sale->id,
-                        'product_id' => $product->id,
-                        'quantity' => $qty,
-                        'unit_price' => $unit,
-                        'total_price' => $qty * $unit,
-                    ]);
+                } finally {
+                    Sale::$skipRecalc = false;
                 }
 
-                $discount = $subtotal * (($sale->discount_percent ?? 0) / 100);
-                $afterDiscount = $subtotal - $discount;
-                $tax = $afterDiscount * (($sale->tax_percent ?? 0) / 100);
-                $sale->total = round($afterDiscount + $tax, 2);
-                $sale->save();
+                // Recalculer les totaux UNE SEULE FOIS avec tous les articles
+                $sale->calculateTotal();
+
+                // Générer les écritures comptables APRÈS que tous les articles soient enregistrés
+                if ($sale->total > 0) {
+                    try {
+                        $accountingService = app(\App\Services\AccountingEntryService::class);
+                        $accountingService->createEntriesForSale($sale);
+                        $accountingService->registerPosPayment($sale);
+                    } catch (\Exception $e) {
+                        \Illuminate\Support\Facades\Log::error(
+                            "Erreur écritures POS {$sale->invoice_number}: " . $e->getMessage()
+                        );
+                    }
+                }
 
                 // Mettre à jour la session
                 $session->recalculate();

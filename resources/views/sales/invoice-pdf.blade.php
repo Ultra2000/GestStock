@@ -418,7 +418,10 @@
     $totalHt = $sale->total_ht ?? $sale->items->sum('total_price_ht');
     $totalVat = $sale->total_vat ?? $sale->items->sum('vat_amount');
     $grandTotal = $sale->total ?? ($totalHt + $totalVat);
-    $effectiveVatRate = $totalHt > 0 ? round(($totalVat / $totalHt) * 100, 1) : 0;
+    
+    // Ventilation TVA par taux (pour multi-taux)
+    $vatBreakdown = $sale->getVatBreakdown();
+    $hasMultipleVatRates = count($vatBreakdown) > 1;
     $totalAvantRemise = $sale->items->sum('total_price');
     $discountAmount = $totalAvantRemise * ($discountPercent / 100);
     
@@ -580,14 +583,27 @@
                         </table>
                     </div>
                     @endif
+                    @if($hasMultipleVatRates)
+                        @foreach($vatBreakdown as $vat)
+                        <div class="totals-row">
+                            <table class="totals-row-table">
+                                <tr>
+                                    <td class="totals-label">TVA {{ number_format($vat['rate'], 1) }}% (base {{ number_format($vat['base'], 2, ',', ' ') }})</td>
+                                    <td class="totals-value">{{ number_format($vat['amount'], 2, ',', ' ') }} {{ $currency }}</td>
+                                </tr>
+                            </table>
+                        </div>
+                        @endforeach
+                    @else
                     <div class="totals-row">
                         <table class="totals-row-table">
                             <tr>
-                                <td class="totals-label">TVA ({{ number_format($effectiveVatRate, 1) }}%)</td>
+                                <td class="totals-label">TVA ({{ number_format($vatBreakdown[0]['rate'] ?? 20, 1) }}%)</td>
                                 <td class="totals-value">{{ number_format($totalVat, 2, ',', ' ') }} {{ $currency }}</td>
                             </tr>
                         </table>
                     </div>
+                    @endif
                     <div class="totals-row grand-total">
                         <table class="totals-row-table">
                             <tr>

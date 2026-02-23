@@ -524,8 +524,9 @@
     $totalVat = $isVatFranchise ? 0 : ($sale->total_vat ?? $sale->items->sum('vat_amount'));
     $grandTotal = $isVatFranchise ? $totalHt : ($sale->total ?? ($totalHt + $totalVat));
     
-    // Calculer le taux TVA effectif (moyenne pondérée)
-    $effectiveVatRate = $isVatFranchise ? 0 : ($totalHt > 0 ? round(($totalVat / $totalHt) * 100, 1) : 0);
+    // Ventilation TVA par taux (pour multi-taux)
+    $vatBreakdown = $isVatFranchise ? [] : $sale->getVatBreakdown();
+    $hasMultipleVatRates = count($vatBreakdown) > 1;
     
     // Calculer la remise si présente
     $totalAvantRemise = $sale->items->sum('total_price');
@@ -696,9 +697,16 @@
                     <span class="label">TVA</span>
                     <span class="value" style="color: var(--gray-400);">Non applicable</span>
                 </div>
+            @elseif($hasMultipleVatRates)
+                @foreach($vatBreakdown as $vat)
+                <div class="totals-row">
+                    <span class="label">TVA {{ number_format($vat['rate'], 1, ',', ' ') }}% (base {{ number_format($vat['base'], 2, ',', ' ') }} {{ $currency }})</span>
+                    <span class="value">{{ number_format($vat['amount'], 2, ',', ' ') }} {{ $currency }}</span>
+                </div>
+                @endforeach
             @else
                 <div class="totals-row">
-                    <span class="label">TVA ({{ number_format($effectiveVatRate, 1, ',', ' ') }}%)</span>
+                    <span class="label">TVA ({{ number_format($vatBreakdown[0]['rate'] ?? 20, 1, ',', ' ') }}%)</span>
                     <span class="value">{{ number_format($totalVat, 2, ',', ' ') }} {{ $currency }}</span>
                 </div>
             @endif

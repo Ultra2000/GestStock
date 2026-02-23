@@ -37,6 +37,13 @@ class AccountingEntryService
             return [];
         }
 
+        // Vérifier que des articles existent (évite les écritures déséquilibrées
+        // si appelé avant la création des articles, ex: depuis l'event created())
+        if ($sale->items()->count() === 0) {
+            Log::info("Écritures différées pour {$sale->invoice_number} : pas encore d'articles");
+            return [];
+        }
+
         $settings = AccountingSetting::getForCompany($sale->company_id);
         if (!$settings) {
             Log::warning("Écritures non générées pour {$sale->invoice_number} : paramètres comptables non configurés");
@@ -1270,8 +1277,8 @@ class AccountingEntryService
      */
     public function registerPosPayment(Sale $sale): ?Payment
     {
-        // Si la vente n'est pas complétée ou pas de méthode de paiement, ignorer
-        if ($sale->status !== 'completed' || !$sale->payment_method) {
+        // Si la vente n'est pas complétée, pas de méthode de paiement, ou total non calculé, ignorer
+        if ($sale->status !== 'completed' || !$sale->payment_method || !$sale->total || $sale->total <= 0) {
             return null;
         }
 

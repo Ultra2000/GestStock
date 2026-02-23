@@ -477,6 +477,8 @@ class SaleResource extends Resource
                                 'product_id' => $item->product_id,
                                 'quantity' => $item->quantity, // On garde la quantité positive (ex: retour de 5 articles)
                                 'unit_price' => -$item->unit_price, // Prix négatif pour inverser le montant
+                                'vat_rate' => $item->vat_rate ?? 20,
+                                'vat_category' => $item->vat_category ?? 'S',
                                 'total_price' => -($item->quantity * $item->unit_price),
                             ]);
                         }

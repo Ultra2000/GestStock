@@ -44,7 +44,11 @@ class SaleItem extends Model
         });
 
         static::saved(function ($item) {
-            $item->sale->calculateTotal();
+            // Pendant la création en lot (CreateSale/POS), ne pas recalculer à chaque article.
+            // calculateTotal() sera appelé une seule fois après tous les articles.
+            if (!Sale::$skipRecalc) {
+                $item->sale->calculateTotal();
+            }
         });
 
         static::created(function ($item) {

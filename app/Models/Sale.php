@@ -14,6 +14,12 @@ class Sale extends Model
 {
     use HasFactory, BelongsToCompany, LogsActivity;
 
+    /**
+     * Flag pour désactiver le recalcul automatique pendant la création en lot d'articles.
+     * Quand true, SaleItem::saved ne déclenchera pas calculateTotal().
+     */
+    public static bool $skipRecalc = false;
+
     protected $fillable = [
         'company_id',
         'cash_session_id',
@@ -166,7 +172,8 @@ class Sale extends Model
                 }
 
                 // Enregistrer le paiement POS si payé immédiatement
-                if ($sale->payment_method && $sale->cash_session_id) {
+                // Note: total doit être > 0 (les items peuvent ne pas encore être ajoutés)
+                if ($sale->payment_method && $sale->cash_session_id && $sale->total > 0) {
                     try {
                         $accountingService = app(\App\Services\AccountingEntryService::class);
                         $accountingService->registerPosPayment($sale);
@@ -370,30 +377,9 @@ class Sale extends Model
             }
         }
 
-        // Générer les écritures comptables si vente completed et pas encore générées
-        if ($this->status === 'completed' && $this->total > 0) {
-            $hasEntries = \App\Models\AccountingEntry::where('source_type', self::class)
-                ->where('source_id', $this->id)
-                ->exists();
-
-            if (!$hasEntries) {
-                try {
-                    $accountingService = app(\App\Services\AccountingEntryService::class);
-                    if ($this->type === 'credit_note' && $this->parent_id) {
-                        $originalSale = self::find($this->parent_id);
-                        if ($originalSale) {
-                            $accountingService->reverseEntries($originalSale, $this);
-                        }
-                    } else {
-                        $accountingService->createEntriesForSale($this);
-                    }
-                } catch (\Exception $e) {
-                    \Illuminate\Support\Facades\Log::error(
-                        "Erreur génération écritures comptables (calculateTotal) {$this->invoice_number}: " . $e->getMessage()
-                    );
-                }
-            }
-        }
+        // Note: La génération des écritures comptables est gérée explicitement
+        // par CreateSale::afterCreate() et CashRegisterPage::recordSale()
+        // pour s'assurer que TOUS les articles sont enregistrés avant la génération.
     }
 
     /**
