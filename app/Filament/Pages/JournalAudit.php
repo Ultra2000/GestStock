@@ -295,7 +295,8 @@ class JournalAudit extends Page
     protected function auditVatCoherence(int $companyId): array
     {
         $settings = AccountingSetting::where('company_id', $companyId)->first();
-        $isEncaissements = ($settings->vat_regime ?? 'debits') === 'encaissements';
+        $vatRegime = $settings->vat_regime ?? 'debits';
+        $isEncaissements = $vatRegime === 'encaissements';
 
         // TVA collectée théorique (depuis les ventes)
         $theoreticalVatCollected = Sale::where('company_id', $companyId)
@@ -353,7 +354,7 @@ class JournalAudit extends Page
             'is_valid' => $isValid && $isPendingValid,
             'status' => ($isValid && $isPendingValid) ? 'success' : 'danger',
             'message' => ($isValid && $isPendingValid)
-                ? "✅ TVA cohérente ({$settings->vat_regime})"
+                ? "✅ TVA cohérente ({$vatRegime})"
                 : "⚠️ Écart TVA de " . number_format(abs($difference), 2, ',', ' ') . " €",
         ];
     }
