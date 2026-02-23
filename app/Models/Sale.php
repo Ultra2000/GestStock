@@ -349,7 +349,7 @@ class Sale extends Model
         $this->total_ht = round($totalHt * (1 - $this->discount_percent / 100), 2);
         $this->total_vat = round($totalVat * (1 - $this->discount_percent / 100), 2);
         $this->total = round($afterDiscount, 2);
-        $this->save();
+        $this->saveQuietly(); // Éviter de re-déclencher les events (on gère tout ici)
 
         // Créer la transaction bancaire si vente completed avec compte bancaire
         // (exécuté ici car le total est maintenant calculé)
@@ -367,6 +367,31 @@ class Sale extends Model
                     'status' => 'pending',
                     'metadata' => ['sale_id' => $this->id],
                 ]);
+            }
+        }
+
+        // Générer les écritures comptables si vente completed et pas encore générées
+        if ($this->status === 'completed' && $this->total > 0) {
+            $hasEntries = \App\Models\AccountingEntry::where('source_type', self::class)
+                ->where('source_id', $this->id)
+                ->exists();
+
+            if (!$hasEntries) {
+                try {
+                    $accountingService = app(\App\Services\AccountingEntryService::class);
+                    if ($this->type === 'credit_note' && $this->parent_id) {
+                        $originalSale = self::find($this->parent_id);
+                        if ($originalSale) {
+                            $accountingService->reverseEntries($originalSale, $this);
+                        }
+                    } else {
+                        $accountingService->createEntriesForSale($this);
+                    }
+                } catch (\Exception $e) {
+                    \Illuminate\Support\Facades\Log::error(
+                        "Erreur génération écritures comptables (calculateTotal) {$this->invoice_number}: " . $e->getMessage()
+                    );
+                }
             }
         }
     }

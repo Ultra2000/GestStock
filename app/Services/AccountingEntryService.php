@@ -38,6 +38,10 @@ class AccountingEntryService
         }
 
         $settings = AccountingSetting::getForCompany($sale->company_id);
+        if (!$settings) {
+            Log::warning("Écritures non générées pour {$sale->invoice_number} : paramètres comptables non configurés");
+            return [];
+        }
         $entries = [];
 
         DB::beginTransaction();
@@ -243,6 +247,10 @@ class AccountingEntryService
         }
 
         $settings = AccountingSetting::getForCompany($purchase->company_id);
+        if (!$settings) {
+            Log::warning("Écritures non générées pour achat {$purchase->invoice_number} : paramètres comptables non configurés");
+            return [];
+        }
         $entries = [];
 
         DB::beginTransaction();
