@@ -47,7 +47,7 @@
             margin-top: 5px;
         }
         .summary-box {
-            background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%);
+            background: #7c3aed;
             color: white;
             padding: 20px;
             border-radius: 12px;
@@ -209,7 +209,7 @@
 </head>
 <body>
     <div class="header">
-        <h1>📊 BILAN COMPTABLE</h1>
+        <h1>BILAN COMPTABLE</h1>
         <div class="company">{{ $company->name ?? 'Entreprise' }}</div>
         <div class="period">Du {{ \Carbon\Carbon::parse($startDate)->format('d/m/Y') }} au {{ \Carbon\Carbon::parse($endDate)->format('d/m/Y') }}</div>
     </div>
@@ -245,7 +245,7 @@
     <table class="two-col">
         <tr>
             <td>
-                <div class="section-title">💰 Ventes</div>
+                <div class="section-title">Ventes</div>
                 <div class="card">
                     <table class="data-grid">
                         <tr>
@@ -268,7 +268,7 @@
                 </div>
             </td>
             <td>
-                <div class="section-title">🛒 Achats</div>
+                <div class="section-title">Achats</div>
                 <div class="card">
                     <table class="data-grid">
                         <tr>
@@ -357,7 +357,7 @@
                         $result = ($m['sales_total'] ?? 0) - ($m['purchases_total'] ?? 0);
                     @endphp
                     <tr>
-                        <td><strong>{{ $monthNames[$m['month']] }} {{ $m['year'] }}</strong></td>
+                        <td><strong>{{ $monthNames[(int) $m['month']] ?? $m['month'] }} {{ $m['year'] }}</strong></td>
                         <td>{{ $m['sales_count'] }}</td>
                         <td class="positive">{{ number_format($m['sales_total'], 2, ',', ' ') }} €</td>
                         <td>{{ $m['purchases_count'] }}</td>
