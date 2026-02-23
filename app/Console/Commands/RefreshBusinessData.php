@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
@@ -143,5 +144,10 @@ class RefreshBusinessData extends Command
 
         $this->info("Done! Truncated {$totalDeleted} rows across " . count($tables) . " tables.");
         $this->info('Preserved: users, roles, permissions, companies and system tables.');
+
+        // Vider le cache applicatif (Journal d'Audit, Balance Générale, etc.)
+        $this->info('Flushing application cache...');
+        Cache::flush();
+        $this->info('Cache cleared.');
     }
 }
