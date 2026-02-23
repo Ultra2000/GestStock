@@ -37,7 +37,7 @@ class QuoteMail extends Mailable
     public function attachments(): array
     {
         // Générer le PDF du devis
-        $pdf = Pdf::loadView('pdf.quote', ['quote' => $this->quote]);
+        $pdf = Pdf::loadView('pdf.quote', ['quote' => $this->quote])->setPaper('A4', 'portrait');
         
         return [
             Attachment::fromData(fn () => $pdf->output(), "Devis-{$this->quote->quote_number}.pdf")

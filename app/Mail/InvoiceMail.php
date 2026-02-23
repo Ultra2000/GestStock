@@ -34,7 +34,7 @@ class InvoiceMail extends Mailable
             $this->type === 'purchase' ? 'purchase' : 'sale' => $this->model,
             'company' => $company,
             'previewMode' => false,
-        ]);
+        ])->setPaper('A4', 'portrait');
 
         return $this->subject('Facture #' . $this->model->invoice_number)
             ->view('emails.invoice')

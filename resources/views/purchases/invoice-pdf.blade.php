@@ -5,9 +5,8 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
     <title>Bon d'achat {{ $purchase->invoice_number }}</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-        
         @page {
+            size: A4;
             margin: 25mm 22mm 30mm 22mm;
         }
         

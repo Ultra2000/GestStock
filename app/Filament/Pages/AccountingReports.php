@@ -251,7 +251,7 @@ class AccountingReports extends Page implements HasForms
                         'currency' => $this->getCurrency(),
                     ];
                     
-                    $pdf = Pdf::loadView('reports.vat-report', $data);
+                    $pdf = Pdf::loadView('reports.vat-report', $data)->setPaper('A4', 'portrait');
                     
                     return response()->streamDownload(
                         fn () => print($pdf->output()),

@@ -242,7 +242,7 @@ class CashReportController extends Controller
             'paymentStats' => $paymentStats,
             'topProducts' => $topProducts,
             'company' => $company,
-        ]);
+        ])->setPaper('A4', 'portrait');
 
         $filename = 'rapport-caisse-' . $session->opened_at->format('Y-m-d') . '.pdf';
 

@@ -5,11 +5,9 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
     <title>État des Stocks - {{ $generatedAt->format('d/m/Y H:i') }}</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-        
         @page {
-            margin: 15mm;
             size: A4 landscape;
+            margin: 15mm;
         }
         * {
             margin: 0;

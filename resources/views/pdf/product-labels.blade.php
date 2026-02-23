@@ -3,9 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-        
-        @page { margin: 14mm; }
+        @page { size: A4; margin: 14mm; }
         body { font-family: 'Inter', 'DejaVu Sans', Helvetica, Arial, sans-serif; font-size: 11px; color: #1e293b; letter-spacing: 0.01em; }
         .grid { display: flex; flex-wrap: wrap; }
         .label { width: calc(100% / {{ $columns }}); padding:4px 6px; box-sizing: border-box; border:1px dashed #ddd; margin-bottom:6px; text-align:center; }

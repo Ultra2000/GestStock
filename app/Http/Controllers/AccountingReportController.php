@@ -184,16 +184,25 @@ class AccountingReportController extends Controller
      */
     public function financialReport(Request $request, $companyId = null)
     {
-        $company = $this->resolveAndAuthorizeCompany($request, $companyId);
-        
-        $startDate = $request->query('start_date', now()->startOfYear()->toDateString());
-        $endDate = $request->query('end_date', now()->toDateString());
-        
-        $data = $this->buildFinancialData($company, $startDate, $endDate);
-        
-        $pdf = Pdf::loadView('reports.financial-report', $data)->setPaper('a4');
-        $filename = 'bilan-comptable-' . $startDate . '-' . $endDate . '.pdf';
-        return $pdf->download($filename);
+        try {
+            $company = $this->resolveAndAuthorizeCompany($request, $companyId);
+            
+            $startDate = $request->query('start_date', now()->startOfYear()->toDateString());
+            $endDate = $request->query('end_date', now()->toDateString());
+            
+            $data = $this->buildFinancialData($company, $startDate, $endDate);
+            
+            $pdf = Pdf::loadView('reports.financial-report', $data)->setPaper('A4', 'portrait');
+            $filename = 'bilan-comptable-' . $startDate . '-' . $endDate . '.pdf';
+            return $pdf->download($filename);
+        } catch (\Throwable $e) {
+            \Log::error('Erreur génération bilan comptable', [
+                'message' => $e->getMessage(),
+                'file' => $e->getFile() . ':' . $e->getLine(),
+                'company_id' => $companyId,
+            ]);
+            abort(500, 'Erreur lors de la génération du bilan comptable : ' . $e->getMessage());
+        }
     }
 
     /**
