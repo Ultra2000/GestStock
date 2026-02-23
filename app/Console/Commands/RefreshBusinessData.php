@@ -79,17 +79,32 @@ class RefreshBusinessData extends Command
 
     protected function getTablesToTruncate(): array
     {
-        $allTables = collect(DB::select("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' ORDER BY name"))
-            ->pluck('name')
-            ->toArray();
+        $driver = DB::connection()->getDriverName();
+
+        if ($driver === 'sqlite') {
+            $allTables = collect(DB::select("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' ORDER BY name"))
+                ->pluck('name')
+                ->toArray();
+        } else {
+            // MySQL / MariaDB / PostgreSQL
+            $allTables = collect(Schema::getTables())
+                ->pluck('name')
+                ->toArray();
+        }
 
         return array_values(array_diff($allTables, $this->preservedTables));
     }
 
     protected function truncateTables(array $tables): void
     {
+        $driver = DB::connection()->getDriverName();
+
         $this->info('Disabling foreign key checks...');
-        DB::statement('PRAGMA foreign_keys = OFF;');
+        if ($driver === 'sqlite') {
+            DB::statement('PRAGMA foreign_keys = OFF;');
+        } else {
+            DB::statement('SET FOREIGN_KEY_CHECKS = 0;');
+        }
 
         $bar = $this->output->createProgressBar(count($tables));
         $bar->start();
@@ -99,10 +114,14 @@ class RefreshBusinessData extends Command
         foreach ($tables as $table) {
             try {
                 $count = DB::table($table)->count();
-                DB::table($table)->delete();
 
-                // Reset auto-increment for SQLite
-                DB::statement("DELETE FROM sqlite_sequence WHERE name = ?", [$table]);
+                if ($driver === 'sqlite') {
+                    DB::table($table)->delete();
+                    // Reset auto-increment for SQLite
+                    DB::statement("DELETE FROM sqlite_sequence WHERE name = ?", [$table]);
+                } else {
+                    DB::statement("TRUNCATE TABLE `{$table}`;");
+                }
 
                 $totalDeleted += $count;
                 $bar->advance();
@@ -116,7 +135,12 @@ class RefreshBusinessData extends Command
         $bar->finish();
         $this->newLine(2);
 
-        DB::statement('PRAGMA foreign_keys = ON;');
+        if ($driver === 'sqlite') {
+            DB::statement('PRAGMA foreign_keys = ON;');
+        } else {
+            DB::statement('SET FOREIGN_KEY_CHECKS = 1;');
+        }
+
         $this->info("Done! Truncated {$totalDeleted} rows across " . count($tables) . " tables.");
         $this->info('Preserved: users, roles, permissions, companies and system tables.');
     }
