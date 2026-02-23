@@ -44,16 +44,17 @@ class AttendanceService
             return ['success' => false, 'error' => $gpsValidation['reason'], 'message' => $this->getErrorMessage($gpsValidation['reason']), 'distance' => $gpsValidation['distance'] ?? null];
         }
 
-        // Valider QR si requis
-        $qrValidation = $this->validateQr($warehouse, $qrToken, $employee->id);
-        if (!$qrValidation['valid']) {
-            $this->logFailure($companyId, $employee->id, 'clock_in', $qrValidation['reason'], $warehouse->id, $latitude, $longitude, $gpsAccuracy, $gpsValidation['distance'] ?? null, $qrToken, false, $ipAddress, $userAgent);
-            return ['success' => false, 'error' => $qrValidation['reason'], 'message' => $this->getErrorMessage($qrValidation['reason'])];
-        }
-
         // Créer ou mettre à jour l'attendance
         DB::beginTransaction();
         try {
+            // Valider QR si requis (à l'intérieur de la transaction pour éviter de consommer le token si la suite échoue)
+            $qrValidation = $this->validateQr($warehouse, $qrToken, $employee->id);
+            if (!$qrValidation['valid']) {
+                DB::rollBack();
+                $this->logFailure($companyId, $employee->id, 'clock_in', $qrValidation['reason'], $warehouse->id, $latitude, $longitude, $gpsAccuracy, $gpsValidation['distance'] ?? null, $qrToken, false, $ipAddress, $userAgent);
+                return ['success' => false, 'error' => $qrValidation['reason'], 'message' => $this->getErrorMessage($qrValidation['reason'])];
+            }
+
             $attendance = Attendance::updateOrCreate(
                 [
                     'employee_id' => $employee->id,
@@ -142,16 +143,17 @@ class AttendanceService
             return ['success' => false, 'error' => $gpsValidation['reason'], 'message' => $this->getErrorMessage($gpsValidation['reason']), 'distance' => $gpsValidation['distance'] ?? null];
         }
 
-        // Valider QR si requis
-        $qrValidation = $this->validateQr($warehouse, $qrToken, $employee->id);
-        if (!$qrValidation['valid']) {
-            $this->logFailure($companyId, $employee->id, 'clock_out', $qrValidation['reason'], $warehouse->id, $latitude, $longitude, $gpsAccuracy, $gpsValidation['distance'] ?? null, $qrToken, false, $ipAddress, $userAgent);
-            return ['success' => false, 'error' => $qrValidation['reason'], 'message' => $this->getErrorMessage($qrValidation['reason'])];
-        }
-
         // Mettre à jour l'attendance
         DB::beginTransaction();
         try {
+            // Valider QR si requis (à l'intérieur de la transaction pour éviter de consommer le token si la suite échoue)
+            $qrValidation = $this->validateQr($warehouse, $qrToken, $employee->id);
+            if (!$qrValidation['valid']) {
+                DB::rollBack();
+                $this->logFailure($companyId, $employee->id, 'clock_out', $qrValidation['reason'], $warehouse->id, $latitude, $longitude, $gpsAccuracy, $gpsValidation['distance'] ?? null, $qrToken, false, $ipAddress, $userAgent);
+                return ['success' => false, 'error' => $qrValidation['reason'], 'message' => $this->getErrorMessage($qrValidation['reason'])];
+            }
+
             $attendance->update([
                 'clock_out' => now()->format('H:i:s'),
                 'clock_out_location' => $warehouse->name,

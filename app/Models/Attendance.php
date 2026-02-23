@@ -70,16 +70,20 @@ class Attendance extends Model
 
         try {
             $dateStr = $this->date->format('Y-m-d');
-            $clockIn = \Carbon\Carbon::parse($dateStr . ' ' . $this->clock_in);
-            $clockOut = \Carbon\Carbon::parse($dateStr . ' ' . $this->clock_out);
+            $clockInTime = $this->clock_in instanceof \Carbon\Carbon ? $this->clock_in->format('H:i:s') : $this->clock_in;
+            $clockOutTime = $this->clock_out instanceof \Carbon\Carbon ? $this->clock_out->format('H:i:s') : $this->clock_out;
+            $clockIn = \Carbon\Carbon::parse($dateStr . ' ' . $clockInTime);
+            $clockOut = \Carbon\Carbon::parse($dateStr . ' ' . $clockOutTime);
             
             $totalMinutes = $clockIn->diffInMinutes($clockOut);
 
             // Soustraire la pause
             if ($this->break_start && $this->break_end) {
                 try {
-                    $breakStart = \Carbon\Carbon::parse($dateStr . ' ' . $this->break_start);
-                    $breakEnd = \Carbon\Carbon::parse($dateStr . ' ' . $this->break_end);
+                    $breakStartTime = $this->break_start instanceof \Carbon\Carbon ? $this->break_start->format('H:i:s') : $this->break_start;
+                    $breakEndTime = $this->break_end instanceof \Carbon\Carbon ? $this->break_end->format('H:i:s') : $this->break_end;
+                    $breakStart = \Carbon\Carbon::parse($dateStr . ' ' . $breakStartTime);
+                    $breakEnd = \Carbon\Carbon::parse($dateStr . ' ' . $breakEndTime);
                     $totalMinutes -= $breakStart->diffInMinutes($breakEnd);
                 } catch (\Exception $e) {
                     // Ignorer si la pause n'est pas parseable

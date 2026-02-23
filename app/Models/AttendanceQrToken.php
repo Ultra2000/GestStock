@@ -55,33 +55,36 @@ class AttendanceQrToken extends Model
         ]);
     }
 
-    // Valider un token
+    // Valider un token (atomique avec verrouillage)
     public static function validateToken(string $token, int $warehouseId, ?int $employeeId = null): array
     {
-        $qrToken = static::where('token', $token)
-            ->where('warehouse_id', $warehouseId)
-            ->first();
+        return \Illuminate\Support\Facades\DB::transaction(function () use ($token, $warehouseId, $employeeId) {
+            $qrToken = static::where('token', $token)
+                ->where('warehouse_id', $warehouseId)
+                ->lockForUpdate()
+                ->first();
 
-        if (!$qrToken) {
-            return ['valid' => false, 'reason' => 'qr_invalid'];
-        }
+            if (!$qrToken) {
+                return ['valid' => false, 'reason' => 'qr_invalid'];
+            }
 
-        if ($qrToken->expires_at->isPast()) {
-            return ['valid' => false, 'reason' => 'qr_expired'];
-        }
+            if ($qrToken->expires_at->isPast()) {
+                return ['valid' => false, 'reason' => 'qr_expired'];
+            }
 
-        if ($qrToken->is_used) {
-            return ['valid' => false, 'reason' => 'qr_already_used'];
-        }
+            if ($qrToken->is_used) {
+                return ['valid' => false, 'reason' => 'qr_already_used'];
+            }
 
-        // Marquer comme utilisé
-        $qrToken->update([
-            'is_used' => true,
-            'used_by_employee_id' => $employeeId,
-            'used_at' => now(),
-        ]);
+            // Marquer comme utilisé de façon atomique
+            $qrToken->update([
+                'is_used' => true,
+                'used_by_employee_id' => $employeeId,
+                'used_at' => now(),
+            ]);
 
-        return ['valid' => true, 'token' => $qrToken];
+            return ['valid' => true, 'token' => $qrToken];
+        });
     }
 
     // Vérifier si un token est valide (sans le marquer comme utilisé)

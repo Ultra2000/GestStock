@@ -94,6 +94,53 @@ class LeaveRequest extends Model
     public function cancel(): void
     {
         $this->update(['status' => 'cancelled']);
+
+        // Remettre l'employé en statut actif s'il est actuellement en congé
+        if ($this->employee && $this->employee->status === 'on_leave') {
+            // Vérifier qu'il n'a pas d'autre congé approuvé en cours
+            $hasOtherActiveLeave = static::where('employee_id', $this->employee_id)
+                ->where('id', '!=', $this->id)
+                ->where('status', 'approved')
+                ->where('start_date', '<=', now())
+                ->where('end_date', '>=', now())
+                ->exists();
+
+            if (!$hasOtherActiveLeave) {
+                $this->employee->update(['status' => 'active']);
+            }
+        }
+    }
+
+    /**
+     * Terminer un congé expiré et remettre l'employé en statut actif
+     */
+    public static function completeExpiredLeaves(): int
+    {
+        $count = 0;
+        $expiredLeaves = static::where('status', 'approved')
+            ->where('end_date', '<', now()->toDateString())
+            ->whereHas('employee', function ($q) {
+                $q->where('status', 'on_leave');
+            })
+            ->with('employee')
+            ->get();
+
+        foreach ($expiredLeaves as $leave) {
+            // Vérifier qu'il n'a pas d'autre congé approuvé en cours
+            $hasOtherActiveLeave = static::where('employee_id', $leave->employee_id)
+                ->where('id', '!=', $leave->id)
+                ->where('status', 'approved')
+                ->where('start_date', '<=', now())
+                ->where('end_date', '>=', now())
+                ->exists();
+
+            if (!$hasOtherActiveLeave) {
+                $leave->employee->update(['status' => 'active']);
+                $count++;
+            }
+        }
+
+        return $count;
     }
 
     public function getTypeLabelAttribute(): string

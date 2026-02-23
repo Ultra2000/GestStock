@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use App\Models\Employee;
 use App\Models\Attendance;
+use App\Models\LeaveRequest;
 use Illuminate\Console\Command;
 use Carbon\Carbon;
 
@@ -30,6 +31,12 @@ class ProcessAttendance extends Command
         $companyId = $this->option('company');
 
         $this->info("Processing attendance for: {$date->format('d/m/Y')}");
+
+        // Remettre en actif les employés dont le congé a expiré
+        $expiredCount = LeaveRequest::completeExpiredLeaves();
+        if ($expiredCount > 0) {
+            $this->info("Restored {$expiredCount} employee(s) from leave to active status.");
+        }
 
         // Find all attendances for the date that are still clocked in
         $query = Attendance::whereDate('date', $date)
@@ -79,15 +86,29 @@ class ProcessAttendance extends Command
             $dayOfWeek = $date->dayOfWeekIso; // 1 = Monday, 7 = Sunday
             
             $hasSchedule = $employee->schedules()
-                ->whereDate('date', $date)
-                ->orWhere(function ($q) use ($dayOfWeek) {
-                    $q->whereNull('date')
-                      ->where('day_of_week', $dayOfWeek);
+                ->where(function ($q) use ($date, $dayOfWeek) {
+                    $q->whereDate('date', $date)
+                      ->orWhere(function ($sub) use ($dayOfWeek) {
+                          $sub->whereNull('date')
+                              ->where('day_of_week', $dayOfWeek);
+                      });
                 })
                 ->exists();
 
             if (!$hasSchedule) {
                 continue; // Not scheduled to work
+            }
+
+            // Check if employee has approved leave for this date
+            $hasApprovedLeave = \App\Models\LeaveRequest::where('employee_id', $employee->id)
+                ->where('status', 'approved')
+                ->where('start_date', '<=', $date)
+                ->where('end_date', '>=', $date)
+                ->exists();
+
+            if ($hasApprovedLeave) {
+                $this->line("  En congé: {$employee->full_name}");
+                continue; // On approved leave, skip
             }
 
             // Check if has attendance record

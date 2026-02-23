@@ -43,10 +43,7 @@ class CalculateCommissions extends Command
 
         // Get employees with commission rates
         $query = Employee::where('status', 'active')
-            ->where(function ($q) {
-                $q->where('commission_rate', '>', 0)
-                  ->orWhereNotNull('commission_rate');
-            });
+            ->where('commission_rate', '>', 0);
 
         if ($companyId) {
             $query->where('company_id', $companyId);
@@ -113,9 +110,9 @@ class CalculateCommissions extends Command
                     'company_id' => $employee->company_id,
                     'employee_id' => $employee->id,
                     'sale_id' => $sale->id,
-                    'amount' => $commissionAmount,
-                    'rate' => $employee->commission_rate,
-                    'base_amount' => $baseAmount,
+                    'commission_amount' => $commissionAmount,
+                    'commission_rate' => $employee->commission_rate,
+                    'sale_amount' => $baseAmount,
                     'period_start' => $startDate,
                     'period_end' => $endDate,
                     'status' => 'pending',
@@ -129,7 +126,7 @@ class CalculateCommissions extends Command
             }
 
             // Calculate total for this employee
-            $employeeTotal = $employee->calculateCommission($startDate, $endDate);
+            $employeeTotal = $employee->calculateCommissions($startDate, $endDate);
             $this->info("  Total commissions: " . number_format($employeeTotal, 2) . " €");
             $this->newLine();
         }
