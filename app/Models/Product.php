@@ -468,12 +468,14 @@ class Product extends Model
      */
     public static function getCommonVatRates(): array
     {
+        // Les clés DOIVENT être des strings, sinon PHP tronque les floats en int
+        // (5.50 => 5, 2.10 => 2) et le taux enregistré est faux.
         return [
-            20.00 => '20% - Taux normal',
-            10.00 => '10% - Taux intermédiaire',
-            5.50 => '5,5% - Taux réduit',
-            2.10 => '2,1% - Taux super-réduit',
-            0.00 => '0% - Exonéré',
+            '20' => '20% - Taux normal',
+            '10' => '10% - Taux intermédiaire',
+            '5.5' => '5,5% - Taux réduit',
+            '2.1' => '2,1% - Taux super-réduit',
+            '0' => '0% - Exonéré',
         ];
     }
 }
