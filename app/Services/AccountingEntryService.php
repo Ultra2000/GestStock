@@ -424,19 +424,32 @@ class AccountingEntryService
      */
     public function reverseEntries(Sale $originalSale, Sale $creditNote): array
     {
-        $originalEntries = AccountingEntry::where('source_type', Sale::class)
-            ->where('source_id', $originalSale->id)
-            ->get();
-
-        if ($originalEntries->isEmpty()) {
-            throw new \Exception("Aucune écriture à contre-passer pour cette vente.");
-        }
-
         $reversedEntries = [];
 
         DB::beginTransaction();
 
         try {
+            // Anti-doublon : vérifier qu'aucune contre-passation n'existe déjà pour cet avoir
+            $alreadyReversed = AccountingEntry::where('source_type', Sale::class)
+                ->where('source_id', $creditNote->id)
+                ->lockForUpdate()
+                ->exists();
+
+            if ($alreadyReversed) {
+                DB::rollBack();
+                Log::warning("Contre-passation déjà existante pour l'avoir {$creditNote->invoice_number}");
+                return [];
+            }
+
+            $originalEntries = AccountingEntry::where('source_type', Sale::class)
+                ->where('source_id', $originalSale->id)
+                ->get();
+
+            if ($originalEntries->isEmpty()) {
+                DB::rollBack();
+                throw new \Exception("Aucune écriture à contre-passer pour cette vente.");
+            }
+
             foreach ($originalEntries as $entry) {
                 $reversedEntries[] = AccountingEntry::create([
                     'company_id' => $entry->company_id,
@@ -1172,13 +1185,22 @@ class AccountingEntryService
     {
         $prefix = $payment->payment_method === 'cash' ? 'CAI' : 'BQ';
         $year = $payment->payment_date->format('Y');
+        $fullPrefix = "{$prefix}-{$year}-";
+        $prefixLen = strlen($fullPrefix);
+
+        // Compatible SQLite + MySQL
+        $isSqlite = DB::connection()->getDriverName() === 'sqlite';
+        $extractSql = $isSqlite
+            ? "MAX(CAST(SUBSTR(piece_number, {$prefixLen} + 1) AS INTEGER))"
+            : "MAX(CAST(SUBSTRING(piece_number, {$prefixLen} + 1) AS UNSIGNED))";
 
         $lastNumber = AccountingEntry::where('company_id', $payment->company_id)
-            ->where('piece_number', 'like', "{$prefix}-{$year}-%")
-            ->selectRaw("MAX(CAST(SUBSTRING(piece_number, " . (strlen($prefix) + 7) . ") AS UNSIGNED)) as max_num")
+            ->where('piece_number', 'like', $fullPrefix . '%')
+            ->lockForUpdate()
+            ->selectRaw("{$extractSql} as max_num")
             ->value('max_num') ?? 0;
 
-        return "{$prefix}-{$year}-" . str_pad($lastNumber + 1, 5, '0', STR_PAD_LEFT);
+        return $fullPrefix . str_pad($lastNumber + 1, 5, '0', STR_PAD_LEFT);
     }
 
     /**

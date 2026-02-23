@@ -106,6 +106,10 @@ class AccountingCorrection extends Page implements HasForms
                                     ->required()
                                     ->maxLength(10)
                                     ->placeholder('Ex: 707000')
+                                    ->rules(['regex:/^[1-9][0-9]{5,9}$/'])
+                                    ->validationMessages([
+                                        'regex' => 'Le numéro de compte doit contenir 6 à 10 chiffres et commencer par 1-9 (ex: 707000).',
+                                    ])
                                     ->live(onBlur: true),
 
                                 Forms\Components\TextInput::make('account_auxiliary')
@@ -170,14 +174,26 @@ class AccountingCorrection extends Page implements HasForms
             return;
         }
 
-        // Génération du numéro de pièce si non fourni
-        $pieceNumber = $data['piece_number'] ?: $this->generatePieceNumber($data['journal_code']);
-        
+        // Validation des numéros de compte PCG
+        foreach ($data['lines'] as $line) {
+            if (!empty($line['account_number']) && !preg_match('/^[1-9][0-9]{5,9}$/', $line['account_number'])) {
+                Notification::make()
+                    ->title('Numéro de compte invalide')
+                    ->body("Le compte '{$line['account_number']}' n'est pas un numéro PCG valide (6-10 chiffres, commence par 1-9).")
+                    ->danger()
+                    ->send();
+                return;
+            }
+        }
+
         $companyId = filament()->getTenant()->id;
 
         DB::beginTransaction();
 
         try {
+            // Génération du numéro de pièce DANS la transaction (anti race condition)
+            $pieceNumber = $data['piece_number'] ?: $this->generatePieceNumber($data['journal_code']);
+
             $entriesCreated = 0;
             
             foreach ($data['lines'] as $line) {
@@ -251,10 +267,18 @@ class AccountingCorrection extends Page implements HasForms
         $companyId = filament()->getTenant()->id;
         $year = date('Y');
         $prefix = "{$journal}-{$year}-";
-        
+        $prefixLen = strlen($prefix);
+
+        // Compatible SQLite + MySQL : extraire le max numérique après le préfixe
+        $isSqlite = DB::connection()->getDriverName() === 'sqlite';
+        $extractSql = $isSqlite
+            ? "MAX(CAST(SUBSTR(piece_number, {$prefixLen} + 1) AS INTEGER))"
+            : "MAX(CAST(SUBSTRING(piece_number, {$prefixLen} + 1) AS UNSIGNED))";
+
         $lastNumber = AccountingEntry::where('company_id', $companyId)
             ->where('piece_number', 'like', $prefix . '%')
-            ->selectRaw("MAX(CAST(SUBSTRING(piece_number, " . (strlen($prefix) + 1) . ") AS UNSIGNED)) as max_num")
+            ->lockForUpdate()
+            ->selectRaw("{$extractSql} as max_num")
             ->value('max_num') ?? 0;
         
         return $prefix . str_pad($lastNumber + 1, 5, '0', STR_PAD_LEFT);

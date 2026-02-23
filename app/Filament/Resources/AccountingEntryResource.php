@@ -270,58 +270,94 @@ class AccountingEntryResource extends Resource
                     ->modalHeading('Reclasser cette écriture')
                     ->modalDescription('Créer une écriture OD pour reclasser ce montant vers un autre compte')
                     ->form([
+                        Forms\Components\DatePicker::make('entry_date')
+                            ->label('Date de l\'écriture')
+                            ->required()
+                            ->default(now()),
                         Forms\Components\TextInput::make('new_account')
                             ->label('Nouveau compte')
                             ->required()
                             ->maxLength(10)
-                            ->placeholder('Ex: 706000'),
+                            ->placeholder('Ex: 706000')
+                            ->rules(['regex:/^[1-9][0-9]{5,9}$/'])
+                            ->validationMessages([
+                                'regex' => 'Le numéro de compte doit contenir 6 à 10 chiffres et commencer par 1-9.',
+                            ]),
                         Forms\Components\Textarea::make('reason')
                             ->label('Motif du reclassement')
                             ->required()
                             ->placeholder('Ex: Changement de paramétrage comptable'),
                     ])
                     ->action(function (AccountingEntry $record, array $data) {
-                        $pieceNumber = 'OD-' . date('Y') . '-' . str_pad(
-                            AccountingEntry::where('company_id', $record->company_id)
-                                ->where('piece_number', 'like', 'OD-' . date('Y') . '-%')
-                                ->count() + 1,
-                            5, '0', STR_PAD_LEFT
-                        );
+                        $isSqlite = \Illuminate\Support\Facades\DB::connection()->getDriverName() === 'sqlite';
+                        $prefix = 'OD-' . date('Y') . '-';
+                        $prefixLen = strlen($prefix);
 
-                        // Contre-passation de l'ancien compte
-                        AccountingEntry::create([
-                            'company_id' => $record->company_id,
-                            'entry_date' => now()->toDateString(),
-                            'piece_number' => $pieceNumber,
-                            'journal_code' => 'OD',
-                            'account_number' => $record->account_number,
-                            'account_auxiliary' => $record->account_auxiliary,
-                            'label' => "Reclassement {$record->piece_number} - {$data['reason']}",
-                            'debit' => $record->credit, // Inverse
-                            'credit' => $record->debit, // Inverse
-                            'creation_source' => 'reclassement',
-                            'created_by' => auth()->id(),
-                        ]);
+                        $extractSql = $isSqlite
+                            ? "MAX(CAST(SUBSTR(piece_number, {$prefixLen} + 1) AS INTEGER))"
+                            : "MAX(CAST(SUBSTRING(piece_number, {$prefixLen} + 1) AS UNSIGNED))";
 
-                        // Imputation sur le nouveau compte
-                        AccountingEntry::create([
-                            'company_id' => $record->company_id,
-                            'entry_date' => now()->toDateString(),
-                            'piece_number' => $pieceNumber,
-                            'journal_code' => 'OD',
-                            'account_number' => $data['new_account'],
-                            'label' => "Reclassement depuis {$record->account_number} - {$data['reason']}",
-                            'debit' => $record->debit,
-                            'credit' => $record->credit,
-                            'creation_source' => 'reclassement',
-                            'created_by' => auth()->id(),
-                        ]);
+                        \Illuminate\Support\Facades\DB::beginTransaction();
 
-                        \Filament\Notifications\Notification::make()
-                            ->title('Reclassement effectué')
-                            ->body("Écriture reclassée de {$record->account_number} vers {$data['new_account']}")
-                            ->success()
-                            ->send();
+                        try {
+                            $pieceNumber = $prefix . str_pad(
+                                (AccountingEntry::where('company_id', $record->company_id)
+                                    ->where('piece_number', 'like', $prefix . '%')
+                                    ->lockForUpdate()
+                                    ->selectRaw("{$extractSql} as max_num")
+                                    ->value('max_num') ?? 0) + 1,
+                                5, '0', STR_PAD_LEFT
+                            );
+
+                            $entryDate = $data['entry_date'] instanceof \Carbon\Carbon
+                                ? $data['entry_date']->toDateString()
+                                : $data['entry_date'];
+
+                            // Contre-passation de l'ancien compte
+                            AccountingEntry::create([
+                                'company_id' => $record->company_id,
+                                'entry_date' => $entryDate,
+                                'piece_number' => $pieceNumber,
+                                'journal_code' => 'OD',
+                                'account_number' => $record->account_number,
+                                'account_auxiliary' => $record->account_auxiliary,
+                                'label' => "Reclassement {$record->piece_number} - {$data['reason']}",
+                                'debit' => $record->credit, // Inverse
+                                'credit' => $record->debit, // Inverse
+                                'creation_source' => 'reclassement',
+                                'created_by' => auth()->id(),
+                            ]);
+
+                            // Imputation sur le nouveau compte
+                            AccountingEntry::create([
+                                'company_id' => $record->company_id,
+                                'entry_date' => $entryDate,
+                                'piece_number' => $pieceNumber,
+                                'journal_code' => 'OD',
+                                'account_number' => $data['new_account'],
+                                'label' => "Reclassement depuis {$record->account_number} - {$data['reason']}",
+                                'debit' => $record->debit,
+                                'credit' => $record->credit,
+                                'creation_source' => 'reclassement',
+                                'created_by' => auth()->id(),
+                            ]);
+
+                            \Illuminate\Support\Facades\DB::commit();
+
+                            \Filament\Notifications\Notification::make()
+                                ->title('Reclassement effectué')
+                                ->body("Écriture reclassée de {$record->account_number} vers {$data['new_account']}")
+                                ->success()
+                                ->send();
+                        } catch (\Exception $e) {
+                            \Illuminate\Support\Facades\DB::rollBack();
+
+                            \Filament\Notifications\Notification::make()
+                                ->title('Erreur lors du reclassement')
+                                ->body($e->getMessage())
+                                ->danger()
+                                ->send();
+                        }
                     }),
                     // Le reclassement est toujours disponible car il ne modifie pas l'écriture originale
                     // mais crée de nouvelles écritures OD
