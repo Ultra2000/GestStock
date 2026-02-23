@@ -4,6 +4,7 @@
         <div class="w-64 shrink-0 hidden lg:block">
             <nav class="sticky top-4 space-y-1 rounded-xl bg-white p-3 shadow-sm ring-1 ring-gray-950/5 dark:bg-gray-900 dark:ring-white/10">
                 <p class="px-3 py-2 text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Sommaire</p>
+                @php $videoCounts = $this->videoCounts; @endphp
                 @foreach($this->getSections() as $key => $section)
                     <button
                         wire:click="setSection('{{ $key }}')"
@@ -13,7 +14,13 @@
                                 : 'text-gray-700 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-white/5' }}"
                     >
                         <x-dynamic-component :component="$section['icon']" class="h-4 w-4" />
-                        {{ $section['label'] }}
+                        <span class="flex-1 text-left">{{ $section['label'] }}</span>
+                        @if(isset($videoCounts[$key]) && $videoCounts[$key] > 0)
+                            <span class="inline-flex items-center justify-center rounded-full bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-400 text-xs font-medium min-w-[20px] h-5 px-1.5">
+                                <svg class="w-3 h-3 mr-0.5" fill="currentColor" viewBox="0 0 20 20"><path d="M6.3 2.841A1.5 1.5 0 004 4.11V15.89a1.5 1.5 0 002.3 1.269l9.344-5.89a1.5 1.5 0 000-2.538L6.3 2.84z"/></svg>
+                                {{ $videoCounts[$key] }}
+                            </span>
+                        @endif
                     </button>
                 @endforeach
             </nav>
@@ -1036,6 +1043,88 @@
                             <tr><td><strong>URSSAF</strong></td><td>Organisme de recouvrement des cotisations sociales</td></tr>
                         </tbody>
                     </table>
+                </div>
+                @endif
+
+                {{-- TUTORIAL VIDEOS SECTION (shown for every section that has videos) --}}
+                @php $sectionVideos = $this->getVideosForSection(); @endphp
+                @if($sectionVideos->count() > 0)
+                <div class="not-prose mt-10 pt-8 border-t border-gray-200 dark:border-gray-700">
+                    <div class="flex items-center gap-3 mb-6">
+                        <div class="flex items-center justify-center w-10 h-10 rounded-lg bg-red-100 dark:bg-red-900/30">
+                            <svg class="w-6 h-6 text-red-600 dark:text-red-400" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M6.3 2.841A1.5 1.5 0 004 4.11V15.89a1.5 1.5 0 002.3 1.269l9.344-5.89a1.5 1.5 0 000-2.538L6.3 2.84z"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-900 dark:text-white m-0">Videos tutoriels</h3>
+                            <p class="text-sm text-gray-500 dark:text-gray-400 m-0">{{ $sectionVideos->count() }} video{{ $sectionVideos->count() > 1 ? 's' : '' }} disponible{{ $sectionVideos->count() > 1 ? 's' : '' }}</p>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        @foreach($sectionVideos as $video)
+                        <div x-data="{ open: false }" class="rounded-xl bg-white dark:bg-gray-800 shadow-sm ring-1 ring-gray-950/5 dark:ring-white/10 overflow-hidden">
+                            {{-- Video thumbnail / player --}}
+                            <div class="relative">
+                                <template x-if="!open">
+                                    <button @click="open = true" class="relative w-full aspect-video bg-gray-100 dark:bg-gray-900 group cursor-pointer">
+                                        @if($video->thumbnail_url)
+                                            <img src="{{ $video->thumbnail_url }}" alt="{{ $video->title }}" class="w-full h-full object-cover">
+                                        @elseif($video->video_type === 'youtube' && preg_match('/(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/', $video->video_url, $m))
+                                            <img src="https://img.youtube.com/vi/{{ $m[1] }}/hqdefault.jpg" alt="{{ $video->title }}" class="w-full h-full object-cover">
+                                        @else
+                                            <div class="flex items-center justify-center w-full h-full">
+                                                <svg class="w-16 h-16 text-gray-300 dark:text-gray-600" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path d="M6.3 2.841A1.5 1.5 0 004 4.11V15.89a1.5 1.5 0 002.3 1.269l9.344-5.89a1.5 1.5 0 000-2.538L6.3 2.84z"/>
+                                                </svg>
+                                            </div>
+                                        @endif
+                                        {{-- Play overlay --}}
+                                        <div class="absolute inset-0 bg-black/20 group-hover:bg-black/30 transition-colors flex items-center justify-center">
+                                            <div class="w-16 h-16 rounded-full bg-white/90 dark:bg-gray-800/90 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                                                <svg class="w-7 h-7 text-red-600 dark:text-red-400 ml-1" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path d="M6.3 2.841A1.5 1.5 0 004 4.11V15.89a1.5 1.5 0 002.3 1.269l9.344-5.89a1.5 1.5 0 000-2.538L6.3 2.84z"/>
+                                                </svg>
+                                            </div>
+                                        </div>
+                                        {{-- Duration badge --}}
+                                        @if($video->formatted_duration)
+                                        <div class="absolute bottom-2 right-2 bg-black/80 text-white text-xs font-medium px-2 py-1 rounded">
+                                            {{ $video->formatted_duration }}
+                                        </div>
+                                        @endif
+                                    </button>
+                                </template>
+                                <template x-if="open">
+                                    <div class="w-full aspect-video">
+                                        @if(in_array($video->video_type, ['youtube', 'vimeo']))
+                                            <iframe
+                                                src="{{ $video->embed_url }}?autoplay=1"
+                                                class="w-full h-full"
+                                                frameborder="0"
+                                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                                allowfullscreen
+                                            ></iframe>
+                                        @else
+                                            <video controls autoplay class="w-full h-full">
+                                                <source src="{{ $video->video_url }}" type="video/mp4">
+                                                Votre navigateur ne supporte pas la lecture video.
+                                            </video>
+                                        @endif
+                                    </div>
+                                </template>
+                            </div>
+                            {{-- Info --}}
+                            <div class="p-4">
+                                <h4 class="font-semibold text-gray-900 dark:text-white text-sm m-0">{{ $video->title }}</h4>
+                                @if($video->description)
+                                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1 m-0 line-clamp-2">{{ $video->description }}</p>
+                                @endif
+                            </div>
+                        </div>
+                        @endforeach
+                    </div>
                 </div>
                 @endif
 

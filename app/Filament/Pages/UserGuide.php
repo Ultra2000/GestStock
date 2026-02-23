@@ -2,6 +2,7 @@
 
 namespace App\Filament\Pages;
 
+use App\Models\TutorialVideo;
 use Filament\Pages\Page;
 use Filament\Facades\Filament;
 
@@ -20,6 +21,31 @@ class UserGuide extends Page
     public function setSection(string $section): void
     {
         $this->activeSection = $section;
+    }
+
+    /**
+     * Get tutorial videos for the active section.
+     */
+    public function getVideosForSection(?string $section = null): \Illuminate\Database\Eloquent\Collection
+    {
+        $section = $section ?? $this->activeSection;
+
+        return TutorialVideo::active()
+            ->forSection($section)
+            ->ordered()
+            ->get();
+    }
+
+    /**
+     * Get video counts per section (for badges in sidebar).
+     */
+    public function getVideoCountsProperty(): array
+    {
+        return TutorialVideo::active()
+            ->selectRaw('section, count(*) as count')
+            ->groupBy('section')
+            ->pluck('count', 'section')
+            ->toArray();
     }
 
     public function getSections(): array
