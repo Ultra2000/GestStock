@@ -42,7 +42,8 @@ class ItemsRelationManager extends RelationManager
                     ->required()
                     ->numeric()
                     ->default(1)
-                    ->minValue(1)
+                    ->minValue(0.01)
+                    ->step(0.01)
                     ->live()
                     ->afterStateUpdated(function ($state, Forms\Set $set, Forms\Get $get) {
                         $this->updateTotalPrice($set, $get);

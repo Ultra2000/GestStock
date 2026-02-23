@@ -664,9 +664,9 @@
                 @forelse($sale->items as $item)
                     <tr>
                         <td><span class="product-name">{{ $item->product->name ?? 'Produit supprimé' }}</span></td>
-                        <td>{{ $item->quantity }}</td>
+                        <td>{{ rtrim(rtrim(number_format($item->quantity, 2, ',', ' '), '0'), ',') }}</td>
                         <td class="text-right text-muted">{{ number_format($item->unit_price_ht ?? $item->unit_price, 2, ',', ' ') }} {{ $currency }}</td>
-                        <td class="text-right">{{ number_format($item->vat_rate ?? 0, 0) }}%</td>
+                        <td class="text-right">{{ rtrim(rtrim(number_format($item->vat_rate ?? 0, 2, ',', ' '), '0'), ',') }}%</td>
                         <td class="text-right">{{ number_format($item->total_price_ht ?? ($item->quantity * $item->unit_price), 2, ',', ' ') }} {{ $currency }}</td>
                     </tr>
                 @empty
@@ -700,13 +700,13 @@
             @elseif($hasMultipleVatRates)
                 @foreach($vatBreakdown as $vat)
                 <div class="totals-row">
-                    <span class="label">TVA {{ number_format($vat['rate'], 1, ',', ' ') }}% (base {{ number_format($vat['base'], 2, ',', ' ') }} {{ $currency }})</span>
+                    <span class="label">TVA {{ rtrim(rtrim(number_format($vat['rate'], 2, ',', ' '), '0'), ',') }}% (base {{ number_format($vat['base'], 2, ',', ' ') }} {{ $currency }})</span>
                     <span class="value">{{ number_format($vat['amount'], 2, ',', ' ') }} {{ $currency }}</span>
                 </div>
                 @endforeach
             @else
                 <div class="totals-row">
-                    <span class="label">TVA ({{ number_format($vatBreakdown[0]['rate'] ?? 20, 1, ',', ' ') }}%)</span>
+                    <span class="label">TVA ({{ rtrim(rtrim(number_format($vatBreakdown[0]['rate'] ?? 20, 2, ',', ' '), '0'), ',') }}%)</span>
                     <span class="value">{{ number_format($totalVat, 2, ',', ' ') }} {{ $currency }}</span>
                 </div>
             @endif

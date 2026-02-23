@@ -24,6 +24,7 @@ class PurchaseItem extends Model
     ];
 
     protected $casts = [
+        'quantity' => 'decimal:2',
         'unit_price' => 'decimal:2',
         'unit_price_ht' => 'decimal:2',
         'vat_rate' => 'decimal:2',

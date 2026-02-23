@@ -178,7 +178,8 @@ class SaleResource extends Resource
                                     ->required()
                                     ->numeric()
                                     ->default(1)
-                                    ->minValue(1)
+                                    ->minValue(0.01)
+                                    ->step(0.01)
                                     ->maxValue(function (Forms\Get $get) {
                                         $productId = $get('product_id');
                                         $warehouseId = $get('../../warehouse_id');

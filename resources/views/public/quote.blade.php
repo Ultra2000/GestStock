@@ -452,9 +452,9 @@
                                     <div style="font-size: 13px; color: #64748b;">{{ $item->description }}</div>
                                 @endif
                             </td>
-                            <td class="text-center">{{ number_format($item->quantity, 0, ',', ' ') }}</td>
+                            <td class="text-center">{{ rtrim(rtrim(number_format($item->quantity, 2, ',', ' '), '0'), ',') }}</td>
                             <td class="text-right">{{ number_format($item->unit_price_ht ?? $item->unit_price, 2, ',', ' ') }} €</td>
-                            <td class="text-center">{{ number_format($item->vat_rate ?? 20, 0) }}%</td>
+                            <td class="text-center">{{ rtrim(rtrim(number_format($item->vat_rate ?? 20, 2, ',', ' '), '0'), ',') }}%</td>
                             <td class="text-right">{{ number_format($item->total_price_ht ?? ($item->total_price / (1 + ($item->vat_rate ?? 20) / 100)), 2, ',', ' ') }} €</td>
                         </tr>
                     @endforeach

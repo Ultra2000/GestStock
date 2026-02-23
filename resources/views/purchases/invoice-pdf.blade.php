@@ -537,9 +537,9 @@
             @forelse($purchase->items as $item)
                 <tr>
                     <td><span class="product-name">{{ $item->product->name ?? 'Produit supprimé' }}</span></td>
-                    <td class="text-center">{{ $item->quantity }}</td>
+                    <td class="text-center">{{ rtrim(rtrim(number_format($item->quantity, 2, ',', ' '), '0'), ',') }}</td>
                     <td class="text-right text-muted">{{ number_format($item->unit_price_ht ?? $item->unit_price, 2, ',', ' ') }} {{ $currency }}</td>
-                    <td class="text-center">{{ number_format($item->vat_rate ?? 0, 0) }}%</td>
+                    <td class="text-center">{{ rtrim(rtrim(number_format($item->vat_rate ?? 0, 2, ',', ' '), '0'), ',') }}%</td>
                     <td class="text-right">{{ number_format($item->total_price_ht ?? ($item->quantity * $item->unit_price), 2, ',', ' ') }} {{ $currency }}</td>
                 </tr>
             @empty
@@ -581,7 +581,7 @@
                     <div class="totals-row">
                         <table class="totals-row-table">
                             <tr>
-                                <td class="totals-label">TVA ({{ number_format($effectiveVatRate, 1) }}%)</td>
+                                <td class="totals-label">TVA ({{ rtrim(rtrim(number_format($effectiveVatRate, 2, ',', ' '), '0'), ',') }}%)</td>
                                 <td class="totals-value">{{ number_format($totalVat, 2, ',', ' ') }} {{ $currency }}</td>
                             </tr>
                         </table>

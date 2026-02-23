@@ -48,6 +48,8 @@ class SaleItemResource extends Resource
                     ->required()
                     ->numeric()
                     ->default(1)
+                    ->minValue(0.01)
+                    ->step(0.01)
                     ->live()
                     ->afterStateUpdated(function ($state, Forms\Get $get, Forms\Set $set) {
                         $set('total_price', $state * $get('unit_price'));
