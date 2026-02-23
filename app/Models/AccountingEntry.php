@@ -75,8 +75,8 @@ class AccountingEntry extends Model
         // Attribution automatique du numéro FEC séquentiel
         static::creating(function ($entry) {
             if (!$entry->fec_sequence) {
-                $entry->fec_sequence = static::where('company_id', $entry->company_id)
-                    ->max('fec_sequence') + 1 ?? 1;
+                $entry->fec_sequence = (static::where('company_id', $entry->company_id)
+                    ->max('fec_sequence') ?? 0) + 1;
             }
         });
 

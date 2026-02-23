@@ -784,15 +784,6 @@ class AccountingEntryService
                 );
             }
 
-            // Attribuer le numéro FEC global (sans save car déjà fait à la création)
-            foreach ($entries as $entry) {
-                // Utiliser updateQuietly pour éviter le trigger de verrouillage
-                $entry->updateQuietly([
-                    'fec_sequence' => $this->getNextFecSequence($payment->company_id),
-                    'entry_type' => 'payment',
-                ]);
-            }
-
             // Lettrage automatique avec l'écriture de vente/achat
             $this->autoLetterPayment($payment, $entries);
 
@@ -844,6 +835,7 @@ class AccountingEntryService
             'label' => $label,
             'debit' => $payment->amount,
             'credit' => 0,
+            'entry_type' => 'payment',
             'created_by' => auth()->id(),
         ]);
 
@@ -860,6 +852,7 @@ class AccountingEntryService
             'label' => $label,
             'debit' => 0,
             'credit' => $payment->amount,
+            'entry_type' => 'payment',
             'created_by' => auth()->id(),
         ]);
 
@@ -904,6 +897,7 @@ class AccountingEntryService
             'label' => $label,
             'debit' => $payment->amount,
             'credit' => 0,
+            'entry_type' => 'payment',
             'created_by' => auth()->id(),
         ]);
 
@@ -919,6 +913,7 @@ class AccountingEntryService
             'label' => $label,
             'debit' => 0,
             'credit' => $payment->amount,
+            'entry_type' => 'payment',
             'created_by' => auth()->id(),
         ]);
 
@@ -1191,8 +1186,8 @@ class AccountingEntryService
      */
     public function getNextFecSequence(int $companyId): int
     {
-        return AccountingEntry::where('company_id', $companyId)
-            ->max('fec_sequence') + 1 ?? 1;
+        return (AccountingEntry::where('company_id', $companyId)
+            ->max('fec_sequence') ?? 0) + 1;
     }
 
     /**
