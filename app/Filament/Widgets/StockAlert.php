@@ -8,6 +8,8 @@ use Filament\Widgets\StatsOverviewWidget\Stat;
 
 class StockAlert extends BaseWidget
 {
+    protected static ?int $sort = 0;
+
     protected function getHeading(): string
     {
         return 'Produits en alerte de stock';

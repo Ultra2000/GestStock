@@ -12,6 +12,8 @@ use Filament\Facades\Filament;
 
 class StatsOverview extends BaseWidget
 {
+    protected static ?int $sort = -2;
+
     protected function getStats(): array
     {
         $totalSales = Sale::where('status', 'completed')->sum('total');

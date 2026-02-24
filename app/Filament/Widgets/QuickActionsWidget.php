@@ -10,5 +10,5 @@ class QuickActionsWidget extends Widget
     
     protected int | string | array $columnSpan = 'full';
     
-    protected static ?int $sort = -3; // Priorité absolue (tout en haut)
+    protected static ?int $sort = -10; // Priorité absolue (tout en haut)
 }
