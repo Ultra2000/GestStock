@@ -1068,7 +1068,7 @@
                             {{-- Video thumbnail / player --}}
                             <div class="relative">
                                 <template x-if="!open">
-                                    <button @click="open = true" class="relative w-full aspect-video bg-gray-100 dark:bg-gray-900 group cursor-pointer">
+                                    <button @click="open = true; $wire.recordView({{ $video->id }})" class="relative w-full aspect-video bg-gray-100 dark:bg-gray-900 group cursor-pointer">
                                         @if($video->thumbnail_url)
                                             <img src="{{ $video->thumbnail_url }}" alt="{{ $video->title }}" class="w-full h-full object-cover">
                                         @elseif($video->video_type === 'youtube' && preg_match('/(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/', $video->video_url, $m))
@@ -1117,7 +1117,13 @@
                             </div>
                             {{-- Info --}}
                             <div class="p-4">
-                                <h4 class="font-semibold text-gray-900 dark:text-white text-sm m-0">{{ $video->title }}</h4>
+                                <div class="flex items-start justify-between gap-2">
+                                    <h4 class="font-semibold text-gray-900 dark:text-white text-sm m-0">{{ $video->title }}</h4>
+                                    <span class="inline-flex items-center gap-1 text-xs text-gray-400 dark:text-gray-500 shrink-0 mt-0.5" title="{{ $video->views_count }} vue{{ $video->views_count > 1 ? 's' : '' }}">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                                        {{ $video->formatted_views }}
+                                    </span>
+                                </div>
                                 @if($video->description)
                                     <p class="text-xs text-gray-500 dark:text-gray-400 mt-1 m-0 line-clamp-2">{{ $video->description }}</p>
                                 @endif

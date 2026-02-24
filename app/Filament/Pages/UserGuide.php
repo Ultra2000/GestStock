@@ -37,6 +37,15 @@ class UserGuide extends Page
     }
 
     /**
+     * Record a video view.
+     */
+    public function recordView(int $videoId): void
+    {
+        $video = TutorialVideo::find($videoId);
+        $video?->incrementViews();
+    }
+
+    /**
      * Get video counts per section (for badges in sidebar).
      */
     public function getVideoCountsProperty(): array

@@ -159,9 +159,21 @@ class TutorialVideoResource extends Resource
                     ->label('Duree')
                     ->placeholder('—'),
 
+                Tables\Columns\TextColumn::make('views_count')
+                    ->label('Vues')
+                    ->sortable()
+                    ->formatStateUsing(function ($state) {
+                        if ($state >= 1000000) return number_format($state / 1000000, 1) . 'M';
+                        if ($state >= 1000) return number_format($state / 1000, 1) . 'k';
+                        return $state;
+                    })
+                    ->icon('heroicon-o-eye')
+                    ->color('gray'),
+
                 Tables\Columns\TextColumn::make('sort_order')
                     ->label('Ordre')
-                    ->sortable(),
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
 
                 Tables\Columns\IconColumn::make('is_active')
                     ->label('Active')

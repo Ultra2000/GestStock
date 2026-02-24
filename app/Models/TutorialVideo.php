@@ -18,14 +18,35 @@ class TutorialVideo extends Model
         'thumbnail_url',
         'duration_seconds',
         'sort_order',
+        'views_count',
         'is_active',
     ];
 
     protected $casts = [
         'duration_seconds' => 'integer',
         'sort_order' => 'integer',
+        'views_count' => 'integer',
         'is_active' => 'boolean',
     ];
+
+    /**
+     * Increment the view counter.
+     */
+    public function incrementViews(): void
+    {
+        $this->increment('views_count');
+    }
+
+    /**
+     * Get formatted view count.
+     */
+    public function getFormattedViewsAttribute(): string
+    {
+        $count = $this->views_count;
+        if ($count >= 1000000) return number_format($count / 1000000, 1) . 'M';
+        if ($count >= 1000) return number_format($count / 1000, 1) . 'k';
+        return (string) $count;
+    }
 
     /**
      * All available guide sections.
