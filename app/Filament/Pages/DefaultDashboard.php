@@ -26,9 +26,11 @@ class DefaultDashboard extends BaseDashboard
     public function getWidgets(): array
     {
         return [
+            // Bienvenue + actions rapides
+            QuickActionsWidget::class,
+            
             // Statistiques principales
             StatsOverview::class,
-            QuickActionsWidget::class,
             
             // Ventes & Devis
             SalesChart::class,
