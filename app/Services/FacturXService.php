@@ -83,7 +83,20 @@ class FacturXService
             $document->setDocumentBuyer("Client Comptant");
         }
 
-        // Line Items
+        // Delivery address (if different from billing)
+        if ($sale->delivery_address) {
+            $document->setDocumentShipTo($customer->name ?? 'Client');
+            $document->setDocumentShipToAddress(
+                $sale->delivery_address,
+                null,
+                null,
+                '',
+                '',
+                $customer->country_code ?? $company->country_code ?? 'FR'
+            );
+        }
+
+        // Line Items — use per-line VAT rate instead of global tax_percent
         $lineNumber = 1;
         foreach ($sale->items as $item) {
             $document->addNewPosition((string) $lineNumber);
@@ -92,24 +105,29 @@ class FacturXService
                 $item->product->description ?? null
             );
             // Pour Factur-X, les prix doivent être positifs même pour un avoir (le code 381 suffit)
-            // Mais notre système stocke des prix négatifs pour les avoirs. On prend la valeur absolue.
-            $document->setDocumentPositionNetPrice(abs($item->unit_price));
+            $document->setDocumentPositionNetPrice(abs($item->unit_price_ht ?? $item->unit_price));
             $document->setDocumentPositionQuantity($item->quantity, "H87"); // H87 = Piece
-            $document->addDocumentPositionTax("S", "VAT", $sale->tax_percent ?? 0);
+            $itemVatRate = $item->vat_rate ?? $sale->tax_percent ?? 0;
+            $itemCategory = $item->vat_category ?? ($itemVatRate > 0 ? 'S' : 'E');
+            $document->addDocumentPositionTax($itemCategory, "VAT", $itemVatRate);
             $lineNumber++;
         }
 
-        // Totals
-        $taxPercent = $sale->tax_percent ?? 0;
-        // Idem pour les totaux, Factur-X attend des valeurs positives
-        $subtotal = abs($sale->items->sum('total_price'));
+        // Totals — use per-rate VAT breakdown
+        $vatBreakdown = $sale->getVatBreakdown();
+        $subtotal = abs($sale->items->sum('total_price_ht'));
         $discountAmount = $subtotal * (($sale->discount_percent ?? 0) / 100);
         $basisAmount = $subtotal - $discountAmount;
-        $taxAmount = $basisAmount * ($taxPercent / 100);
-        $grandTotal = abs($sale->total ?? ($basisAmount + $taxAmount));
+        $totalTax = 0;
 
-        // Tax Summary
-        $document->addDocumentTax("S", "VAT", $basisAmount, $taxAmount, $taxPercent);
+        // Tax Summary per rate
+        foreach ($vatBreakdown as $vat) {
+            $category = $vat['category'] ?? ($vat['rate'] > 0 ? 'S' : 'E');
+            $document->addDocumentTax($category, "VAT", abs($vat['base']), abs($vat['amount']), $vat['rate']);
+            $totalTax += abs($vat['amount']);
+        }
+
+        $grandTotal = abs($sale->total ?? ($basisAmount + $totalTax));
 
         // Document Summation
         $document->setDocumentSummation(
@@ -119,9 +137,9 @@ class FacturXService
             0,                // Charge total
             $discountAmount,  // Allowance total
             $basisAmount,     // Tax basis total
-            $taxAmount,       // Tax total
+            $totalTax,        // Tax total
             null,             // Round amount
-            $grandTotal       // Total prepaid (0 for simplicity)
+            0                 // Total prepaid
         );
 
         return $document->getContent();

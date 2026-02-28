@@ -43,6 +43,8 @@ class Sale extends Model
         'security_hash',
         'previous_hash',
         'notes',
+        'nature_operation',
+        'delivery_address',
         'ppf_status',
         'ppf_id',
         'ppf_chorus_id',

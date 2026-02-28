@@ -499,6 +499,7 @@
                     </div>
                     <div class="info-card-name">{{ $sale->customer->name ?? 'Client non défini' }}</div>
                     <div class="info-card-text">
+                        @if(optional($sale->customer)->registration_number)<strong>SIREN:</strong> {{ $sale->customer->registration_number }}<br>@endif
                         @if(optional($sale->customer)->siret)<strong>SIRET:</strong> {{ $sale->customer->siret }}<br>@endif
                         @if(optional($sale->customer)->address){{ $sale->customer->address }}<br>@endif
                         @if(optional($sale->customer)->zip_code || optional($sale->customer)->city){{ optional($sale->customer)->zip_code }} {{ optional($sale->customer)->city }}<br>@endif
@@ -618,6 +619,25 @@
             </td>
         </tr>
     </table>
+</div>
+
+<!-- MENTIONS LÉGALES 2026 -->
+@php
+    $accountingSettings = \App\Models\AccountingSetting::where('company_id', $company->id)->first();
+    $isVatOnDebits = ($accountingSettings->vat_regime ?? 'debits') === 'debits' && !($accountingSettings->is_vat_franchise ?? false);
+    $natureOp = $sale->nature_operation ?? null;
+    $deliveryAddr = $sale->delivery_address ?? null;
+@endphp
+<div style="margin-top: 10px; padding: 8px 12px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 8px; color: #64748b;">
+    @if($isVatOnDebits)
+        <div style="margin-bottom: 3px;"><strong>TVA acquittée sur les débits</strong></div>
+    @endif
+    @if($natureOp)
+        <div style="margin-bottom: 3px;">Nature de l'opération : {{ ['goods' => 'Vente de biens', 'services' => 'Prestation de services', 'mixed' => 'Mixte'][$natureOp] ?? $natureOp }}</div>
+    @endif
+    @if($deliveryAddr)
+        <div>Adresse de livraison : {{ $deliveryAddr }}</div>
+    @endif
 </div>
 
 <!-- NOTES -->

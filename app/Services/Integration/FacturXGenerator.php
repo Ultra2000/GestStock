@@ -23,11 +23,21 @@ class FacturXGenerator
         // Numéro de facture (max 20 caractères pour Chorus Pro)
         $invoiceNumber = substr($sale->invoice_number, 0, 20);
 
-        // Calculate tax amounts - Le total inclut la TVA
+        // Calculate tax amounts using per-rate breakdown
         $grandTotal = $sale->total;
-        $taxPercent = $sale->tax_percent ?? 20;
-        $taxBasisTotal = round($grandTotal / (1 + $taxPercent / 100), 2);
-        $taxAmount = round($grandTotal - $taxBasisTotal, 2);
+        $vatBreakdown = $sale->getVatBreakdown();
+        $taxBasisTotal = 0;
+        $taxAmount = 0;
+        foreach ($vatBreakdown as $vat) {
+            $taxBasisTotal += $vat['base'];
+            $taxAmount += $vat['amount'];
+        }
+        if ($taxBasisTotal == 0) {
+            // Fallback if no breakdown
+            $taxPercent = $sale->tax_percent ?? 20;
+            $taxBasisTotal = round($grandTotal / (1 + $taxPercent / 100), 2);
+            $taxAmount = round($grandTotal - $taxBasisTotal, 2);
+        }
 
         // Code pays ISO 3166-1 alpha-2 (2 caractères)
         $sellerCountry = substr($company->country_code ?? 'FR', 0, 2);
@@ -40,17 +50,8 @@ class FacturXGenerator
         // Code type de paiement (30 = virement, 42 = prélèvement, 10 = espèces, 48 = carte)
         $paymentTypeCode = '30'; // Virement bancaire par défaut
 
-        // Catégorie TVA selon UNTDID 5305 pour Chorus Pro:
-        // S = Standard rate (taux normal avec TVA)
-        // E = Exempt from tax (exonéré de TVA - le plus courant pour 0%)
-        // O = Services outside scope of tax (hors champ TVA)
-        // AE = VAT Reverse Charge (autoliquidation)
-        // Pour une facture B2G française avec TVA à 0%, utiliser 'E' (Exempt)
-        if ($taxPercent > 0) {
-            $taxCategoryCode = 'S'; // Standard
-        } else {
-            $taxCategoryCode = 'E'; // Exempt (pour TVA 0%)
-        }
+        // TypeCode: 380 = Facture, 381 = Avoir
+        $typeCode = $sale->type === 'credit_note' ? '381' : '380';
 
         // Devise
         $currency = $company->currency ?? 'EUR';
@@ -78,7 +79,7 @@ class FacturXGenerator
         // Document Header
         $xml .= '    <rsm:ExchangedDocument>' . "\n";
         $xml .= '        <ram:ID>' . htmlspecialchars($invoiceNumber) . '</ram:ID>' . "\n";
-        $xml .= '        <ram:TypeCode>380</ram:TypeCode>' . "\n";
+        $xml .= '        <ram:TypeCode>' . $typeCode . '</ram:TypeCode>' . "\n";
         $xml .= '        <ram:IssueDateTime>' . "\n";
         $xml .= '            <udt:DateTimeString format="102">' . $issueDate . '</udt:DateTimeString>' . "\n";
         $xml .= '        </ram:IssueDateTime>' . "\n";
@@ -87,11 +88,13 @@ class FacturXGenerator
         // Supply Chain Trade Transaction
         $xml .= '    <rsm:SupplyChainTradeTransaction>' . "\n";
         
-        // Line Items
+        // Line Items — use per-line VAT rate
         $lineNumber = 1;
         foreach ($sale->items as $item) {
-            $lineTotal = round($item->quantity * $item->unit_price, 2);
+            $lineTotal = round($item->quantity * ($item->unit_price_ht ?? $item->unit_price), 2);
             $productName = htmlspecialchars($item->product->name ?? 'Produit');
+            $itemVatRate = $item->vat_rate ?? $sale->tax_percent ?? 20;
+            $itemCategoryCode = $itemVatRate > 0 ? 'S' : 'E';
             
             $xml .= '        <ram:IncludedSupplyChainTradeLineItem>' . "\n";
             $xml .= '            <ram:AssociatedDocumentLineDocument>' . "\n";
@@ -102,7 +105,7 @@ class FacturXGenerator
             $xml .= '            </ram:SpecifiedTradeProduct>' . "\n";
             $xml .= '            <ram:SpecifiedLineTradeAgreement>' . "\n";
             $xml .= '                <ram:NetPriceProductTradePrice>' . "\n";
-            $xml .= '                    <ram:ChargeAmount>' . number_format($item->unit_price, 2, '.', '') . '</ram:ChargeAmount>' . "\n";
+            $xml .= '                    <ram:ChargeAmount>' . number_format(abs($item->unit_price_ht ?? $item->unit_price), 2, '.', '') . '</ram:ChargeAmount>' . "\n";
             $xml .= '                </ram:NetPriceProductTradePrice>' . "\n";
             $xml .= '            </ram:SpecifiedLineTradeAgreement>' . "\n";
             $xml .= '            <ram:SpecifiedLineTradeDelivery>' . "\n";
@@ -111,11 +114,11 @@ class FacturXGenerator
             $xml .= '            <ram:SpecifiedLineTradeSettlement>' . "\n";
             $xml .= '                <ram:ApplicableTradeTax>' . "\n";
             $xml .= '                    <ram:TypeCode>VAT</ram:TypeCode>' . "\n";
-            $xml .= '                    <ram:CategoryCode>' . $taxCategoryCode . '</ram:CategoryCode>' . "\n";
-            $xml .= '                    <ram:RateApplicablePercent>' . number_format($taxPercent, 2, '.', '') . '</ram:RateApplicablePercent>' . "\n";
+            $xml .= '                    <ram:CategoryCode>' . $itemCategoryCode . '</ram:CategoryCode>' . "\n";
+            $xml .= '                    <ram:RateApplicablePercent>' . number_format($itemVatRate, 2, '.', '') . '</ram:RateApplicablePercent>' . "\n";
             $xml .= '                </ram:ApplicableTradeTax>' . "\n";
             $xml .= '                <ram:SpecifiedTradeSettlementLineMonetarySummation>' . "\n";
-            $xml .= '                    <ram:LineTotalAmount>' . number_format($lineTotal, 2, '.', '') . '</ram:LineTotalAmount>' . "\n";
+            $xml .= '                    <ram:LineTotalAmount>' . number_format(abs($lineTotal), 2, '.', '') . '</ram:LineTotalAmount>' . "\n";
             $xml .= '                </ram:SpecifiedTradeSettlementLineMonetarySummation>' . "\n";
             $xml .= '            </ram:SpecifiedLineTradeSettlement>' . "\n";
             $xml .= '        </ram:IncludedSupplyChainTradeLineItem>' . "\n";
@@ -158,6 +161,15 @@ class FacturXGenerator
         
         // Delivery
         $xml .= '        <ram:ApplicableHeaderTradeDelivery>' . "\n";
+        // Adresse de livraison (si différente du siège)
+        if ($sale->delivery_address) {
+            $xml .= '            <ram:ShipToTradeParty>' . "\n";
+            $xml .= '                <ram:PostalTradeAddress>' . "\n";
+            $xml .= '                    <ram:LineOne>' . htmlspecialchars($sale->delivery_address) . '</ram:LineOne>' . "\n";
+            $xml .= '                    <ram:CountryID>' . $buyerCountry . '</ram:CountryID>' . "\n";
+            $xml .= '                </ram:PostalTradeAddress>' . "\n";
+            $xml .= '            </ram:ShipToTradeParty>' . "\n";
+        }
         $xml .= '            <ram:ActualDeliverySupplyChainEvent>' . "\n";
         $xml .= '                <ram:OccurrenceDateTime>' . "\n";
         $xml .= '                    <udt:DateTimeString format="102">' . $issueDate . '</udt:DateTimeString>' . "\n";
@@ -174,14 +186,17 @@ class FacturXGenerator
         $xml .= '                <ram:TypeCode>' . $paymentTypeCode . '</ram:TypeCode>' . "\n";
         $xml .= '            </ram:SpecifiedTradeSettlementPaymentMeans>' . "\n";
         
-        // OBLIGATOIRE: Détail de la TVA au niveau header
-        $xml .= '            <ram:ApplicableTradeTax>' . "\n";
-        $xml .= '                <ram:CalculatedAmount>' . number_format($taxAmount, 2, '.', '') . '</ram:CalculatedAmount>' . "\n";
-        $xml .= '                <ram:TypeCode>VAT</ram:TypeCode>' . "\n";
-        $xml .= '                <ram:BasisAmount>' . number_format($taxBasisTotal, 2, '.', '') . '</ram:BasisAmount>' . "\n";
-        $xml .= '                <ram:CategoryCode>' . $taxCategoryCode . '</ram:CategoryCode>' . "\n";
-        $xml .= '                <ram:RateApplicablePercent>' . number_format($taxPercent, 2, '.', '') . '</ram:RateApplicablePercent>' . "\n";
-        $xml .= '            </ram:ApplicableTradeTax>' . "\n";
+        // OBLIGATOIRE: Détail de la TVA au niveau header — par taux
+        foreach ($vatBreakdown as $vat) {
+            $vatCatCode = $vat['category'] ?? ($vat['rate'] > 0 ? 'S' : 'E');
+            $xml .= '            <ram:ApplicableTradeTax>' . "\n";
+            $xml .= '                <ram:CalculatedAmount>' . number_format(abs($vat['amount']), 2, '.', '') . '</ram:CalculatedAmount>' . "\n";
+            $xml .= '                <ram:TypeCode>VAT</ram:TypeCode>' . "\n";
+            $xml .= '                <ram:BasisAmount>' . number_format(abs($vat['base']), 2, '.', '') . '</ram:BasisAmount>' . "\n";
+            $xml .= '                <ram:CategoryCode>' . $vatCatCode . '</ram:CategoryCode>' . "\n";
+            $xml .= '                <ram:RateApplicablePercent>' . number_format($vat['rate'], 2, '.', '') . '</ram:RateApplicablePercent>' . "\n";
+            $xml .= '            </ram:ApplicableTradeTax>' . "\n";
+        }
         
         // Date d'échéance de paiement
         $xml .= '            <ram:SpecifiedTradePaymentTerms>' . "\n";

@@ -315,16 +315,16 @@
             <!-- Stats rapides -->
             <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-12">
                 <div class="glass-card rounded-2xl p-4 text-center">
-                    <div class="text-3xl font-bold text-amber-400 mb-1">3</div>
-                    <div class="text-slate-400 text-sm">En cours</div>
+                    <div class="text-3xl font-bold text-amber-400 mb-1">1</div>
+                    <div class="text-slate-400 text-sm">Prochainement</div>
                 </div>
                 <div class="glass-card rounded-2xl p-4 text-center">
-                    <div class="text-3xl font-bold text-indigo-400 mb-1">5</div>
+                    <div class="text-3xl font-bold text-indigo-400 mb-1">2</div>
                     <div class="text-slate-400 text-sm">Planifiées</div>
                 </div>
                 <div class="glass-card rounded-2xl p-4 text-center">
-                    <div class="text-3xl font-bold text-slate-400 mb-1">4</div>
-                    <div class="text-slate-400 text-sm">Idées futures</div>
+                    <div class="text-3xl font-bold text-slate-400 mb-1">1</div>
+                    <div class="text-slate-400 text-sm">Vision</div>
                 </div>
                 <div class="glass-card rounded-2xl p-4 text-center">
                     <div class="text-3xl font-bold text-emerald-400 mb-1">8</div>
@@ -333,64 +333,42 @@
             </div>
 
             <!-- Roadmap Grid -->
-            <div class="grid lg:grid-cols-4 gap-6">
+            <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
                 
-                <!-- Colonne : En cours -->
+                <!-- Colonne : Été 2026 — Rapprochement Bancaire -->
                 <div>
                     <div class="column-header glass-card rounded-2xl p-4 mb-4 flex items-center gap-3">
                         <div class="timeline-dot status-in-progress"></div>
                         <div>
-                            <h2 class="text-white font-bold">En cours</h2>
-                            <p class="text-xs text-slate-500">Développement actif</p>
+                            <h2 class="text-white font-bold">Été 2026</h2>
+                            <p class="text-xs text-slate-500">Prochainement</p>
                         </div>
                     </div>
                     <div class="space-y-4">
-                        <!-- Card 1 -->
-                        <div class="roadmap-card rounded-xl p-4">
+                        <div class="roadmap-card rounded-xl p-5">
                             <div class="flex items-start justify-between mb-3">
-                                <span class="status-in-progress text-white text-xs font-bold px-2 py-1 rounded-full">En cours</span>
-                                <span class="text-slate-500 text-xs">70%</span>
+                                <span class="status-in-progress text-white text-xs font-bold px-2 py-1 rounded-full">Prochainement</span>
                             </div>
-                            <h3 class="text-white font-semibold mb-2">Application mobile</h3>
-                            <p class="text-slate-400 text-sm mb-3">Application iOS et Android pour accéder à vos données en mobilité.</p>
-                            <div class="progress-bar">
-                                <div class="progress-fill" style="width: 70%"></div>
-                            </div>
-                            <div class="flex items-center gap-2 mt-3 text-xs text-slate-500">
-                                <i class="fas fa-mobile-screen"></i>
-                                <span>Module Mobile</span>
-                            </div>
-                        </div>
-
-                        <!-- Card 2 -->
-                        <div class="roadmap-card rounded-xl p-4">
-                            <div class="flex items-start justify-between mb-3">
-                                <span class="status-in-progress text-white text-xs font-bold px-2 py-1 rounded-full">En cours</span>
-                                <span class="text-slate-500 text-xs">45%</span>
-                            </div>
-                            <h3 class="text-white font-semibold mb-2">Module CRM avancé</h3>
-                            <p class="text-slate-400 text-sm mb-3">Gestion complète de la relation client avec pipeline de vente.</p>
-                            <div class="progress-bar">
-                                <div class="progress-fill" style="width: 45%"></div>
-                            </div>
-                            <div class="flex items-center gap-2 mt-3 text-xs text-slate-500">
-                                <i class="fas fa-handshake"></i>
-                                <span>Module CRM</span>
-                            </div>
-                        </div>
-
-                        <!-- Card 3 -->
-                        <div class="roadmap-card rounded-xl p-4">
-                            <div class="flex items-start justify-between mb-3">
-                                <span class="status-in-progress text-white text-xs font-bold px-2 py-1 rounded-full">En cours</span>
-                                <span class="text-slate-500 text-xs">30%</span>
-                            </div>
-                            <h3 class="text-white font-semibold mb-2">Intégration bancaire</h3>
-                            <p class="text-slate-400 text-sm mb-3">Synchronisation automatique avec vos comptes bancaires.</p>
-                            <div class="progress-bar">
-                                <div class="progress-fill" style="width: 30%"></div>
-                            </div>
-                            <div class="flex items-center gap-2 mt-3 text-xs text-slate-500">
+                            <h3 class="text-white font-semibold text-lg mb-3">Rapprochement Bancaire</h3>
+                            <ul class="space-y-2.5 text-sm text-slate-400">
+                                <li class="flex items-start gap-2">
+                                    <i class="fas fa-arrow-right text-amber-400 mt-1 text-xs shrink-0"></i>
+                                    <span>Import de relevés bancaires CSV et OFX</span>
+                                </li>
+                                <li class="flex items-start gap-2">
+                                    <i class="fas fa-arrow-right text-amber-400 mt-1 text-xs shrink-0"></i>
+                                    <span>Rapprochement automatique des transactions avec les règlements</span>
+                                </li>
+                                <li class="flex items-start gap-2">
+                                    <i class="fas fa-arrow-right text-amber-400 mt-1 text-xs shrink-0"></i>
+                                    <span>Suggestions intelligentes de correspondances</span>
+                                </li>
+                                <li class="flex items-start gap-2">
+                                    <i class="fas fa-arrow-right text-amber-400 mt-1 text-xs shrink-0"></i>
+                                    <span>Validation et génération automatique des écritures comptables</span>
+                                </li>
+                            </ul>
+                            <div class="flex items-center gap-2 mt-4 text-xs text-slate-500">
                                 <i class="fas fa-building-columns"></i>
                                 <span>Module Comptabilité</span>
                             </div>
@@ -398,154 +376,124 @@
                     </div>
                 </div>
 
-                <!-- Colonne : Q1 2026 -->
+                <!-- Colonne : 2nd sem. 2026 — Clôture & Ouverture Comptable -->
                 <div>
                     <div class="column-header glass-card rounded-2xl p-4 mb-4 flex items-center gap-3">
                         <div class="timeline-dot status-planned"></div>
                         <div>
-                            <h2 class="text-white font-bold">Q1 2026</h2>
-                            <p class="text-xs text-slate-500">Janvier - Mars</p>
+                            <h2 class="text-white font-bold">2nd sem. 2026</h2>
+                            <p class="text-xs text-slate-500">Planifié</p>
                         </div>
                     </div>
                     <div class="space-y-4">
-                        <!-- Card 1 -->
-                        <div class="roadmap-card rounded-xl p-4">
+                        <div class="roadmap-card rounded-xl p-5">
                             <div class="flex items-start justify-between mb-3">
                                 <span class="status-planned text-white text-xs font-bold px-2 py-1 rounded-full">Planifié</span>
                             </div>
-                            <h3 class="text-white font-semibold mb-2">Module Projets</h3>
-                            <p class="text-slate-400 text-sm mb-3">Gestion de projets avec Gantt, tâches et suivi du temps.</p>
-                            <div class="flex items-center gap-2 mt-3 text-xs text-slate-500">
-                                <i class="fas fa-diagram-project"></i>
-                                <span>Nouveau module</span>
-                            </div>
-                        </div>
-
-                        <!-- Card 2 -->
-                        <div class="roadmap-card rounded-xl p-4">
-                            <div class="flex items-start justify-between mb-3">
-                                <span class="status-planned text-white text-xs font-bold px-2 py-1 rounded-full">Planifié</span>
-                            </div>
-                            <h3 class="text-white font-semibold mb-2">Multi-devises</h3>
-                            <p class="text-slate-400 text-sm mb-3">Support complet des devises étrangères avec taux de change automatique.</p>
-                            <div class="flex items-center gap-2 mt-3 text-xs text-slate-500">
-                                <i class="fas fa-coins"></i>
-                                <span>Module Ventes</span>
-                            </div>
-                        </div>
-
-                        <!-- Card 3 -->
-                        <div class="roadmap-card rounded-xl p-4">
-                            <div class="flex items-start justify-between mb-3">
-                                <span class="status-planned text-white text-xs font-bold px-2 py-1 rounded-full">Planifié</span>
-                            </div>
-                            <h3 class="text-white font-semibold mb-2">Rapports personnalisés</h3>
-                            <p class="text-slate-400 text-sm mb-3">Créateur de rapports drag & drop avec exports PDF/Excel.</p>
-                            <div class="flex items-center gap-2 mt-3 text-xs text-slate-500">
-                                <i class="fas fa-chart-pie"></i>
-                                <span>Module Rapports</span>
+                            <h3 class="text-white font-semibold text-lg mb-3">Clôture & Ouverture Comptable</h3>
+                            <ul class="space-y-2.5 text-sm text-slate-400">
+                                <li class="flex items-start gap-2">
+                                    <i class="fas fa-arrow-right text-indigo-400 mt-1 text-xs shrink-0"></i>
+                                    <span>Clôture automatique de l'exercice avec calcul du résultat net</span>
+                                </li>
+                                <li class="flex items-start gap-2">
+                                    <i class="fas fa-arrow-right text-indigo-400 mt-1 text-xs shrink-0"></i>
+                                    <span>Génération automatique des écritures d'à-nouveaux (journal AN)</span>
+                                </li>
+                                <li class="flex items-start gap-2">
+                                    <i class="fas fa-arrow-right text-indigo-400 mt-1 text-xs shrink-0"></i>
+                                    <span>Verrouillage des écritures de l'exercice clos</span>
+                                </li>
+                                <li class="flex items-start gap-2">
+                                    <i class="fas fa-arrow-right text-indigo-400 mt-1 text-xs shrink-0"></i>
+                                    <span>Bilan et compte de résultat de clôture en PDF</span>
+                                </li>
+                            </ul>
+                            <div class="flex items-center gap-2 mt-4 text-xs text-slate-500">
+                                <i class="fas fa-calculator"></i>
+                                <span>Module Comptabilité</span>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Colonne : Q2 2026 -->
+                <!-- Colonne : 2027 — Intégration URSSAF -->
                 <div>
                     <div class="column-header glass-card rounded-2xl p-4 mb-4 flex items-center gap-3">
                         <div class="timeline-dot status-planned"></div>
                         <div>
-                            <h2 class="text-white font-bold">Q2 2026</h2>
-                            <p class="text-xs text-slate-500">Avril - Juin</p>
+                            <h2 class="text-white font-bold">2027</h2>
+                            <p class="text-xs text-slate-500">Planifié</p>
                         </div>
                     </div>
                     <div class="space-y-4">
-                        <!-- Card 1 -->
-                        <div class="roadmap-card rounded-xl p-4">
+                        <div class="roadmap-card rounded-xl p-5">
                             <div class="flex items-start justify-between mb-3">
                                 <span class="status-planned text-white text-xs font-bold px-2 py-1 rounded-full">Planifié</span>
                             </div>
-                            <h3 class="text-white font-semibold mb-2">E-commerce natif</h3>
-                            <p class="text-slate-400 text-sm mb-3">Boutique en ligne intégrée avec synchronisation stock en temps réel.</p>
-                            <div class="flex items-center gap-2 mt-3 text-xs text-slate-500">
-                                <i class="fas fa-shopping-cart"></i>
-                                <span>Nouveau module</span>
-                            </div>
-                        </div>
-
-                        <!-- Card 2 -->
-                        <div class="roadmap-card rounded-xl p-4">
-                            <div class="flex items-start justify-between mb-3">
-                                <span class="status-planned text-white text-xs font-bold px-2 py-1 rounded-full">Planifié</span>
-                            </div>
-                            <h3 class="text-white font-semibold mb-2">IA & Automatisation</h3>
-                            <p class="text-slate-400 text-sm mb-3">Prévisions de ventes, alertes intelligentes et automatisations avancées.</p>
-                            <div class="flex items-center gap-2 mt-3 text-xs text-slate-500">
-                                <i class="fas fa-robot"></i>
-                                <span>Intelligence artificielle</span>
+                            <h3 class="text-white font-semibold text-lg mb-3">Intégration URSSAF</h3>
+                            <ul class="space-y-2.5 text-sm text-slate-400">
+                                <li class="flex items-start gap-2">
+                                    <i class="fas fa-arrow-right text-indigo-400 mt-1 text-xs shrink-0"></i>
+                                    <span>Déclarations de cotisations sociales via API URSSAF</span>
+                                </li>
+                                <li class="flex items-start gap-2">
+                                    <i class="fas fa-arrow-right text-indigo-400 mt-1 text-xs shrink-0"></i>
+                                    <span>Calcul automatique des charges patronales et salariales</span>
+                                </li>
+                                <li class="flex items-start gap-2">
+                                    <i class="fas fa-arrow-right text-indigo-400 mt-1 text-xs shrink-0"></i>
+                                    <span>Synchronisation avec le module paie et RH existant</span>
+                                </li>
+                                <li class="flex items-start gap-2">
+                                    <i class="fas fa-arrow-right text-indigo-400 mt-1 text-xs shrink-0"></i>
+                                    <span>Tableaux de bord des obligations sociales</span>
+                                </li>
+                            </ul>
+                            <div class="flex items-center gap-2 mt-4 text-xs text-slate-500">
+                                <i class="fas fa-landmark"></i>
+                                <span>Module RH & Paie</span>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Colonne : Idées futures -->
+                <!-- Colonne : 2027-2028 — Assistant IA via MCP -->
                 <div>
                     <div class="column-header glass-card rounded-2xl p-4 mb-4 flex items-center gap-3">
                         <div class="timeline-dot status-idea"></div>
                         <div>
-                            <h2 class="text-white font-bold">Idées futures</h2>
-                            <p class="text-xs text-slate-500">À explorer</p>
+                            <h2 class="text-white font-bold">2027-2028</h2>
+                            <p class="text-xs text-slate-500">Vision</p>
                         </div>
                     </div>
                     <div class="space-y-4">
-                        <!-- Card 1 -->
-                        <div class="roadmap-card rounded-xl p-4">
+                        <div class="roadmap-card rounded-xl p-5">
                             <div class="flex items-start justify-between mb-3">
-                                <span class="status-idea text-white text-xs font-bold px-2 py-1 rounded-full">Idée</span>
+                                <span class="status-idea text-white text-xs font-bold px-2 py-1 rounded-full">Vision</span>
                             </div>
-                            <h3 class="text-white font-semibold mb-2">Marketplace d'extensions</h3>
-                            <p class="text-slate-400 text-sm mb-3">Plugins et extensions communautaires pour personnaliser votre ERP.</p>
-                            <div class="flex items-center gap-2 mt-3 text-xs text-slate-500">
-                                <i class="fas fa-puzzle-piece"></i>
-                                <span>Écosystème</span>
-                            </div>
-                        </div>
-
-                        <!-- Card 2 -->
-                        <div class="roadmap-card rounded-xl p-4">
-                            <div class="flex items-start justify-between mb-3">
-                                <span class="status-idea text-white text-xs font-bold px-2 py-1 rounded-full">Idée</span>
-                            </div>
-                            <h3 class="text-white font-semibold mb-2">Mode hors-ligne</h3>
-                            <p class="text-slate-400 text-sm mb-3">Travaillez sans connexion internet avec synchronisation automatique.</p>
-                            <div class="flex items-center gap-2 mt-3 text-xs text-slate-500">
-                                <i class="fas fa-wifi-slash"></i>
-                                <span>Infrastructure</span>
-                            </div>
-                        </div>
-
-                        <!-- Card 3 -->
-                        <div class="roadmap-card rounded-xl p-4">
-                            <div class="flex items-start justify-between mb-3">
-                                <span class="status-idea text-white text-xs font-bold px-2 py-1 rounded-full">Idée</span>
-                            </div>
-                            <h3 class="text-white font-semibold mb-2">Intégrations tierces</h3>
-                            <p class="text-slate-400 text-sm mb-3">Zapier, Make, Shopify, WooCommerce, et bien plus.</p>
-                            <div class="flex items-center gap-2 mt-3 text-xs text-slate-500">
-                                <i class="fas fa-plug"></i>
-                                <span>Intégrations</span>
-                            </div>
-                        </div>
-
-                        <!-- Card 4 -->
-                        <div class="roadmap-card rounded-xl p-4">
-                            <div class="flex items-start justify-between mb-3">
-                                <span class="status-idea text-white text-xs font-bold px-2 py-1 rounded-full">Idée</span>
-                            </div>
-                            <h3 class="text-white font-semibold mb-2">Multi-langues</h3>
-                            <p class="text-slate-400 text-sm mb-3">Interface disponible en anglais, espagnol, allemand, etc.</p>
-                            <div class="flex items-center gap-2 mt-3 text-xs text-slate-500">
-                                <i class="fas fa-globe"></i>
-                                <span>Internationalisation</span>
+                            <h3 class="text-white font-semibold text-lg mb-3">Assistant IA via MCP</h3>
+                            <ul class="space-y-2.5 text-sm text-slate-400">
+                                <li class="flex items-start gap-2">
+                                    <i class="fas fa-arrow-right text-slate-500 mt-1 text-xs shrink-0"></i>
+                                    <span>Connexion d'une IA directement à votre ERP via Model Context Protocol</span>
+                                </li>
+                                <li class="flex items-start gap-2">
+                                    <i class="fas fa-arrow-right text-slate-500 mt-1 text-xs shrink-0"></i>
+                                    <span>Automatisation des opérations comptables par commande naturelle</span>
+                                </li>
+                                <li class="flex items-start gap-2">
+                                    <i class="fas fa-arrow-right text-slate-500 mt-1 text-xs shrink-0"></i>
+                                    <span>Génération de rapports et analyses en langage naturel</span>
+                                </li>
+                                <li class="flex items-start gap-2">
+                                    <i class="fas fa-arrow-right text-slate-500 mt-1 text-xs shrink-0"></i>
+                                    <span>Mode validation humaine avant toute opération critique</span>
+                                </li>
+                            </ul>
+                            <div class="flex items-center gap-2 mt-4 text-xs text-slate-500">
+                                <i class="fas fa-robot"></i>
+                                <span>Intelligence artificielle</span>
                             </div>
                         </div>
                     </div>

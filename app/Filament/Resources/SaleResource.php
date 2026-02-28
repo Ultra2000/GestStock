@@ -87,6 +87,15 @@ class SaleResource extends Resource
                                 'paypal' => 'PayPal',
                             ])
                             ->required(),
+                        Forms\Components\Select::make('nature_operation')
+                            ->label("Nature de l'opération")
+                            ->options([
+                                'goods' => 'Vente de biens',
+                                'services' => 'Prestation de services',
+                                'mixed' => 'Mixte',
+                            ])
+                            ->placeholder('Sélectionner...')
+                            ->helperText('Mention obligatoire 2026'),
                         Forms\Components\Select::make('bank_account_id')
                             ->label('Compte de dépôt')
                             ->relationship('bankAccount', 'name', fn ($query) => $query->where('company_id', $companyId))
@@ -94,6 +103,11 @@ class SaleResource extends Resource
                             ->preload()
                             ->required(fn (Forms\Get $get) => $get('status') === 'completed')
                             ->visible(fn (Forms\Get $get) => $get('status') === 'completed'),
+                        Forms\Components\Textarea::make('delivery_address')
+                            ->label('Adresse de livraison')
+                            ->placeholder("Si différente de l'adresse du client")
+                            ->rows(2)
+                            ->columnSpanFull(),
                     ])->columns(3),
 
                 Forms\Components\Section::make('Paramètres financiers')
