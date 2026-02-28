@@ -26,11 +26,16 @@ class Supplier extends Model
     protected $fillable = [
         'company_id',
         'name',
+        'siret',
+        'siren',
+        'tax_number',
         'email',
         'phone',
         'address',
+        'zip_code',
         'city',
         'country',
+        'country_code',
         'notes',
     ];
 

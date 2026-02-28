@@ -31,6 +31,18 @@ class SupplierResource extends Resource
                     ->label('Nom')
                     ->required()
                     ->maxLength(255),
+                Forms\Components\TextInput::make('siret')
+                    ->label('SIRET')
+                    ->maxLength(14)
+                    ->placeholder('14 chiffres'),
+                Forms\Components\TextInput::make('siren')
+                    ->label('SIREN')
+                    ->maxLength(9)
+                    ->placeholder('9 chiffres'),
+                Forms\Components\TextInput::make('tax_number')
+                    ->label('N° TVA intracommunautaire')
+                    ->maxLength(20)
+                    ->placeholder('FR12345678901'),
                 Forms\Components\TextInput::make('email')
                     ->label('Email')
                     ->email()
@@ -45,10 +57,33 @@ class SupplierResource extends Resource
                     ->label('Adresse')
                     ->required()
                     ->maxLength(255),
+                Forms\Components\TextInput::make('zip_code')
+                    ->label('Code postal')
+                    ->maxLength(10),
                 Forms\Components\TextInput::make('city')
+                    ->label('Ville')
                     ->maxLength(255),
                 Forms\Components\TextInput::make('country')
+                    ->label('Pays')
                     ->maxLength(255),
+                Forms\Components\Select::make('country_code')
+                    ->label('Code pays')
+                    ->options([
+                        'FR' => 'France',
+                        'BE' => 'Belgique',
+                        'CH' => 'Suisse',
+                        'DE' => 'Allemagne',
+                        'ES' => 'Espagne',
+                        'IT' => 'Italie',
+                        'LU' => 'Luxembourg',
+                        'NL' => 'Pays-Bas',
+                        'GB' => 'Royaume-Uni',
+                        'US' => 'États-Unis',
+                        'PT' => 'Portugal',
+                        'AT' => 'Autriche',
+                    ])
+                    ->default('FR')
+                    ->searchable(),
                 Forms\Components\Textarea::make('notes')
                     ->maxLength(65535)
                     ->columnSpanFull(),
