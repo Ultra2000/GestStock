@@ -203,7 +203,7 @@
                 @endif
 
                 <div class="flex gap-3">
-                    <a href="{{ route('filament.app.resources.purchases.edit', ['tenant' => \Filament\Facades\Filament::getTenant(), 'record' => $importResult['purchase_id']]) }}"
+                    <a href="{{ \App\Filament\Resources\PurchaseResource::getUrl('edit', ['record' => $importResult['purchase_id']]) }}"
                        class="fi-btn fi-btn-size-lg fi-color-custom fi-color-primary inline-flex items-center gap-1 rounded-lg px-4 py-2 text-sm font-semibold bg-primary-600 text-white hover:bg-primary-500">
                         <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
