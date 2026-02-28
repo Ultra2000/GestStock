@@ -10,7 +10,7 @@ use App\Http\Controllers\PublicQuoteController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
-    return view('welcome');
+    return redirect('/admin/login');
 });
 
 // Routes publiques pour les devis clients
