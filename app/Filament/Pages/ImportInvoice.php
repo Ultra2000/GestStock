@@ -8,6 +8,7 @@ use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Forms\Contracts\HasForms;
 use Filament\Notifications\Notification;
 use Filament\Facades\Filament;
+use Illuminate\Support\Facades\Log;
 use Livewire\WithFileUploads;
 
 class ImportInvoice extends Page implements HasForms
@@ -53,7 +54,27 @@ class ImportInvoice extends Page implements HasForms
         ]);
 
         try {
-            $content = file_get_contents($this->xmlFile->getRealPath());
+            $path = $this->xmlFile->getRealPath();
+            if (!$path || !file_exists($path)) {
+                Notification::make()
+                    ->title('Fichier expiré')
+                    ->body('Le fichier temporaire a expiré. Veuillez re-sélectionner le fichier.')
+                    ->danger()
+                    ->send();
+                $this->xmlFile = null;
+                return;
+            }
+
+            $content = file_get_contents($path);
+            if ($content === false || empty(trim($content))) {
+                Notification::make()
+                    ->title('Erreur')
+                    ->body('Impossible de lire le contenu du fichier.')
+                    ->danger()
+                    ->send();
+                return;
+            }
+
             $service = new InvoiceImportService();
             $this->preview = $service->preview($content);
             $this->showPreview = true;
@@ -66,7 +87,13 @@ class ImportInvoice extends Page implements HasForms
                     ->danger()
                     ->send();
             }
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
+            Log::error('Erreur prévisualisation facture XML', [
+                'error' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'trace' => $e->getTraceAsString(),
+            ]);
             Notification::make()
                 ->title('Erreur')
                 ->body($e->getMessage())
@@ -85,9 +112,38 @@ class ImportInvoice extends Page implements HasForms
         ]);
 
         try {
-            $content = file_get_contents($this->xmlFile->getRealPath());
-            $companyId = Filament::getTenant()->id;
+            $path = $this->xmlFile->getRealPath();
+            if (!$path || !file_exists($path)) {
+                Notification::make()
+                    ->title('Fichier expiré')
+                    ->body('Le fichier temporaire a expiré. Veuillez re-sélectionner le fichier.')
+                    ->danger()
+                    ->send();
+                $this->xmlFile = null;
+                return;
+            }
 
+            $content = file_get_contents($path);
+            if ($content === false || empty(trim($content))) {
+                Notification::make()
+                    ->title('Erreur')
+                    ->body('Impossible de lire le contenu du fichier.')
+                    ->danger()
+                    ->send();
+                return;
+            }
+
+            $tenant = Filament::getTenant();
+            if (!$tenant) {
+                Notification::make()
+                    ->title('Erreur')
+                    ->body('Impossible de déterminer l\'entreprise. Veuillez vous reconnecter.')
+                    ->danger()
+                    ->send();
+                return;
+            }
+
+            $companyId = $tenant->id;
             $service = new InvoiceImportService();
             $this->importResult = $service->importFromContent($content, $companyId);
             $this->showResult = true;
@@ -109,7 +165,13 @@ class ImportInvoice extends Page implements HasForms
                     ->danger()
                     ->send();
             }
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
+            Log::error('Erreur import facture XML', [
+                'error' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'trace' => $e->getTraceAsString(),
+            ]);
             Notification::make()
                 ->title('Erreur')
                 ->body($e->getMessage())

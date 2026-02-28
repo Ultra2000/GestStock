@@ -58,9 +58,12 @@ class InvoiceImportService
                 'UBL' => $this->importUBL($xmlContent, $companyId),
                 default => $this->error('Format XML non reconnu. Formats supportés : UBL (EN16931), CII (Factur-X/ZUGFeRD).'),
             };
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             Log::error('Erreur import facture XML: ' . $e->getMessage(), [
                 'format' => $format,
+                'class' => get_class($e),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
                 'trace' => $e->getTraceAsString(),
             ]);
             return $this->error('Erreur lors de l\'import : ' . $e->getMessage());
@@ -798,7 +801,14 @@ class InvoiceImportService
             } else {
                 return $this->previewUBL($xmlContent);
             }
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
+            Log::error('Erreur preview facture XML', [
+                'format' => $format,
+                'class' => get_class($e),
+                'error' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+            ]);
             return ['valid' => false, 'error' => 'Erreur parsing : ' . $e->getMessage()];
         }
     }
