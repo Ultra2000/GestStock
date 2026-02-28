@@ -57,16 +57,18 @@ class PaymentResource extends Resource
                                 $type = $get('payable_type');
                                 if (!$type) return [];
 
+                                $tenantId = filament()->getTenant()->id;
+
                                 if ($type === Sale::class) {
-                                    return Sale::where('company_id', filament()->getTenant()->id)
+                                    return Sale::where('company_id', $tenantId)
                                         ->where('status', 'completed')
                                         ->whereIn('payment_status', ['pending', 'partial'])
                                         ->pluck('invoice_number', 'id');
                                 }
 
-                                return Purchase::where('company_id', filament()->getTenant()->id)
+                                return Purchase::where('company_id', $tenantId)
                                     ->where('status', 'completed')
-                                    ->pluck('reference', 'id');
+                                    ->pluck('invoice_number', 'id');
                             })
                             ->searchable()
                             ->required()
@@ -77,8 +79,14 @@ class PaymentResource extends Resource
 
                                 $document = $type::find($state);
                                 if ($document) {
-                                    $remaining = $document->total - ($document->amount_paid ?? 0);
-                                    $set('amount', $remaining);
+                                    // Calculer le montant déjà réglé via les paiements enregistrés
+                                    $amountPaid = $document->amount_paid
+                                        ?? Payment::where('payable_type', $type)
+                                            ->where('payable_id', $state)
+                                            ->sum('amount')
+                                        ?? 0;
+                                    $remaining = $document->total - $amountPaid;
+                                    $set('amount', max(0, round($remaining, 2)));
                                 }
                             }),
 
@@ -143,10 +151,7 @@ class PaymentResource extends Resource
                     ->label('Document')
                     ->getStateUsing(function ($record) {
                         $payable = $record->payable;
-                        if ($payable instanceof Sale) {
-                            return $payable->invoice_number;
-                        }
-                        return $payable?->reference ?? '-';
+                        return $payable?->invoice_number ?? '-';
                     })
                     ->searchable(),
 
