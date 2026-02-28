@@ -10,6 +10,7 @@ use App\Models\Warehouse;
 use horstoeko\zugferd\ZugferdDocumentReader;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Schema;
 
 /**
  * Service d'import de factures fournisseurs au format UBL (EN16931) et CII (Factur-X / ZUGFeRD)
@@ -31,6 +32,20 @@ class InvoiceImportService
         'total_ttc' => 0,
         'warnings' => [],
     ];
+
+    /** Cache pour la vérification des colonnes en base */
+    protected ?bool $supplierHasExtendedFields = null;
+
+    /**
+     * Vérifie si la migration des champs étendus fournisseurs a été appliquée
+     */
+    protected function checkSupplierExtendedFields(): bool
+    {
+        if ($this->supplierHasExtendedFields === null) {
+            $this->supplierHasExtendedFields = Schema::hasColumn('suppliers', 'siret');
+        }
+        return $this->supplierHasExtendedFields;
+    }
 
     /**
      * Import depuis un fichier XML (détecte automatiquement UBL ou CII)
@@ -653,8 +668,10 @@ class InvoiceImportService
         ?string $country,
         ?string $countryCode,
     ): Supplier {
-        // Recherche par SIRET (identifiant le plus précis)
-        if ($siret) {
+        $hasExtendedFields = $this->checkSupplierExtendedFields();
+
+        // Recherche par SIRET (identifiant le plus précis) — uniquement si la colonne existe
+        if ($hasExtendedFields && $siret) {
             $supplier = Supplier::where('company_id', $companyId)
                 ->where('siret', $siret)
                 ->first();
@@ -664,8 +681,8 @@ class InvoiceImportService
             }
         }
 
-        // Recherche par N° TVA intracommunautaire
-        if ($taxNumber) {
+        // Recherche par N° TVA intracommunautaire — uniquement si la colonne existe
+        if ($hasExtendedFields && $taxNumber) {
             $supplier = Supplier::where('company_id', $companyId)
                 ->where('tax_number', $taxNumber)
                 ->first();
@@ -686,21 +703,30 @@ class InvoiceImportService
 
         // Créer un nouveau fournisseur
         $this->result['warnings'][] = "Nouveau fournisseur créé : {$name}";
-        return Supplier::create([
+
+        $supplierData = [
             'company_id' => $companyId,
             'name' => $name,
-            'siret' => $siret,
-            'siren' => $siren,
-            'tax_number' => $taxNumber,
             'email' => $email ?? 'import-' . uniqid() . '@placeholder.local',
             'phone' => $phone,
             'address' => $address,
-            'zip_code' => $zipCode,
             'city' => $city,
             'country' => $country,
-            'country_code' => $countryCode ?? 'FR',
             'notes' => 'Créé automatiquement lors de l\'import de facture XML',
-        ]);
+        ];
+
+        // Ajouter les champs étendus uniquement si la migration a été appliquée
+        if ($hasExtendedFields) {
+            $supplierData['siret'] = $siret;
+            $supplierData['siren'] = $siren;
+            $supplierData['tax_number'] = $taxNumber;
+            $supplierData['zip_code'] = $zipCode;
+            $supplierData['country_code'] = $countryCode ?? 'FR';
+        } else {
+            $this->result['warnings'][] = 'Migration des champs SIRET/TVA manquante — exécutez php artisan migrate.';
+        }
+
+        return Supplier::create($supplierData);
     }
 
     /**
@@ -717,15 +743,21 @@ class InvoiceImportService
         ?string $country,
         ?string $countryCode,
     ): void {
+        $hasExtendedFields = $this->checkSupplierExtendedFields();
+
         $updates = [];
-        if ($taxNumber && !$supplier->tax_number) $updates['tax_number'] = $taxNumber;
         if ($email && !$supplier->email) $updates['email'] = $email;
         if ($phone && !$supplier->phone) $updates['phone'] = $phone;
         if ($address && !$supplier->address) $updates['address'] = $address;
-        if ($zipCode && !$supplier->zip_code) $updates['zip_code'] = $zipCode;
         if ($city && !$supplier->city) $updates['city'] = $city;
         if ($country && !$supplier->country) $updates['country'] = $country;
-        if ($countryCode && !$supplier->country_code) $updates['country_code'] = $countryCode;
+
+        // Champs étendus uniquement si la migration a été appliquée
+        if ($hasExtendedFields) {
+            if ($taxNumber && !$supplier->tax_number) $updates['tax_number'] = $taxNumber;
+            if ($zipCode && !$supplier->zip_code) $updates['zip_code'] = $zipCode;
+            if ($countryCode && !$supplier->country_code) $updates['country_code'] = $countryCode;
+        }
 
         if (!empty($updates)) {
             $supplier->update($updates);
@@ -738,18 +770,18 @@ class InvoiceImportService
      */
     protected function findOrCreateProduct(int $companyId, array $itemData): Product
     {
-        // Recherche par EAN/GTIN
+        // Recherche par code interne (EAN/GTIN ou réf. fournisseur)
         if (!empty($itemData['ean'])) {
             $product = Product::where('company_id', $companyId)
-                ->where('barcode', $itemData['ean'])
+                ->where('code', $itemData['ean'])
                 ->first();
             if ($product) return $product;
         }
 
-        // Recherche par référence
+        // Recherche par code = référence fournisseur
         if (!empty($itemData['seller_product_id'])) {
             $product = Product::where('company_id', $companyId)
-                ->where('sku', $itemData['seller_product_id'])
+                ->where('code', $itemData['seller_product_id'])
                 ->first();
             if ($product) return $product;
         }
@@ -760,20 +792,25 @@ class InvoiceImportService
             ->first();
         if ($product) return $product;
 
-        // Créer le produit
+        // Construire la description avec les références importées
+        $description = $itemData['description'] ?? null;
+        $refs = [];
+        if (!empty($itemData['ean'])) $refs[] = 'EAN: ' . $itemData['ean'];
+        if (!empty($itemData['seller_product_id'])) $refs[] = 'Réf. fournisseur: ' . $itemData['seller_product_id'];
+        if (!empty($refs)) {
+            $description = ($description ? $description . "\n" : '') . implode(' | ', $refs);
+        }
+
+        // Créer le produit (code auto-généré par le boot du modèle)
         $this->result['warnings'][] = "Nouveau produit créé : {$itemData['name']}";
         return Product::create([
             'company_id' => $companyId,
             'name' => $itemData['name'],
-            'description' => $itemData['description'] ?? null,
-            'sku' => $itemData['seller_product_id'] ?? null,
-            'barcode' => $itemData['ean'] ?? null,
+            'description' => $description,
             'purchase_price' => $itemData['unit_price_ht'] ?? 0,
-            'price' => $itemData['unit_price_ht'] ?? 0, // Prix de vente = prix d'achat par défaut
-            'vat_rate' => $itemData['vat_rate'] ?? 20,
+            'price' => $itemData['unit_price_ht'] ?? 0,
             'vat_rate_purchase' => $itemData['vat_rate'] ?? 20,
-            'quantity' => 0,
-            'is_active' => true,
+            'vat_rate_sale' => $itemData['vat_rate'] ?? 20,
         ]);
     }
 
