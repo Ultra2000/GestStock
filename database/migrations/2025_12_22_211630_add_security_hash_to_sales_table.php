@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('sales', function (Blueprint $table) {
-            $table->string('security_hash', 64)->nullable()->after('notes')->comment('SHA-256 hash for NF525 compliance');
+            $table->string('security_hash', 64)->nullable()->comment('SHA-256 hash for NF525 compliance');
             $table->string('previous_hash', 64)->nullable()->after('security_hash')->comment('Hash of the previous invoice');
         });
     }
