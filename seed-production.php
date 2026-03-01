@@ -20,10 +20,35 @@ use App\Models\Role;
 use App\Models\User;
 use App\Models\Company;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 
 echo "╔════════════════════════════════════════════════════════════╗\n";
 echo "║         FRECORP ERP - Script de Déploiement               ║\n";
 echo "╚════════════════════════════════════════════════════════════╝\n\n";
+
+// ============================================================================
+// ÉTAPE 0 : CRÉATION DU SUPER ADMIN
+// ============================================================================
+echo "🔐 ÉTAPE 0: Création du Super Admin...\n";
+
+$superAdmin = User::firstOrCreate(
+    ['email' => 'frejus@frecorp.fr'],
+    [
+        'name' => 'Fréjus FRECORP',
+        'password' => Hash::make('password'),
+        'is_super_admin' => true,
+        'is_active' => true,
+        'email_verified_at' => now(),
+    ]
+);
+
+if ($superAdmin->wasRecentlyCreated) {
+    echo "   ✅ Super Admin créé : frejus@frecorp.fr\n\n";
+} else {
+    // S'assurer que le flag super_admin est activé
+    $superAdmin->update(['is_super_admin' => true, 'is_active' => true]);
+    echo "   ℹ️  Super Admin existe déjà : frejus@frecorp.fr (mis à jour)\n\n";
+}
 
 // ============================================================================
 // ÉTAPE 1 : CRÉATION DES PERMISSIONS (GLOBALES)
