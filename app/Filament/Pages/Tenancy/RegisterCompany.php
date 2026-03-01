@@ -80,11 +80,49 @@ class RegisterCompany extends RegisterTenant
                                         $tvaNumber = 'FR' . str_pad($cle, 2, '0', STR_PAD_LEFT) . $siren;
                                         $set('tax_number', $tvaNumber);
                                         
-                                        Notification::make()
-                                            ->title('Entreprise trouvée !')
-                                            ->body("TVA : {$tvaNumber}")
-                                            ->success()
-                                            ->send();
+                                        // Vérification VIES (système européen) pour valider le numéro de TVA
+                                        $viesStatus = null;
+                                        try {
+                                            $viesResponse = Http::timeout(8)->get('https://ec.europa.eu/taxation_customs/vies/rest-api/check-vat-number', [
+                                                'countryCode' => 'FR',
+                                                'vatNumber' => substr($tvaNumber, 2), // Sans le préfixe FR
+                                            ]);
+                                            
+                                            if ($viesResponse->successful()) {
+                                                $viesData = $viesResponse->json();
+                                                $viesStatus = $viesData['valid'] ?? false;
+                                            }
+                                        } catch (\Exception $e) {
+                                            // VIES peut être indisponible — on ne bloque pas l'inscription
+                                            $viesStatus = null;
+                                        }
+                                        
+                                        if ($viesStatus === true) {
+                                            Notification::make()
+                                                ->title('Entreprise trouvée !')
+                                                ->body("TVA : {$tvaNumber} — ✅ Vérifié VIES (actif)")
+                                                ->success()
+                                                ->duration(8000)
+                                                ->send();
+                                        } elseif ($viesStatus === false) {
+                                            Notification::make()
+                                                ->title('Entreprise trouvée !')
+                                                ->body("TVA : {$tvaNumber}")
+                                                ->success()
+                                                ->send();
+                                            Notification::make()
+                                                ->title('⚠️ TVA non active dans VIES')
+                                                ->body('Votre numéro de TVA n\'est pas encore reconnu comme actif pour les opérations intracommunautaires. Cela est courant pour les nouvelles entreprises. Contactez le SIE de votre centre des impôts si nécessaire.')
+                                                ->warning()
+                                                ->persistent()
+                                                ->send();
+                                        } else {
+                                            Notification::make()
+                                                ->title('Entreprise trouvée !')
+                                                ->body("TVA : {$tvaNumber} — Vérification VIES indisponible")
+                                                ->success()
+                                                ->send();
+                                        }
                                     } else {
                                         Notification::make()->title('Aucune entreprise trouvée pour ce SIREN.')->warning()->send();
                                     }
