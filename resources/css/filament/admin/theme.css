@@ -123,7 +123,26 @@
 
 /* Cards & Widgets - Glassmorphism */
 .dark .fi-wi-stats-overview-stat,
-.dark .fi-section,
+.dark .fi-section {
+    background: rgba(30, 41, 59, 0.6) !important;
+    backdrop-filter: blur(12px) !important;
+    -webkit-backdrop-filter: blur(12px) !important;
+    border: 1px solid rgba(99, 102, 241, 0.1) !important;
+    border-radius: 1rem !important;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2) !important;
+}
+
+/* Tables & forms inside sections: no extra border (avoid double border) */
+.dark .fi-section .fi-ta-ctn,
+.dark .fi-section .fi-fo-component-ctn {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+    backdrop-filter: none !important;
+}
+
+/* Standalone tables & forms (not inside a section) */
 .dark .fi-ta-ctn,
 .dark .fi-fo-component-ctn {
     background: rgba(30, 41, 59, 0.6) !important;
@@ -132,6 +151,15 @@
     border: 1px solid rgba(99, 102, 241, 0.1) !important;
     border-radius: 1rem !important;
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2) !important;
+}
+
+/* Remove Filament's default inner section borders in dark mode */
+.dark .fi-section-content-ctn {
+    border-top: none !important;
+}
+
+.dark .fi-section-header-ctn {
+    border-bottom: 1px solid rgba(51, 65, 85, 0.3) !important;
 }
 
 .dark .fi-wi-stats-overview-stat:hover {
@@ -166,15 +194,23 @@
     text-transform: uppercase !important;
     font-size: 0.75rem !important;
     letter-spacing: 0.05em !important;
+    border-bottom: 1px solid rgba(51, 65, 85, 0.5) !important;
 }
 
 .dark .fi-ta-row {
-    border-bottom: 1px solid rgba(51, 65, 85, 0.5) !important;
+    border-bottom: 1px solid rgba(51, 65, 85, 0.3) !important;
     transition: all 0.2s ease !important;
 }
 
 .dark .fi-ta-row:hover {
     background: rgba(99, 102, 241, 0.08) !important;
+}
+
+/* Remove default Filament table outer ring/border in dark mode */
+.dark .fi-ta-ctn > div {
+    border-color: transparent !important;
+    --tw-ring-color: transparent !important;
+    --tw-ring-shadow: none !important;
 }
 
 /* Forms */
@@ -192,6 +228,9 @@
     border: 1px solid rgba(71, 85, 105, 0.5) !important;
     border-radius: 0.75rem !important;
     transition: all 0.2s ease !important;
+    --tw-ring-color: transparent !important;
+    --tw-ring-shadow: none !important;
+    outline: none !important;
 }
 
 .dark .fi-input:focus,
@@ -205,7 +244,23 @@
 .dark textarea:focus {
     border-color: rgba(99, 102, 241, 0.5) !important;
     box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15) !important;
+    --tw-ring-color: transparent !important;
+    --tw-ring-shadow: none !important;
     outline: none !important;
+}
+
+/* Remove Filament's default ring on form wrappers */
+.dark .fi-input-wrp {
+    --tw-ring-color: transparent !important;
+    --tw-ring-shadow: none !important;
+    border-color: rgba(71, 85, 105, 0.5) !important;
+}
+
+.dark .fi-input-wrp:focus-within {
+    --tw-ring-color: transparent !important;
+    --tw-ring-shadow: none !important;
+    border-color: rgba(99, 102, 241, 0.5) !important;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15) !important;
 }
 
 /* Modals */
