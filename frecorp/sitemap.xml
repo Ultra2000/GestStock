@@ -99,7 +99,7 @@
     
     <!-- Application - Connexion -->
     <url>
-        <loc>https://app.frecorp.fr/login</loc>
+        <loc>https://app.frecorp.fr/admin/login</loc>
         <lastmod>2026-02-06</lastmod>
         <changefreq>yearly</changefreq>
         <priority>0.6</priority>
@@ -107,7 +107,7 @@
     
     <!-- Application - Inscription -->
     <url>
-        <loc>https://app.frecorp.fr/register</loc>
+        <loc>https://app.frecorp.fr/admin/register</loc>
         <lastmod>2026-02-06</lastmod>
         <changefreq>yearly</changefreq>
         <priority>0.7</priority>

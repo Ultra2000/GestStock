@@ -324,7 +324,7 @@ echo "👤 Utilisateurs: " . User::count() . "\n";
 if ($companies->isNotEmpty()) {
     echo "\n📌 URLs d'accès :\n";
     foreach ($companies as $company) {
-        echo "   → https://test-erp.frecorp.fr/admin/{$company->slug}\n";
+        echo "   → https://app.frecorp.fr/admin/{$company->slug}\n";
     }
 }
 
