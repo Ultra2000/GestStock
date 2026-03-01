@@ -10,8 +10,25 @@ Artisan::command('inspire', function () {
 
 /**
  * Synchronisation automatique des statuts PPF (Chorus Pro)
- * Toutes les 30 minutes, on vérifie les factures en attente de statut.
+ * Toutes les 5 minutes pour les factures récentes (< 48h),
+ * toutes les 30 minutes pour les plus anciennes.
+ * L'API PISTE ne supporte pas de webhook/push.
  */
+Schedule::call(function () {
+    $companies = \App\Models\Company::whereHas('integrations', function ($q) {
+        $q->where('service_name', 'ppf')->where('is_active', true);
+    })->get();
+
+    foreach ($companies as $company) {
+        try {
+            $ppfService = app(\App\Services\Integration\PpfService::class);
+            $ppfService->syncRecentPendingInvoices($company->id);
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning("PPF sync (recent) failed for company {$company->id}: " . $e->getMessage());
+        }
+    }
+})->everyFiveMinutes()->name('ppf-sync-recent')->withoutOverlapping();
+
 Schedule::call(function () {
     $companies = \App\Models\Company::whereHas('integrations', function ($q) {
         $q->where('service_name', 'ppf')->where('is_active', true);
@@ -22,7 +39,7 @@ Schedule::call(function () {
             $ppfService = app(\App\Services\Integration\PpfService::class);
             $ppfService->syncAllPendingInvoices($company->id);
         } catch (\Throwable $e) {
-            \Illuminate\Support\Facades\Log::warning("PPF sync failed for company {$company->id}: " . $e->getMessage());
+            \Illuminate\Support\Facades\Log::warning("PPF sync (all) failed for company {$company->id}: " . $e->getMessage());
         }
     }
-})->everyThirtyMinutes()->name('ppf-sync-statuses')->withoutOverlapping();
+})->everyThirtyMinutes()->name('ppf-sync-all')->withoutOverlapping();

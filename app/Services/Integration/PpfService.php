@@ -290,7 +290,38 @@ class PpfService implements IntegrationServiceInterface
     }
 
     /**
+     * Synchronise les statuts des factures récentes en attente (< 48h)
+     * Utilisé par le job haute fréquence (toutes les 5 minutes)
+     */
+    public function syncRecentPendingInvoices(?int $companyId = null): int
+    {
+        $query = Sale::whereNotNull('ppf_id')
+            ->whereNotIn('ppf_status', ['PAYEE', 'REJETEE', 'ERREUR'])
+            ->where('created_at', '>=', now()->subHours(48));
+
+        if ($companyId) {
+            $query->where('company_id', $companyId);
+        }
+
+        $sales = $query->get();
+        $synced = 0;
+
+        foreach ($sales as $sale) {
+            if ($this->syncInvoiceStatus($sale)) {
+                $sale->update(['ppf_synced_at' => now()]);
+                $synced++;
+            }
+            usleep(200000); // 200ms pause entre chaque appel API
+        }
+
+        Log::info("PPF: {$synced}/{$sales->count()} factures récentes synchronisées" . ($companyId ? " (company {$companyId})" : ''));
+
+        return $synced;
+    }
+
+    /**
      * Synchronise les statuts de toutes les factures en attente
+     * Utilisé par le job basse fréquence (toutes les 30 minutes)
      */
     public function syncAllPendingInvoices(?int $companyId = null): int
     {
@@ -306,10 +337,13 @@ class PpfService implements IntegrationServiceInterface
 
         foreach ($sales as $sale) {
             if ($this->syncInvoiceStatus($sale)) {
+                $sale->update(['ppf_synced_at' => now()]);
                 $synced++;
             }
             usleep(200000); // 200ms pause
         }
+
+        Log::info("PPF: {$synced}/{$sales->count()} factures synchronisées" . ($companyId ? " (company {$companyId})" : ''));
 
         return $synced;
     }
