@@ -14,13 +14,13 @@ Artisan::command('inspire', function () {
  */
 Schedule::call(function () {
     $companies = \App\Models\Company::whereHas('integrations', function ($q) {
-        $q->where('type', 'ppf')->where('is_active', true);
+        $q->where('service_name', 'ppf')->where('is_active', true);
     })->get();
 
     foreach ($companies as $company) {
         try {
-            $ppfService = new \App\Services\Integration\PpfService($company);
-            $ppfService->syncAllPendingInvoices();
+            $ppfService = app(\App\Services\Integration\PpfService::class);
+            $ppfService->syncAllPendingInvoices($company->id);
         } catch (\Throwable $e) {
             \Illuminate\Support\Facades\Log::warning("PPF sync failed for company {$company->id}: " . $e->getMessage());
         }
