@@ -61,11 +61,30 @@ class RegisterCompany extends RegisterTenant
 
                                     if ($response->successful() && count($response->json('results')) > 0) {
                                         $data = $response->json('results')[0];
+                                        $siege = $data['siege'] ?? [];
                                         
-                                        $set('name', $data['nom_complet']);
-                                        $set('address', $data['siege']['adresse']);
+                                        $set('name', $data['nom_complet'] ?? '');
+                                        $set('address', $siege['adresse'] ?? '');
+                                        $set('zip_code', $siege['code_postal'] ?? '');
+                                        $set('city', $siege['libelle_commune'] ?? '');
                                         
-                                        Notification::make()->title('Entreprise trouvée !')->success()->send();
+                                        // SIRET du siège (SIREN + NIC)
+                                        if (!empty($siege['siret'])) {
+                                            $set('siret', $siege['siret']);
+                                        }
+                                        
+                                        // Numéro de TVA intracommunautaire (calcul à partir du SIREN)
+                                        // Formule : FR + clé + SIREN, clé = (12 + 3 × (SIREN mod 97)) mod 97
+                                        $siren = $state;
+                                        $cle = (12 + 3 * ((int) $siren % 97)) % 97;
+                                        $tvaNumber = 'FR' . str_pad($cle, 2, '0', STR_PAD_LEFT) . $siren;
+                                        $set('tax_number', $tvaNumber);
+                                        
+                                        Notification::make()
+                                            ->title('Entreprise trouvée !')
+                                            ->body("TVA : {$tvaNumber}")
+                                            ->success()
+                                            ->send();
                                     } else {
                                         Notification::make()->title('Aucune entreprise trouvée pour ce SIREN.')->warning()->send();
                                     }
@@ -77,8 +96,21 @@ class RegisterCompany extends RegisterTenant
                 TextInput::make('name')
                     ->label('Nom de l\'entreprise')
                     ->required(),
+                TextInput::make('siret')
+                    ->label('SIRET')
+                    ->placeholder('Rempli automatiquement')
+                    ->maxLength(14)
+                    ->helperText('Renseigné automatiquement via le SIREN.'),
+                TextInput::make('tax_number')
+                    ->label('N° TVA Intracommunautaire')
+                    ->placeholder('Rempli automatiquement')
+                    ->helperText('Calculé automatiquement à partir du SIREN.'),
                 TextInput::make('address')
                     ->label('Adresse du siège'),
+                TextInput::make('zip_code')
+                    ->label('Code postal'),
+                TextInput::make('city')
+                    ->label('Ville'),
                 TextInput::make('email')
                     ->label('Email de contact')
                     ->email(),
