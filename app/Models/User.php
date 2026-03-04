@@ -121,11 +121,11 @@ class User extends Authenticatable implements FilamentUser, HasTenants, HasDefau
 
     /**
      * Vérifie si l'utilisateur est admin de l'entreprise courante
-     * Utilise maintenant le système de rôles basé sur les tables
+     * Les super admins sont considérés admin de toutes les entreprises
      */
     public function isAdmin(): bool
     {
-        return $this->isAdminOf();
+        return $this->is_super_admin || $this->isAdminOf();
     }
 
     /**
