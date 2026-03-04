@@ -35,6 +35,19 @@ class CashSessionsHistory extends Page implements HasTable
         return $user->isAdmin() || $user->hasPermission('sales.view') || $user->hasPermission('sales.*');
     }
 
+    public static function canAccess(): bool
+    {
+        $tenant = Filament::getTenant();
+        if (!$tenant?->isModuleEnabled('pos')) {
+            return false;
+        }
+
+        $user = auth()->user();
+        if (!$user) return false;
+
+        return $user->isAdmin() || $user->hasPermission('sales.view') || $user->hasPermission('sales.*');
+    }
+
     public function table(Table $table): Table
     {
         return $table

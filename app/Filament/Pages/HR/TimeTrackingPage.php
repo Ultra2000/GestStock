@@ -32,6 +32,11 @@ class TimeTrackingPage extends Page
         return Filament::getTenant()?->isModuleEnabled('hr') ?? true;
     }
 
+    public static function canAccess(): bool
+    {
+        return Filament::getTenant()?->isModuleEnabled('hr') ?? true;
+    }
+
     public array $todayAttendances = [];
     public array $employees = [];
     public ?int $selectedEmployee = null;

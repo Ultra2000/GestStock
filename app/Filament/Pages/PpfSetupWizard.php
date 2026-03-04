@@ -23,12 +23,20 @@ class PpfSetupWizard extends Page implements Forms\Contracts\HasForms
 
     public static function shouldRegisterNavigation(): bool
     {
-        // Masquer l'assistant si déjà configuré
+        // Masquer si le module comptabilité est désactivé
         $company = \Filament\Facades\Filament::getTenant();
-        if (!$company) return false;
-        
+        if (!$company?->isModuleEnabled('accounting')) {
+            return false;
+        }
+
+        // Masquer l'assistant si déjà configuré
         $integration = $company->integrations()->where('service_name', 'ppf')->first();
         return !($integration && $integration->is_active && !empty($integration->settings['fournisseur_login']));
+    }
+
+    public static function canAccess(): bool
+    {
+        return \Filament\Facades\Filament::getTenant()?->isModuleEnabled('accounting') ?? true;
     }
 
     protected static string $view = 'filament.pages.ppf-setup-wizard';

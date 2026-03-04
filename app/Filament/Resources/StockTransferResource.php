@@ -33,6 +33,11 @@ class StockTransferResource extends Resource
         return \Filament\Facades\Filament::getTenant()?->isModuleEnabled('stock') ?? true;
     }
 
+    public static function canAccess(): bool
+    {
+        return \Filament\Facades\Filament::getTenant()?->isModuleEnabled('stock') ?? true;
+    }
+
     public static function getNavigationBadge(): ?string
     {
         $count = StockTransfer::query()

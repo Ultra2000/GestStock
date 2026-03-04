@@ -44,6 +44,19 @@ class EmployeeResource extends Resource
         return $user->isAdmin() || $user->hasPermission('employees.view') || $user->hasPermission('employees.*');
     }
 
+    public static function canAccess(): bool
+    {
+        $tenant = Filament::getTenant();
+        if (!$tenant?->isModuleEnabled('hr')) {
+            return false;
+        }
+
+        $user = auth()->user();
+        if (!$user) return false;
+
+        return $user->isAdmin() || $user->hasPermission('employees.view') || $user->hasPermission('employees.*');
+    }
+
     public static function form(Form $form): Form
     {
         return $form

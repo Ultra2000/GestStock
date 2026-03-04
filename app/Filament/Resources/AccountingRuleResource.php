@@ -22,6 +22,16 @@ class AccountingRuleResource extends Resource
     protected static ?string $navigationLabel = 'Règles d\'imputation';
     protected static ?int $navigationSort = 4;
 
+    public static function shouldRegisterNavigation(): bool
+    {
+        return \Filament\Facades\Filament::getTenant()?->isModuleEnabled('accounting') ?? true;
+    }
+
+    public static function canAccess(): bool
+    {
+        return \Filament\Facades\Filament::getTenant()?->isModuleEnabled('accounting') ?? true;
+    }
+
     public static function form(Form $form): Form
     {
         return $form

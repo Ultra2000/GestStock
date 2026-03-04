@@ -31,6 +31,11 @@ class CommissionResource extends Resource
     
     protected static bool $shouldRegisterNavigation = false;
 
+    public static function canAccess(): bool
+    {
+        return Filament::getTenant()?->isModuleEnabled('hr') ?? true;
+    }
+
     public static function form(Form $form): Form
     {
         return $form

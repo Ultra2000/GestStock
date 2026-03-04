@@ -39,6 +39,23 @@ class CashRegisterPage extends Page
         return in_array($user->role ?? '', ['cashier', 'admin', 'manager']);
     }
 
+    public static function canAccess(): bool
+    {
+        $tenant = Filament::getTenant();
+        if (!$tenant?->isModuleEnabled('pos')) {
+            return false;
+        }
+
+        $user = auth()->user();
+        if (!$user) return false;
+
+        if (method_exists($user, 'hasPermission')) {
+            return $user->hasPermission('sales.create') || $user->hasPermission('sales.*');
+        }
+
+        return in_array($user->role ?? '', ['cashier', 'admin', 'manager']);
+    }
+
     public function getCompanyId(): ?int
     {
         $tenant = Filament::getTenant();

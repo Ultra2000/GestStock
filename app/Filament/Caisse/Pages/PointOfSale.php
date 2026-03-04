@@ -21,7 +21,12 @@ class PointOfSale extends Page
 
     public static function shouldRegisterNavigation(): bool
     {
-        return true;
+        return Filament::getTenant()?->isModuleEnabled('pos') ?? true;
+    }
+
+    public static function canAccess(): bool
+    {
+        return Filament::getTenant()?->isModuleEnabled('pos') ?? true;
     }
 
     /**

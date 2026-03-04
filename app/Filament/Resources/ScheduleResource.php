@@ -33,6 +33,11 @@ class ScheduleResource extends Resource
 
     public static function canAccess(): bool
     {
+        $tenant = Filament::getTenant();
+        if (!$tenant?->isModuleEnabled('hr')) {
+            return false;
+        }
+
         $user = auth()->user();
         if (!$user) return false;
         

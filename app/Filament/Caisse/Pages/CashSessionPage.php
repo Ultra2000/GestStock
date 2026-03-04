@@ -21,6 +21,11 @@ class CashSessionPage extends Page implements HasForms
     protected static ?string $title = 'Gestion de caisse';
     protected static ?int $navigationSort = 2;
 
+    public static function canAccess(): bool
+    {
+        return Filament::getTenant()?->isModuleEnabled('pos') ?? true;
+    }
+
     public ?float $openingAmount = 0;
     public ?float $closingAmount = null;
     public ?string $notes = null;

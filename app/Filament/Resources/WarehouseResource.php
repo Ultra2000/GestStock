@@ -28,6 +28,11 @@ class WarehouseResource extends Resource
     {
         return Filament::getTenant()?->isModuleEnabled('stock') ?? true;
     }
+
+    public static function canAccess(): bool
+    {
+        return Filament::getTenant()?->isModuleEnabled('stock') ?? true;
+    }
     protected static ?string $navigationLabel = 'Entrepôts';
     protected static ?string $modelLabel = 'Entrepôt';
     protected static ?string $pluralModelLabel = 'Entrepôts';

@@ -35,6 +35,11 @@ class PaymentResource extends Resource
         return Filament::getTenant()?->isModuleEnabled('accounting') ?? true;
     }
 
+    public static function canAccess(): bool
+    {
+        return Filament::getTenant()?->isModuleEnabled('accounting') ?? true;
+    }
+
     public static function form(Form $form): Form
     {
         return $form

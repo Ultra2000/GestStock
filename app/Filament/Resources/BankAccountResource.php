@@ -31,6 +31,12 @@ class BankAccountResource extends Resource
         return ($tenant?->isModuleEnabled('accounting') || $tenant?->isModuleEnabled('banking')) ?? false;
     }
 
+    public static function canAccess(): bool
+    {
+        $tenant = Filament::getTenant();
+        return ($tenant?->isModuleEnabled('accounting') || $tenant?->isModuleEnabled('banking')) ?? false;
+    }
+
     public static function getEloquentQuery(): Builder
     {
         return parent::getEloquentQuery()

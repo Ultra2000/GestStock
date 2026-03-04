@@ -23,6 +23,16 @@ class PpfSettings extends Page implements Forms\Contracts\HasForms
 
     protected static string $view = 'filament.pages.ppf-settings';
 
+    public static function shouldRegisterNavigation(): bool
+    {
+        return Filament::getTenant()?->isModuleEnabled('accounting') ?? true;
+    }
+
+    public static function canAccess(): bool
+    {
+        return Filament::getTenant()?->isModuleEnabled('accounting') ?? true;
+    }
+
     public ?array $data = [];
 
     public function mount(): void

@@ -117,4 +117,14 @@ class AttendanceQrDisplay extends Page
         // Afficher uniquement pour les admins/managers
         return auth()->user()?->isAdmin() || auth()->user()?->isManager();
     }
+
+    public static function canAccess(): bool
+    {
+        $tenant = \Filament\Facades\Filament::getTenant();
+        if (!$tenant?->isModuleEnabled('hr')) {
+            return false;
+        }
+
+        return auth()->user()?->isAdmin() || auth()->user()?->isManager();
+    }
 }

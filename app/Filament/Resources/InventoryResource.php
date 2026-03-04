@@ -32,6 +32,11 @@ class InventoryResource extends Resource
         return \Filament\Facades\Filament::getTenant()?->isModuleEnabled('stock') ?? true;
     }
 
+    public static function canAccess(): bool
+    {
+        return \Filament\Facades\Filament::getTenant()?->isModuleEnabled('stock') ?? true;
+    }
+
     public static function form(Form $form): Form
     {
         return $form

@@ -14,6 +14,11 @@ class SalesHistory extends Page
     protected static ?string $title = 'Historique des ventes';
     protected static ?int $navigationSort = 3;
 
+    public static function canAccess(): bool
+    {
+        return Filament::getTenant()?->isModuleEnabled('pos') ?? true;
+    }
+
     /**
      * Récupère les ventes du jour
      */

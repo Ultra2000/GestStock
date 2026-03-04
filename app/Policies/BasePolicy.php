@@ -32,7 +32,8 @@ abstract class BasePolicy
 
     /**
      * Vérifie avant toutes les autres méthodes
-     * Les admins ont tous les droits
+     * Les super admins ont tous les droits (y compris sur modules désactivés)
+     * Les admins d'entreprise sont bloqués si le module est désactivé
      */
     public function before(User $user, string $ability): ?bool
     {
@@ -44,7 +45,7 @@ abstract class BasePolicy
         try {
             $tenant = Filament::getTenant();
             if ($tenant && method_exists($tenant, 'isModuleEnabled')) {
-                // Si le module est désactivé, on refuse l'accès (même pour les admins)
+                // Si le module est désactivé, on refuse l'accès (même pour les admins d'entreprise)
                 if (!$tenant->isModuleEnabled($this->getFeatureKey())) {
                     return false;
                 }

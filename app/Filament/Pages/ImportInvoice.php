@@ -30,11 +30,16 @@ class ImportInvoice extends Page implements HasForms
 
     public static function shouldRegisterNavigation(): bool
     {
-        return true;
+        return Filament::getTenant()?->isModuleEnabled('accounting') ?? true;
     }
 
     public static function canAccess(): bool
     {
+        $tenant = Filament::getTenant();
+        if (!$tenant?->isModuleEnabled('accounting')) {
+            return false;
+        }
+
         $user = auth()->user();
         if (!$user) return false;
         return $user->isAdmin() || $user->hasPermission('purchases.create');
