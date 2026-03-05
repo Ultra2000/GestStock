@@ -12,6 +12,8 @@ class Company extends Model
 {
     protected $fillable = [
         'name',
+        'forme_juridique',
+        'capital_social',
         'slug',
         'email',
         'phone',
@@ -22,7 +24,10 @@ class Company extends Model
         'logo_path',
         'tax_number',
         'registration_number',
+        'code_naf',
         'siret',
+        'rcs_number',
+        'rm_number',
         'footer_text',
         'settings',
         'currency',

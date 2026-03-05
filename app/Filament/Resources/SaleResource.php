@@ -108,6 +108,14 @@ class SaleResource extends Resource
                             ->placeholder("Si différente de l'adresse du client")
                             ->rows(2)
                             ->columnSpanFull(),
+                        Forms\Components\DatePicker::make('delivery_date')
+                            ->label('Date de livraison / prestation')
+                            ->helperText('Si différente de la date d\'émission')
+                            ->native(false),
+                        Forms\Components\DatePicker::make('due_date')
+                            ->label('Date d\'échéance de paiement')
+                            ->helperText('Par défaut : 30 jours après émission')
+                            ->native(false),
                     ])->columns(3),
 
                 Forms\Components\Section::make('Paramètres financiers')

@@ -51,12 +51,47 @@
     $invoiceTypeLabel = $sale->type === 'credit_note' ? 'Avoir N°' : 'Facture N°';
     $docTitle = ($sale->type === 'credit_note' ? 'Avoir' : 'Facture') . ' ' . $sale->invoice_number;
 
-    // Mentions légales
+    // === MENTIONS LÉGALES (Réforme Facture Électronique 2026) ===
     $accountingSettings = \App\Models\AccountingSetting::where('company_id', $company->id)->first();
-    $isVatOnDebits = ($accountingSettings->vat_regime ?? 'debits') === 'debits' && !($accountingSettings->is_vat_franchise ?? false);
+
+    // 1. Émetteur - Identifiants légaux
+    $formeJuridique = $company->forme_juridique ?? null;
+    $capitalSocial = $company->capital_social ?? null;
+    $codeNaf = $company->code_naf ?? null;
+    $rcsNumber = $company->rcs_number ?? null;
+    $rmNumber = $company->rm_number ?? null;
+
+    // Ligne de forme juridique + capital (ex: "SAS au capital de 10 000 €")
+    $legalFormLine = null;
+    if ($formeJuridique) {
+        $legalFormLine = $formeJuridique;
+        if ($capitalSocial) {
+            $legalFormLine .= ' au capital de ' . $capitalSocial;
+        }
+    }
+
+    // 2. Régime TVA
+    $isVatFranchise = $accountingSettings->is_vat_franchise ?? false;
+    $isVatOnDebits = ($accountingSettings->vat_regime ?? 'debits') === 'debits' && !$isVatFranchise;
+
+    // 3. Nature de l'opération & livraison
     $natureOp = $sale->nature_operation ?? null;
     $deliveryAddr = $sale->delivery_address ?? null;
+    $deliveryDate = $sale->delivery_date ?? null;
     $natureOpLabels = ['goods' => 'Vente de biens', 'services' => 'Prestation de services', 'mixed' => 'Mixte'];
+
+    // 4. Échéance & Conditions de paiement
+    $dueDate = $sale->due_date ?? $sale->created_at->addDays(30);
+    $paymentTerms = $accountingSettings->payment_terms ?? null;
+
+    // 5. Pénalités & Recouvrement (B2B obligatoire)
+    $penaltyRate = $accountingSettings->penalty_rate ?? null;
+    $recoveryFee = $accountingSettings->recovery_fee ?? 40.00;
+
+    // 6. Client B2B identifiants
+    $customerTaxNumber = optional($sale->customer)->tax_number ?? null;
+    $customerSiret = optional($sale->customer)->siret ?? null;
+    $customerSiren = optional($sale->customer)->registration_number ?? null;
 
     // QR Code
     $qrBase64 = null;

@@ -28,51 +28,107 @@ class EditCompanyProfile extends EditTenantProfile
             ->schema([
                 Section::make('Informations Générales')
                     ->schema([
-                        TextInput::make('name')
-                            ->label('Nom de l\'entreprise')
-                            ->required(),
-                        TextInput::make('email')
-                            ->label('Email')
-                            ->email(),
-                        TextInput::make('phone')
-                            ->label('Téléphone'),
-                        TextInput::make('address')
-                            ->label('Adresse'),
-                        TextInput::make('website')
-                            ->label('Site Web')
-                            ->url(),
-                        TextInput::make('tax_number')
-                            ->label('Numéro Fiscal (TVA Intra)'),
-                        TextInput::make('registration_number')
-                            ->label('SIREN (9 chiffres)'),
-                        TextInput::make('siret')
-                            ->label('SIRET (14 chiffres)')
-                            ->helperText('Requis pour Factur-X / PPF'),
-                        FileUpload::make('logo_path')
-                            ->label('Logo')
-                            ->image()
-                            ->directory('company-logos'),
+                        Grid::make(2)
+                            ->schema([
+                                TextInput::make('name')
+                                    ->label('Nom / Raison Sociale')
+                                    ->required()
+                                    ->columnSpan(2),
+                                Select::make('forme_juridique')
+                                    ->label('Forme Juridique')
+                                    ->options([
+                                        'EI' => 'EI - Entreprise Individuelle',
+                                        'EIRL' => 'EIRL',
+                                        'EURL' => 'EURL',
+                                        'SARL' => 'SARL',
+                                        'SAS' => 'SAS',
+                                        'SASU' => 'SASU',
+                                        'SA' => 'SA',
+                                        'SNC' => 'SNC',
+                                        'SCI' => 'SCI',
+                                        'SCOP' => 'SCOP',
+                                        'Association' => 'Association',
+                                    ])
+                                    ->searchable()
+                                    ->helperText('Obligatoire sur les factures'),
+                                TextInput::make('capital_social')
+                                    ->label('Capital Social')
+                                    ->placeholder('10 000 €')
+                                    ->helperText('Ex: 10 000 €'),
+                                TextInput::make('email')
+                                    ->label('Email')
+                                    ->email(),
+                                TextInput::make('phone')
+                                    ->label('Téléphone'),
+                                TextInput::make('address')
+                                    ->label('Adresse du siège social')
+                                    ->columnSpan(2),
+                                TextInput::make('city')
+                                    ->label('Ville'),
+                                TextInput::make('zip_code')
+                                    ->label('Code postal'),
+                                TextInput::make('website')
+                                    ->label('Site Web')
+                                    ->url(),
+                                Select::make('currency')
+                                    ->label('Devise')
+                                    ->options([
+                                        'XOF' => 'XOF - Franc CFA (Afrique de l\'Ouest)',
+                                        'XAF' => 'XAF - Franc CFA (Afrique Centrale)',
+                                        'USD' => 'USD - Dollar Américain',
+                                        'EUR' => 'EUR - Euro',
+                                        'GBP' => 'GBP - Livre Sterling',
+                                        'CHF' => 'CHF - Franc Suisse',
+                                        'CAD' => 'CAD - Dollar Canadien',
+                                    ])
+                                    ->default('EUR'),
+                                FileUpload::make('logo_path')
+                                    ->label('Logo')
+                                    ->image()
+                                    ->directory('company-logos')
+                                    ->columnSpan(2),
+                            ]),
+                    ]),
+
+                Section::make('Identifiants Légaux')
+                    ->description('Numéros d\'immatriculation obligatoires sur vos factures.')
+                    ->schema([
+                        Grid::make(2)
+                            ->schema([
+                                TextInput::make('registration_number')
+                                    ->label('SIREN (9 chiffres)')
+                                    ->maxLength(9)
+                                    ->helperText('Identifiant unique de l\'entreprise'),
+                                TextInput::make('siret')
+                                    ->label('SIRET (14 chiffres)')
+                                    ->maxLength(14)
+                                    ->helperText('Requis pour Factur-X, PPF et facture électronique'),
+                                TextInput::make('tax_number')
+                                    ->label('N° TVA Intracommunautaire')
+                                    ->placeholder('FR XX XXXXXXXXX')
+                                    ->helperText('Obligatoire si facture > 150 € HT'),
+                                TextInput::make('code_naf')
+                                    ->label('Code NAF / APE')
+                                    ->placeholder('6201Z')
+                                    ->maxLength(10)
+                                    ->helperText('Code activité INSEE'),
+                                TextInput::make('rcs_number')
+                                    ->label('RCS (Registre du Commerce)')
+                                    ->placeholder('RCS Paris B 123 456 789')
+                                    ->helperText('Commerçants : ville + numéro'),
+                                TextInput::make('rm_number')
+                                    ->label('RM (Répertoire des Métiers)')
+                                    ->placeholder('RM 75 123 456 789')
+                                    ->helperText('Artisans uniquement'),
+                            ]),
+                    ]),
+
+                Section::make('Pied de page & Notes')
+                    ->schema([
                         Textarea::make('footer_text')
-                            ->label('Texte de pied de page (Factures)'),
-                        Select::make('currency')
-                            ->label('Devise')
-                            ->options([
-                                'XOF' => 'XOF - Franc CFA (Afrique de l\'Ouest)',
-                                'XAF' => 'XAF - Franc CFA (Afrique Centrale)',
-                                'USD' => 'USD - Dollar Américain',
-                                'EUR' => 'EUR - Euro',
-                                'GBP' => 'GBP - Livre Sterling',
-                                'CHF' => 'CHF - Franc Suisse',
-                                'CAD' => 'CAD - Dollar Canadien',
-                                'AUD' => 'AUD - Dollar Australien',
-                                'JPY' => 'JPY - Yen Japonais',
-                                'CNY' => 'CNY - Yuan Chinois',
-                                'INR' => 'INR - Roupie Indienne',
-                                'BRL' => 'BRL - Real Brésilien',
-                                'MXN' => 'MXN - Peso Mexicain',
-                            ])
-                            ->default('EUR')
-                            ->helperText('Détectée automatiquement par votre localisation IP'),
+                            ->label('Texte de pied de page (Factures)')
+                            ->helperText('Apparaît en bas de chaque facture PDF. Laissez vide pour le texte par défaut.')
+                            ->rows(3),
                     ]),
 
                 Section::make('Fonctionnalités')

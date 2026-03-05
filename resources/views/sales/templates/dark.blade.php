@@ -76,6 +76,7 @@
         /* ===== LEGAL ===== */
         .legal-box { font-size: 8px; color: #475569; margin-bottom: 15px; padding: 8px 0; border-top: 1px solid #1e293b; }
         .legal-box strong { color: #94a3b8; }
+        .legal-row { margin-bottom: 3px; color: #475569; }
 
         /* ===== NOTES ===== */
         .notes-box { background-color: #1e293b; border: 1px solid #334155; border-radius: 4px; padding: 10px; margin-bottom: 15px; font-size: 9px; color: #94a3b8; }
@@ -133,14 +134,15 @@
                 @if(optional($sale->customer)->siret)SIRET: {{ $sale->customer->siret }}<br>@endif
                 @if(optional($sale->customer)->address){{ $sale->customer->address }}<br>@endif
                 @if(optional($sale->customer)->zip_code || optional($sale->customer)->city){{ optional($sale->customer)->zip_code }} {{ optional($sale->customer)->city }}<br>@endif
-                @if(optional($sale->customer)->phone){{ $sale->customer->phone }}@endif
+                @if(optional($sale->customer)->phone){{ $sale->customer->phone }}<br>@endif
+                @if($customerTaxNumber)TVA_INTRA: {{ $customerTaxNumber }}@endif
             </div>
         </td>
         <td class="info-right">
             <div class="info-comment">// TERMES</div>
             <div style="color: #ffffff; font-size: 12px; font-weight: bold;">NET 30 DAYS</div>
             <div class="info-text" style="margin-top: 4px;">
-                DUE: {{ $sale->created_at->addDays(30)->format('Y-m-d') }}<br>
+                DUE: {{ $dueDate }}<br>
                 MODE: {{ strtoupper($sale->payment_method ?? 'VIREMENT') }}<br>
                 REF: {{ $sale->reference ?? $sale->invoice_number }}
                 @if($sale->warehouse)<br>DEPOT: {{ $sale->warehouse->name }}@endif
@@ -195,13 +197,7 @@
 </div>
 
 <!-- MENTIONS LÉGALES -->
-<div class="legal-box">
-    @if($isVatOnDebits)<strong>TVA acquittée sur les débits</strong><br>@endif
-    @if($natureOp)Nature opération : {{ $natureOpLabels[$natureOp] ?? $natureOp }}<br>@endif
-    @if($deliveryAddr)Livraison : {{ $deliveryAddr }}<br>@endif
-    @if($company->tax_number)VAT_ID: {{ $company->tax_number }}<br>@endif
-    @if($company->siret)SIRET: {{ $company->siret }}@endif
-</div>
+@include('sales.templates._legal-mentions')
 
 <!-- NOTES -->
 @if($sale->notes)

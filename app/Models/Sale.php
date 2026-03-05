@@ -49,6 +49,8 @@ class Sale extends Model
         'ppf_id',
         'ppf_chorus_id',
         'ppf_synced_at',
+        'delivery_date',
+        'due_date',
     ];
 
     protected $casts = [
@@ -58,6 +60,8 @@ class Sale extends Model
         'paid_at' => 'datetime',
         'payment_details' => 'array',
         'ppf_synced_at' => 'datetime',
+        'delivery_date' => 'date',
+        'due_date' => 'date',
     ];
 
     public function parent(): BelongsTo

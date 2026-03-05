@@ -32,10 +32,15 @@ class AccountingSetting extends Model
         'accounting_software_version',
         'is_vat_franchise',
         'vat_regime',
+        'penalty_rate',
+        'recovery_fee',
+        'payment_terms',
     ];
 
     protected $casts = [
         'is_vat_franchise' => 'boolean',
+        'penalty_rate' => 'decimal:2',
+        'recovery_fee' => 'decimal:2',
     ];
 
     /**

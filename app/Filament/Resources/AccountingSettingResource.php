@@ -132,6 +132,36 @@ class AccountingSettingResource extends Resource
                     ->collapsible()
                     ->collapsed(fn ($record) => !$record?->is_vat_franchise),
 
+                Forms\Components\Section::make('Conditions de paiement & Pénalités')
+                    ->description('Mentions obligatoires sur les factures B2B (réforme facture électronique 2026)')
+                    ->icon('heroicon-o-clock')
+                    ->schema([
+                        Forms\Components\Textarea::make('payment_terms')
+                            ->label('Conditions de paiement')
+                            ->placeholder('Paiement à 30 jours date de facture par virement bancaire.')
+                            ->helperText('Texte libre affiché sur les factures. Ex: « Net 30 jours fin de mois »')
+                            ->rows(2),
+                        Forms\Components\Grid::make(2)
+                            ->schema([
+                                Forms\Components\TextInput::make('penalty_rate')
+                                    ->label('Taux de pénalités de retard (%)')
+                                    ->numeric()
+                                    ->step(0.01)
+                                    ->suffix('%')
+                                    ->placeholder('10.00')
+                                    ->helperText('Par défaut : 3× le taux d\'intérêt légal. Mentionné obligatoirement sur les factures B2B.'),
+                                Forms\Components\TextInput::make('recovery_fee')
+                                    ->label('Indemnité forfaitaire de recouvrement (€)')
+                                    ->numeric()
+                                    ->step(0.01)
+                                    ->suffix('€')
+                                    ->default(40.00)
+                                    ->helperText('Légalement fixée à 40 € entre professionnels.'),
+                            ]),
+                    ])
+                    ->collapsible()
+                    ->collapsed(),
+
                 Forms\Components\Section::make('Informations de l\'entreprise')
                     ->description('Le SIREN et la raison sociale sont récupérés automatiquement depuis les paramètres de l\'entreprise')
                     ->schema([

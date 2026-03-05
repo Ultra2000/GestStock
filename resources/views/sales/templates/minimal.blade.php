@@ -73,6 +73,7 @@
         /* ===== LEGAL ===== */
         .legal-box { font-size: 8px; color: #94a3b8; margin-bottom: 15px; padding: 8px 0; border-top: 1px solid #f1f5f9; }
         .legal-box strong { color: #64748b; }
+        .legal-row { margin-bottom: 3px; }
 
         /* ===== NOTES ===== */
         .notes-box { background-color: #fefce8; border: 1px solid #fde68a; border-radius: 4px; padding: 10px; margin-bottom: 15px; font-size: 9px; }
@@ -130,6 +131,7 @@
             <div class="info-text">
                 @if(optional($sale->customer)->registration_number)SIREN: {{ $sale->customer->registration_number }}<br>@endif
                 @if(optional($sale->customer)->siret)SIRET: {{ $sale->customer->siret }}<br>@endif
+                @if($customerTaxNumber)TVA Intra: {{ $customerTaxNumber }}<br>@endif
                 @if(optional($sale->customer)->address){{ $sale->customer->address }}<br>@endif
                 @if(optional($sale->customer)->zip_code || optional($sale->customer)->city){{ optional($sale->customer)->zip_code }} {{ optional($sale->customer)->city }}<br>@endif
                 @if(optional($sale->customer)->phone)Tél: {{ $sale->customer->phone }}<br>@endif
@@ -140,7 +142,7 @@
             <div class="info-label">Paiement attendu</div>
             <div class="info-text">
                 <span class="info-highlight">{{ ucfirst($sale->payment_method ?? 'Virement bancaire') }}</span><br>
-                Échéance : {{ $sale->created_at->addDays(30)->format('d/m/Y') }}<br>
+                Échéance : {{ $dueDate instanceof \Carbon\Carbon ? $dueDate->format('d/m/Y') : \Carbon\Carbon::parse($dueDate)->format('d/m/Y') }}<br>
                 Réf: {{ $sale->reference ?? $sale->invoice_number }}
                 @if($sale->warehouse)<br>Entrepôt: {{ $sale->warehouse->name }}@endif
             </div>
@@ -225,9 +227,7 @@
 
 <!-- MENTIONS LÉGALES -->
 <div class="legal-box">
-    @if($isVatOnDebits)<strong>TVA acquittée sur les débits</strong><br>@endif
-    @if($natureOp)Nature de l'opération : {{ $natureOpLabels[$natureOp] ?? $natureOp }}<br>@endif
-    @if($deliveryAddr)Adresse de livraison : {{ $deliveryAddr }}@endif
+    @include('sales.templates._legal-mentions')
 </div>
 
 <!-- NOTES -->

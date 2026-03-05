@@ -75,6 +75,7 @@
         /* ===== LEGAL ===== */
         .legal-box { font-size: 8px; color: #a78bfa; margin-bottom: 15px; padding: 8px 0; border-top: 1px solid #ede9fe; }
         .legal-box strong { color: #7c3aed; }
+        .legal-row { margin-bottom: 3px; }
 
         /* ===== NOTES ===== */
         .notes-box { background-color: #faf5ff; border: 1px solid #e9d5ff; border-radius: 8px; padding: 10px; margin-bottom: 15px; font-size: 9px; }
@@ -131,12 +132,13 @@
                 @if(optional($sale->customer)->siret)SIRET: {{ $sale->customer->siret }}<br>@endif
                 @if(optional($sale->customer)->address){{ $sale->customer->address }}<br>@endif
                 @if(optional($sale->customer)->zip_code || optional($sale->customer)->city){{ optional($sale->customer)->zip_code }} {{ optional($sale->customer)->city }}<br>@endif
-                @if(optional($sale->customer)->phone)Tél: {{ $sale->customer->phone }}@endif
+                @if(optional($sale->customer)->phone)Tél: {{ $sale->customer->phone }}<br>@endif
+                @if($customerTaxNumber)<strong>TVA Intra:</strong> {{ $customerTaxNumber }}@endif
             </div>
         </td>
         <td>
             <div class="info-label info-label-indigo">Échéance</div>
-            <div class="info-name">{{ $sale->created_at->addDays(30)->format('d/m/Y') }}</div>
+            <div class="info-name">{{ $dueDate }}</div>
             <div class="info-text">
                 Émis le {{ $sale->created_at->format('d/m/Y') }}<br>
                 Mode: {{ ucfirst($sale->payment_method ?? 'Non spécifié') }}<br>
@@ -211,13 +213,7 @@
 </table>
 
 <!-- MENTIONS LÉGALES -->
-<div class="legal-box">
-    @if($isVatOnDebits)<strong>TVA acquittée sur les débits</strong><br>@endif
-    @if($natureOp)Nature de l'opération : {{ $natureOpLabels[$natureOp] ?? $natureOp }}<br>@endif
-    @if($deliveryAddr)Adresse de livraison : {{ $deliveryAddr }}@endif
-    @if($company->tax_number)<br>TVA Intracommunautaire : {{ $company->tax_number }}@endif
-    @if($company->siret)<br>SIRET : {{ $company->siret }}@endif
-</div>
+@include('sales.templates._legal-mentions')
 
 <!-- NOTES -->
 @if($sale->notes)

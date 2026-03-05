@@ -90,6 +90,7 @@
         /* ===== LEGAL ===== */
         .legal-box { margin-top: 10px; padding: 8px 12px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 8px; color: #64748b; margin-bottom: 15px; }
         .legal-box strong { color: #334155; }
+        .legal-row { margin-bottom: 3px; }
 
         /* ===== CONDITIONS ===== */
         .conditions-box { font-size: 8px; color: #94a3b8; margin-bottom: 15px; }
@@ -164,7 +165,8 @@
                         @if(optional($sale->customer)->address){{ $sale->customer->address }}<br>@endif
                         @if(optional($sale->customer)->zip_code || optional($sale->customer)->city){{ optional($sale->customer)->zip_code }} {{ optional($sale->customer)->city }}<br>@endif
                         @if(optional($sale->customer)->phone)Tél: {{ $sale->customer->phone }}<br>@endif
-                        @if(optional($sale->customer)->email){{ $sale->customer->email }}@endif
+                        @if(optional($sale->customer)->email){{ $sale->customer->email }}<br>@endif
+                        @if($customerTaxNumber)<strong>TVA Intra:</strong> {{ $customerTaxNumber }}@endif
                     </div>
                 </div>
             </td>
@@ -221,10 +223,6 @@
     <table class="totals-wrapper">
         <tr>
             <td class="spacer">
-                <div class="conditions-box">
-                    <strong>CONDITIONS GÉNÉRALES</strong><br>
-                    Paiement sous 30 jours. Tout retard entraînera des pénalités égales à 3 fois le taux d'intérêt légal en vigueur.
-                </div>
             </td>
             <td class="totals">
                 <div class="totals-card">
@@ -273,11 +271,7 @@
 </div>
 
 <!-- MENTIONS LÉGALES -->
-<div class="legal-box">
-    @if($isVatOnDebits)<strong>TVA acquittée sur les débits</strong><br>@endif
-    @if($natureOp)Nature de l'opération : {{ $natureOpLabels[$natureOp] ?? $natureOp }}<br>@endif
-    @if($deliveryAddr)Adresse de livraison : {{ $deliveryAddr }}@endif
-</div>
+@include('sales.templates._legal-mentions')
 
 <!-- NOTES -->
 @if($sale->notes)
