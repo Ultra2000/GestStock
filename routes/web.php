@@ -7,10 +7,19 @@ use App\Http\Controllers\CashReportController;
 use App\Http\Controllers\QuotePdfController;
 use App\Http\Controllers\DeliveryNotePdfController;
 use App\Http\Controllers\PublicQuoteController;
+use App\Http\Controllers\InvoiceConverterController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
     return redirect('/admin/login');
+});
+
+// Routes publiques pour le convertisseur de factures
+Route::prefix('convertir-facture')->group(function () {
+    Route::get('/', [InvoiceConverterController::class, 'index'])->name('invoice-converter.index');
+    Route::post('/upload', [InvoiceConverterController::class, 'upload'])->name('invoice-converter.upload');
+    Route::post('/generate', [InvoiceConverterController::class, 'generate'])->name('invoice-converter.generate');
+    Route::get('/download/{id}', [InvoiceConverterController::class, 'download'])->name('invoice-converter.download');
 });
 
 // Routes publiques pour les devis clients

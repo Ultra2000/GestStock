@@ -54,4 +54,22 @@ return [
         'client_secret' => env('URSSAF_CLIENT_SECRET'),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | AI Services (Convertisseur de factures)
+    |--------------------------------------------------------------------------
+    | Gemini Flash = tier gratuit (1500 req/jour gratuites)
+    | Claude Sonnet = tier pro (abonnés payants)
+    */
+    'ai' => [
+        'gemini' => [
+            'api_key' => env('GEMINI_API_KEY'),
+            'model' => env('GEMINI_MODEL', 'gemini-2.0-flash'),
+        ],
+        'claude' => [
+            'api_key' => env('CLAUDE_API_KEY'),
+            'model' => env('CLAUDE_MODEL', 'claude-sonnet-4-20250514'),
+        ],
+    ],
+
 ];
