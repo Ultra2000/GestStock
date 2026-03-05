@@ -5,11 +5,13 @@ namespace App\Filament\Pages\Tenancy;
 use App\Models\Company;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Grid;
+use Filament\Forms\Components\Radio;
 use Filament\Forms\Components\Section;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
+use Filament\Forms\Components\ViewField;
 use Filament\Forms\Form;
 use Filament\Pages\Tenancy\EditTenantProfile;
 
@@ -94,6 +96,13 @@ class EditCompanyProfile extends EditTenantProfile
                                     ->label('Gestion Bancaire')
                                     ->default(true),
                             ]),
+                    ]),
+
+                Section::make('Modèle de facture PDF')
+                    ->description('Choisissez l\'apparence de vos factures de vente générées en PDF.')
+                    ->schema([
+                        ViewField::make('settings.invoice_template')
+                            ->view('filament.forms.invoice-template-selector'),
                     ]),
             ]);
     }

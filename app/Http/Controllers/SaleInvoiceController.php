@@ -23,7 +23,14 @@ class SaleInvoiceController extends Controller
         $verificationUrl = URL::signedRoute('sales.invoice.verify', ['sale' => $sale->id]);
         $verificationCode = substr(sha1($sale->id . '|' . $sale->invoice_number . '|' . ($sale->total ?? $sale->items->sum('total_price')) . '|' . $sale->created_at), 0, 12);
         
-        $pdf = PDF::loadView('sales.invoice-pdf', [
+        // Sélection du modèle de facture
+        $template = $company->settings['invoice_template'] ?? 'corporate';
+        $validTemplates = ['minimal', 'corporate', 'creative', 'dark'];
+        if (!in_array($template, $validTemplates)) {
+            $template = 'corporate';
+        }
+
+        $pdf = PDF::loadView("sales.templates.{$template}", [
             'sale' => $sale,
             'company' => $company,
             'verificationUrl' => $verificationUrl,
