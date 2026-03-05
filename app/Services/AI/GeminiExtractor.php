@@ -13,7 +13,7 @@ class GeminiExtractor implements AiExtractorInterface
     public function __construct()
     {
         $this->apiKey = config('services.ai.gemini.api_key', '');
-        $this->model = config('services.ai.gemini.model', 'gemini-2.0-flash');
+        $this->model = config('services.ai.gemini.model', 'gemini-2.5-flash');
     }
 
     public function getProviderName(): string

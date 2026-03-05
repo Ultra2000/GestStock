@@ -64,7 +64,7 @@ return [
     'ai' => [
         'gemini' => [
             'api_key' => env('GEMINI_API_KEY'),
-            'model' => env('GEMINI_MODEL', 'gemini-2.0-flash'),
+            'model' => env('GEMINI_MODEL', 'gemini-2.5-flash'),
         ],
         'claude' => [
             'api_key' => env('CLAUDE_API_KEY'),
