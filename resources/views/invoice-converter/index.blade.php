@@ -43,13 +43,14 @@
     {{-- Header --}}
     <header class="bg-white border-b border-gray-200 sticky top-0 z-50">
         <div class="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
-            <a href="/" class="flex items-center gap-2">
+            <a href="https://frecorp.fr" class="flex items-center gap-2">
                 <div class="w-8 h-8 bg-brand-600 rounded-lg flex items-center justify-center">
                     <span class="text-white font-bold text-sm">F</span>
                 </div>
                 <span class="font-bold text-gray-900 text-lg">FRECORP</span>
             </a>
             <div class="flex items-center gap-3">
+                <a href="https://frecorp.fr" class="hidden sm:inline text-sm text-gray-500 hover:text-brand-600 transition-colors">Accueil</a>
                 <span class="hidden sm:inline text-sm text-gray-500">
                     {{ $remaining }}/{{ $limit }} conversions restantes ce mois
                 </span>
