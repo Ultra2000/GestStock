@@ -17,121 +17,204 @@
 
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <!-- Tailwind CDN (pour page publique standalone) -->
+    <!-- External Resources -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap">
     <script>
-        tailwindcss.config = {
+        tailwind.config = {
             theme: {
                 extend: {
                     colors: {
-                        brand: { 50: '#eef2ff', 100: '#e0e7ff', 500: '#6366f1', 600: '#4f46e5', 700: '#4338ca', 800: '#3730a3', 900: '#312e81' }
-                    }
+                        brand: { 50: '#eef2ff', 100: '#e0e7ff', 200: '#c7d2fe', 500: '#6366f1', 600: '#4f46e5', 700: '#4338ca', 800: '#3730a3', 900: '#312e81' }
+                    },
+                    fontFamily: { sans: ['Inter', 'sans-serif'] },
                 }
             }
         }
     </script>
     <style>
-        .drop-zone.drag-over { border-color: #6366f1; background: #eef2ff; }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        }
+        .glass-card-hover:hover {
+            background: rgba(255, 255, 255, 0.06);
+            border-color: rgba(99, 102, 241, 0.3);
+        }
+        .floating-orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(100px);
+            z-index: 0;
+            opacity: 0.5;
+            pointer-events: none;
+        }
+        .orb-1 { width: 500px; height: 500px; background: #4338ca; top: -150px; left: -150px; }
+        .orb-2 { width: 400px; height: 400px; background: #7c3aed; bottom: 10%; right: -100px; }
+        .orb-3 { width: 300px; height: 300px; background: #06b6d4; top: 50%; left: 30%; }
+        .gradient-text {
+            background: linear-gradient(135deg, #6366f1 0%, #a855f7 50%, #ec4899 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            box-shadow: 0 10px 40px -10px rgba(99, 102, 241, 0.5);
+            transition: all 0.3s ease;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 50px -10px rgba(99, 102, 241, 0.6);
+        }
+        .nav-modern {
+            background: linear-gradient(135deg, rgba(15, 23, 42, 0.9) 0%, rgba(30, 41, 59, 0.85) 100%);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(99, 102, 241, 0.15);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+        }
+        .drop-zone.drag-over { border-color: #6366f1; background: rgba(99, 102, 241, 0.1); }
         .fade-in { animation: fadeIn 0.3s ease-in; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes pulse-border { 0%, 100% { border-color: #6366f1; } 50% { border-color: #a5b4fc; } }
         .processing { animation: pulse-border 1.5s ease-in-out infinite; }
+        .dark-input {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #e2e8f0;
+            transition: all 0.2s;
+        }
+        .dark-input:focus {
+            border-color: rgba(99, 102, 241, 0.5);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+            outline: none;
+        }
+        .dark-input::placeholder { color: #64748b; }
+        .btn-login {
+            border: 1px solid rgba(148, 163, 184, 0.2);
+            transition: all 0.3s ease;
+        }
+        .btn-login:hover {
+            border-color: rgba(99, 102, 241, 0.5);
+            background: rgba(99, 102, 241, 0.1);
+        }
     </style>
 </head>
-<body class="bg-gray-50 min-h-screen">
+<body class="bg-[#0f172a] text-slate-200 overflow-x-hidden min-h-screen font-sans">
+
+    <!-- Floating Orbs -->
+    <div class="fixed inset-0 overflow-hidden pointer-events-none">
+        <div class="floating-orb orb-1"></div>
+        <div class="floating-orb orb-2"></div>
+        <div class="floating-orb orb-3"></div>
+    </div>
 
     {{-- Header --}}
-    <header class="bg-white border-b border-gray-200 sticky top-0 z-50">
-        <div class="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
-            <a href="https://frecorp.fr" class="flex items-center gap-2">
-                <div class="w-8 h-8 bg-brand-600 rounded-lg flex items-center justify-center">
-                    <span class="text-white font-bold text-sm">F</span>
+    <nav class="fixed top-0 w-full z-50 nav-modern">
+        <div class="max-w-5xl mx-auto px-6 h-16 flex items-center justify-between">
+            <a href="https://frecorp.fr" class="flex items-center gap-3 group">
+                <div class="w-10 h-10 bg-gradient-to-br from-indigo-500 via-purple-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-500/40">
+                    <i class="fas fa-boxes-stacked text-white text-lg"></i>
                 </div>
-                <span class="font-bold text-gray-900 text-lg">FRECORP</span>
+                <div class="flex flex-col">
+                    <span class="text-xl font-black tracking-tight bg-gradient-to-r from-white via-indigo-200 to-indigo-400 bg-clip-text text-transparent">FRECORP</span>
+                    <span class="text-[9px] font-medium text-indigo-400/60 tracking-widest uppercase -mt-1 hidden sm:block">Convertisseur</span>
+                </div>
             </a>
-            <div class="flex items-center gap-3">
-                <a href="https://frecorp.fr" class="hidden sm:inline text-sm text-gray-500 hover:text-brand-600 transition-colors">Accueil</a>
-                <span class="hidden sm:inline text-sm text-gray-500">
-                    {{ $remaining }}/{{ $limit }} conversions restantes ce mois
+            <div class="flex items-center gap-4">
+                <a href="https://frecorp.fr" class="hidden sm:inline text-sm text-slate-400 hover:text-white transition-colors">
+                    <i class="fas fa-home mr-1.5 text-xs opacity-70"></i>Accueil
+                </a>
+                <span class="hidden sm:inline text-sm text-slate-500">
+                    <i class="fas fa-bolt mr-1 text-xs text-indigo-400"></i>
+                    {{ $remaining }}/{{ $limit }} conversions
                 </span>
-                <a href="/admin/login" class="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-brand-600 hover:bg-brand-700 rounded-lg transition-colors">
-                    Se connecter
+                <a href="/admin/login" class="btn-login flex items-center gap-2 text-slate-300 font-medium text-sm px-4 py-2 rounded-lg">
+                    <i class="fas fa-arrow-right-to-bracket text-xs"></i>
+                    <span>Connexion</span>
                 </a>
             </div>
         </div>
-    </header>
+    </nav>
 
     {{-- Hero --}}
-    <section class="bg-gradient-to-br from-brand-600 via-brand-700 to-purple-800 text-white py-16 sm:py-20">
-        <div class="max-w-4xl mx-auto px-4 text-center">
+    <section class="relative pt-28 pb-14 sm:pt-32 sm:pb-16 px-4">
+        <div class="max-w-4xl mx-auto text-center relative z-10">
+            <div class="inline-flex items-center px-4 py-1.5 bg-cyan-500/20 border border-cyan-400/30 rounded-full text-sm font-medium text-cyan-300 mb-6">
+                <i class="fas fa-wand-magic-sparkles mr-2 text-cyan-400"></i>Propulsé par l'Intelligence Artificielle
+            </div>
             <h1 class="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight mb-4">
-                Convertissez vos factures en <span class="text-brand-100">Factur-X</span>
+                <span class="text-white">Convertissez vos factures en </span>
+                <span class="gradient-text">Factur-X</span>
             </h1>
-            <p class="text-lg sm:text-xl text-brand-100 max-w-2xl mx-auto mb-2">
+            <p class="text-lg text-slate-400 max-w-2xl mx-auto mb-2">
                 PDF, image ou Excel → facture électronique conforme EN16931
             </p>
-            <p class="text-sm text-brand-200">
-                Extraction automatique par intelligence artificielle • {{ $limit }} conversions/mois gratuites
+            <p class="text-sm text-slate-500">
+                <i class="fas fa-shield-halved mr-1 text-emerald-400"></i>
+                Extraction automatique par IA • {{ $limit }} conversions/mois gratuites
             </p>
         </div>
     </section>
 
     {{-- Main content --}}
-    <main class="max-w-4xl mx-auto px-4 -mt-8 pb-16">
+    <main class="max-w-4xl mx-auto px-4 -mt-4 pb-16 relative z-10">
 
         {{-- Upload card --}}
-        <div id="upload-section" class="bg-white rounded-2xl shadow-lg border border-gray-200 p-8 mb-8">
+        <div id="upload-section" class="glass-card rounded-2xl p-8 mb-8">
             <div class="text-center mb-6">
-                <h2 class="text-xl font-bold text-gray-900 mb-1">1. Importez votre facture</h2>
-                <p class="text-sm text-gray-500">Glissez un fichier ou cliquez pour parcourir</p>
+                <h2 class="text-xl font-bold text-white mb-1">1. Importez votre facture</h2>
+                <p class="text-sm text-slate-400">Glissez un fichier ou cliquez pour parcourir</p>
             </div>
 
             {{-- Drop zone --}}
-            <div id="drop-zone" class="drop-zone border-2 border-dashed border-gray-300 rounded-xl p-12 text-center cursor-pointer hover:border-brand-400 transition-all">
-                <svg class="mx-auto w-16 h-16 text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                </svg>
-                <p class="text-gray-600 mb-1">Glissez votre fichier ici</p>
-                <p class="text-sm text-gray-400">ou <span class="text-brand-600 font-semibold hover:underline">choisissez un fichier</span></p>
-                <p class="mt-3 text-xs text-gray-400">PDF · JPEG · PNG · WebP · Excel · CSV — Max 10 Mo</p>
+            <div id="drop-zone" class="drop-zone border-2 border-dashed border-slate-600 rounded-xl p-12 text-center cursor-pointer hover:border-indigo-400/50 transition-all">
+                <div class="w-16 h-16 mx-auto mb-4 bg-indigo-500/20 rounded-2xl flex items-center justify-center">
+                    <i class="fas fa-cloud-arrow-up text-3xl text-indigo-400"></i>
+                </div>
+                <p class="text-slate-300 mb-1">Glissez votre fichier ici</p>
+                <p class="text-sm text-slate-500">ou <span class="text-indigo-400 font-semibold hover:underline cursor-pointer">choisissez un fichier</span></p>
+                <p class="mt-3 text-xs text-slate-600">PDF · JPEG · PNG · WebP · Excel · CSV — Max 10 Mo</p>
                 <input type="file" id="file-input" accept=".pdf,.jpg,.jpeg,.png,.webp,.xlsx,.xls,.csv" class="hidden" />
             </div>
 
             {{-- File info --}}
-            <div id="file-info" class="hidden mt-4 flex items-center justify-between bg-gray-50 rounded-xl p-4 fade-in">
+            <div id="file-info" class="hidden mt-4 flex items-center justify-between bg-slate-800/50 border border-slate-700/50 rounded-xl p-4 fade-in">
                 <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 bg-brand-100 rounded-lg flex items-center justify-center">
-                        <svg class="w-5 h-5 text-brand-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                        </svg>
+                    <div class="w-10 h-10 bg-indigo-500/20 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-file-lines text-indigo-400"></i>
                     </div>
                     <div>
-                        <p id="file-name" class="text-sm font-medium text-gray-900"></p>
-                        <p id="file-size" class="text-xs text-gray-500"></p>
+                        <p id="file-name" class="text-sm font-medium text-white"></p>
+                        <p id="file-size" class="text-xs text-slate-500"></p>
                     </div>
                 </div>
-                <button id="remove-file" class="text-gray-400 hover:text-red-500 transition-colors p-1">
+                <button id="remove-file" class="text-slate-500 hover:text-red-400 transition-colors p-1">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
                 </button>
             </div>
 
             {{-- Extract button --}}
             <div id="extract-btn-wrapper" class="hidden mt-6 text-center fade-in">
-                <button id="extract-btn" class="inline-flex items-center px-8 py-3 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-xl shadow-lg shadow-brand-200 transition-all text-base disabled:opacity-50 disabled:cursor-not-allowed">
-                    <svg id="extract-icon" class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+                <button id="extract-btn" class="btn-primary inline-flex items-center px-8 py-3 text-white font-bold rounded-xl text-base disabled:opacity-50 disabled:cursor-not-allowed">
+                    <i id="extract-icon" class="fas fa-bolt mr-2"></i>
                     <svg id="extract-spinner" class="hidden w-5 h-5 mr-2 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
                     <span id="extract-text">Extraire les données par IA</span>
                 </button>
             </div>
 
             {{-- Error message --}}
-            <div id="error-msg" class="hidden mt-4 bg-red-50 border border-red-200 rounded-xl p-4 text-sm text-red-700 fade-in"></div>
+            <div id="error-msg" class="hidden mt-4 bg-red-500/10 border border-red-500/30 rounded-xl p-4 text-sm text-red-300 fade-in"></div>
 
             {{-- Upgrade CTA --}}
-            <div id="upgrade-cta" class="hidden mt-4 bg-brand-50 border border-brand-200 rounded-xl p-5 text-center fade-in">
-                <p class="text-sm text-brand-800 mb-3">Limite atteinte ce mois-ci. Inscrivez-vous pour des conversions illimitées !</p>
-                <a href="/admin/register" class="inline-flex items-center px-5 py-2 bg-brand-600 text-white font-semibold rounded-lg hover:bg-brand-700 transition-colors text-sm">
-                    Créer un compte gratuit →
+            <div id="upgrade-cta" class="hidden mt-4 bg-indigo-500/10 border border-indigo-500/30 rounded-xl p-5 text-center fade-in">
+                <p class="text-sm text-indigo-200 mb-3">Limite atteinte ce mois-ci. Inscrivez-vous pour des conversions illimitées !</p>
+                <a href="/admin/register" class="btn-primary inline-flex items-center px-5 py-2 text-white font-semibold rounded-lg text-sm">
+                    <i class="fas fa-rocket mr-2 text-xs"></i>Créer un compte gratuit
                 </a>
             </div>
         </div>
@@ -140,55 +223,61 @@
         <div id="preview-section" class="hidden space-y-6 fade-in">
             {{-- AI result badge --}}
             <div class="flex items-center justify-between">
-                <h2 class="text-xl font-bold text-gray-900">2. Vérifiez et corrigez</h2>
+                <h2 class="text-xl font-bold text-white">2. Vérifiez et corrigez</h2>
                 <div class="flex items-center gap-2">
-                    <span id="ai-badge" class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800"></span>
-                    <span id="time-badge" class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-700"></span>
+                    <span id="ai-badge" class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-purple-500/20 border border-purple-400/30 text-purple-300"></span>
+                    <span id="time-badge" class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-slate-700/50 border border-slate-600/50 text-slate-300"></span>
                 </div>
             </div>
 
             {{-- Seller / Buyer --}}
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
-                    <h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Émetteur</h3>
+                <div class="glass-card rounded-xl p-5">
+                    <h3 class="text-xs font-semibold text-indigo-400 uppercase tracking-wider mb-3">
+                        <i class="fas fa-building mr-1.5"></i>Émetteur
+                    </h3>
                     <div class="space-y-2">
-                        <input type="text" id="s-name" placeholder="Raison sociale" class="w-full rounded-lg border-gray-300 text-sm" />
-                        <input type="text" id="s-address" placeholder="Adresse" class="w-full rounded-lg border-gray-300 text-sm" />
+                        <input type="text" id="s-name" placeholder="Raison sociale" class="w-full rounded-lg dark-input text-sm px-3 py-2" />
+                        <input type="text" id="s-address" placeholder="Adresse" class="w-full rounded-lg dark-input text-sm px-3 py-2" />
                         <div class="grid grid-cols-2 gap-2">
-                            <input type="text" id="s-zip" placeholder="Code postal" class="rounded-lg border-gray-300 text-sm" />
-                            <input type="text" id="s-city" placeholder="Ville" class="rounded-lg border-gray-300 text-sm" />
+                            <input type="text" id="s-zip" placeholder="Code postal" class="rounded-lg dark-input text-sm px-3 py-2" />
+                            <input type="text" id="s-city" placeholder="Ville" class="rounded-lg dark-input text-sm px-3 py-2" />
                         </div>
                         <div class="grid grid-cols-2 gap-2">
-                            <input type="text" id="s-siret" placeholder="SIRET" class="rounded-lg border-gray-300 text-sm" />
-                            <input type="text" id="s-vat" placeholder="N° TVA" class="rounded-lg border-gray-300 text-sm" />
+                            <input type="text" id="s-siret" placeholder="SIRET" class="rounded-lg dark-input text-sm px-3 py-2" />
+                            <input type="text" id="s-vat" placeholder="N° TVA" class="rounded-lg dark-input text-sm px-3 py-2" />
                         </div>
                     </div>
                 </div>
-                <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
-                    <h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Destinataire</h3>
+                <div class="glass-card rounded-xl p-5">
+                    <h3 class="text-xs font-semibold text-indigo-400 uppercase tracking-wider mb-3">
+                        <i class="fas fa-user-tie mr-1.5"></i>Destinataire
+                    </h3>
                     <div class="space-y-2">
-                        <input type="text" id="b-name" placeholder="Raison sociale" class="w-full rounded-lg border-gray-300 text-sm" />
-                        <input type="text" id="b-address" placeholder="Adresse" class="w-full rounded-lg border-gray-300 text-sm" />
+                        <input type="text" id="b-name" placeholder="Raison sociale" class="w-full rounded-lg dark-input text-sm px-3 py-2" />
+                        <input type="text" id="b-address" placeholder="Adresse" class="w-full rounded-lg dark-input text-sm px-3 py-2" />
                         <div class="grid grid-cols-2 gap-2">
-                            <input type="text" id="b-zip" placeholder="Code postal" class="rounded-lg border-gray-300 text-sm" />
-                            <input type="text" id="b-city" placeholder="Ville" class="rounded-lg border-gray-300 text-sm" />
+                            <input type="text" id="b-zip" placeholder="Code postal" class="rounded-lg dark-input text-sm px-3 py-2" />
+                            <input type="text" id="b-city" placeholder="Ville" class="rounded-lg dark-input text-sm px-3 py-2" />
                         </div>
                         <div class="grid grid-cols-2 gap-2">
-                            <input type="text" id="b-siret" placeholder="SIRET" class="rounded-lg border-gray-300 text-sm" />
-                            <input type="text" id="b-vat" placeholder="N° TVA" class="rounded-lg border-gray-300 text-sm" />
+                            <input type="text" id="b-siret" placeholder="SIRET" class="rounded-lg dark-input text-sm px-3 py-2" />
+                            <input type="text" id="b-vat" placeholder="N° TVA" class="rounded-lg dark-input text-sm px-3 py-2" />
                         </div>
                     </div>
                 </div>
             </div>
 
             {{-- Invoice meta --}}
-            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
-                <h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Facture</h3>
+            <div class="glass-card rounded-xl p-5">
+                <h3 class="text-xs font-semibold text-indigo-400 uppercase tracking-wider mb-3">
+                    <i class="fas fa-file-invoice mr-1.5"></i>Facture
+                </h3>
                 <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
-                    <input type="text" id="inv-number" placeholder="N° facture" class="rounded-lg border-gray-300 text-sm" />
-                    <input type="date" id="inv-date" class="rounded-lg border-gray-300 text-sm" />
-                    <input type="date" id="inv-due" class="rounded-lg border-gray-300 text-sm" placeholder="Échéance" />
-                    <select id="inv-currency" class="rounded-lg border-gray-300 text-sm">
+                    <input type="text" id="inv-number" placeholder="N° facture" class="rounded-lg dark-input text-sm px-3 py-2" />
+                    <input type="date" id="inv-date" class="rounded-lg dark-input text-sm px-3 py-2" />
+                    <input type="date" id="inv-due" class="rounded-lg dark-input text-sm px-3 py-2" placeholder="Échéance" />
+                    <select id="inv-currency" class="rounded-lg dark-input text-sm px-3 py-2">
                         <option value="EUR">EUR (€)</option>
                         <option value="USD">USD ($)</option>
                         <option value="GBP">GBP (£)</option>
@@ -197,15 +286,19 @@
             </div>
 
             {{-- Lines --}}
-            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
+            <div class="glass-card rounded-xl p-5">
                 <div class="flex items-center justify-between mb-3">
-                    <h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Lignes</h3>
-                    <button id="add-line-btn" class="text-xs font-medium text-brand-600 hover:text-brand-700">+ Ajouter</button>
+                    <h3 class="text-xs font-semibold text-indigo-400 uppercase tracking-wider">
+                        <i class="fas fa-list mr-1.5"></i>Lignes
+                    </h3>
+                    <button id="add-line-btn" class="text-xs font-medium text-indigo-400 hover:text-indigo-300 transition-colors">
+                        <i class="fas fa-plus mr-1"></i>Ajouter
+                    </button>
                 </div>
                 <div class="overflow-x-auto">
                     <table class="w-full text-sm" id="lines-table">
                         <thead>
-                            <tr class="text-xs text-gray-500 uppercase">
+                            <tr class="text-xs text-slate-500 uppercase">
                                 <th class="text-left pb-2 pr-2" style="min-width:200px">Description</th>
                                 <th class="text-center pb-2 px-2" style="width:70px">Qté</th>
                                 <th class="text-right pb-2 px-2" style="width:100px">P.U. HT</th>
@@ -220,18 +313,20 @@
 
                 <div class="mt-4 flex justify-end">
                     <div class="w-64 space-y-1.5 text-sm">
-                        <div class="flex justify-between"><span class="text-gray-500">Total HT</span><span id="total-ht" class="font-semibold">0,00 €</span></div>
-                        <div class="flex justify-between"><span class="text-gray-500">Total TVA</span><span id="total-vat">0,00 €</span></div>
-                        <div class="flex justify-between pt-2 border-t border-gray-200 text-base"><span class="font-bold">Total TTC</span><span id="total-ttc" class="font-bold text-brand-600">0,00 €</span></div>
+                        <div class="flex justify-between"><span class="text-slate-500">Total HT</span><span id="total-ht" class="font-semibold text-slate-200">0,00 €</span></div>
+                        <div class="flex justify-between"><span class="text-slate-500">Total TVA</span><span id="total-vat" class="text-slate-300">0,00 €</span></div>
+                        <div class="flex justify-between pt-2 border-t border-slate-700/50 text-base"><span class="font-bold text-white">Total TTC</span><span id="total-ttc" class="font-bold text-indigo-400">0,00 €</span></div>
                     </div>
                 </div>
             </div>
 
             {{-- Generate button --}}
             <div class="flex items-center justify-between">
-                <button id="back-btn" class="text-sm text-gray-500 hover:text-gray-700">← Recommencer</button>
-                <button id="generate-btn" class="inline-flex items-center px-8 py-3 bg-green-600 hover:bg-green-700 text-white font-bold rounded-xl shadow-lg transition-all text-base disabled:opacity-50">
-                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                <button id="back-btn" class="text-sm text-slate-500 hover:text-slate-300 transition-colors">
+                    <i class="fas fa-arrow-left mr-1"></i>Recommencer
+                </button>
+                <button id="generate-btn" class="inline-flex items-center px-8 py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl shadow-lg shadow-emerald-500/20 transition-all text-base disabled:opacity-50">
+                    <i class="fas fa-check-circle mr-2"></i>
                     Générer le Factur-X
                 </button>
             </div>
@@ -239,29 +334,31 @@
 
         {{-- Download section --}}
         <div id="download-section" class="hidden fade-in">
-            <div class="bg-white rounded-2xl shadow-lg border border-green-200 p-10 text-center">
-                <div class="w-20 h-20 mx-auto bg-green-100 rounded-full flex items-center justify-center mb-5">
-                    <svg class="w-10 h-10 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+            <div class="glass-card rounded-2xl p-10 text-center" style="border-color: rgba(16, 185, 129, 0.3);">
+                <div class="w-20 h-20 mx-auto bg-emerald-500/20 rounded-full flex items-center justify-center mb-5">
+                    <i class="fas fa-check text-4xl text-emerald-400"></i>
                 </div>
-                <h2 class="text-2xl font-extrabold text-gray-900 mb-2">Factur-X prêt !</h2>
-                <p class="text-gray-500 mb-8">Votre facture est conforme au standard Factur-X EN16931.</p>
+                <h2 class="text-2xl font-extrabold text-white mb-2">Factur-X prêt !</h2>
+                <p class="text-slate-400 mb-8">Votre facture est conforme au standard Factur-X EN16931.</p>
                 <div class="flex items-center justify-center gap-4 mb-6">
-                    <a id="dl-pdf-btn" href="#" class="inline-flex items-center px-6 py-3 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-xl shadow-lg transition-all">
-                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                    <a id="dl-pdf-btn" href="#" class="btn-primary inline-flex items-center px-6 py-3 text-white font-bold rounded-xl">
+                        <i class="fas fa-file-pdf mr-2"></i>
                         Télécharger le PDF
                     </a>
-                    <a id="dl-xml-btn" href="#" class="inline-flex items-center px-6 py-3 bg-gray-600 hover:bg-gray-700 text-white font-bold rounded-xl transition-all">
-                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" /></svg>
+                    <a id="dl-xml-btn" href="#" class="inline-flex items-center px-6 py-3 bg-slate-700 hover:bg-slate-600 text-white font-bold rounded-xl transition-all border border-slate-600">
+                        <i class="fas fa-code mr-2"></i>
                         Télécharger le XML
                     </a>
                 </div>
-                <button id="new-conversion-btn" class="text-sm text-brand-600 hover:underline">← Convertir une autre facture</button>
+                <button id="new-conversion-btn" class="text-sm text-indigo-400 hover:text-indigo-300 transition-colors">
+                    <i class="fas fa-arrow-left mr-1"></i>Convertir une autre facture
+                </button>
 
                 {{-- CTA --}}
-                <div class="mt-8 pt-6 border-t border-gray-100">
-                    <p class="text-sm text-gray-500 mb-3">Besoin de plus ? Gérez vos factures, stocks, paie et comptabilité</p>
-                    <a href="/admin/register" class="inline-flex items-center px-5 py-2.5 bg-brand-50 text-brand-700 font-semibold rounded-lg hover:bg-brand-100 transition-colors text-sm border border-brand-200">
-                        Essayer FRECORP gratuitement →
+                <div class="mt-8 pt-6 border-t border-slate-700/50">
+                    <p class="text-sm text-slate-500 mb-3">Besoin de plus ? Gérez vos factures, stocks, paie et comptabilité</p>
+                    <a href="/admin/register" class="inline-flex items-center px-5 py-2.5 bg-indigo-500/10 text-indigo-300 font-semibold rounded-lg hover:bg-indigo-500/20 transition-colors text-sm border border-indigo-500/30">
+                        <i class="fas fa-rocket mr-2 text-xs"></i>Essayer FRECORP gratuitement
                     </a>
                 </div>
             </div>
@@ -269,58 +366,72 @@
 
         {{-- Features section (SEO) --}}
         <section class="mt-16 grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div class="bg-white rounded-xl p-6 border border-gray-200">
-                <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center mb-3">
-                    <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+            <div class="glass-card glass-card-hover rounded-xl p-6">
+                <div class="w-10 h-10 bg-cyan-500/20 rounded-lg flex items-center justify-center mb-3">
+                    <i class="fas fa-bolt text-cyan-400"></i>
                 </div>
-                <h3 class="font-bold text-gray-900 mb-1">Extraction par IA</h3>
-                <p class="text-sm text-gray-500">Notre intelligence artificielle lit vos factures et extrait automatiquement toutes les données : émetteur, client, lignes, TVA.</p>
+                <h3 class="font-bold text-white mb-1">Extraction par IA</h3>
+                <p class="text-sm text-slate-400">Notre intelligence artificielle lit vos factures et extrait automatiquement toutes les données : émetteur, client, lignes, TVA.</p>
             </div>
-            <div class="bg-white rounded-xl p-6 border border-gray-200">
-                <div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center mb-3">
-                    <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+            <div class="glass-card glass-card-hover rounded-xl p-6">
+                <div class="w-10 h-10 bg-emerald-500/20 rounded-lg flex items-center justify-center mb-3">
+                    <i class="fas fa-check-circle text-emerald-400"></i>
                 </div>
-                <h3 class="font-bold text-gray-900 mb-1">Conforme EN16931</h3>
-                <p class="text-sm text-gray-500">Factur-X généré au profil EN16931, le format standard pour la facturation électronique obligatoire en France dès 2026.</p>
+                <h3 class="font-bold text-white mb-1">Conforme EN16931</h3>
+                <p class="text-sm text-slate-400">Factur-X généré au profil EN16931, le format standard pour la facturation électronique obligatoire en France dès 2026.</p>
             </div>
-            <div class="bg-white rounded-xl p-6 border border-gray-200">
-                <div class="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center mb-3">
-                    <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
+            <div class="glass-card glass-card-hover rounded-xl p-6">
+                <div class="w-10 h-10 bg-purple-500/20 rounded-lg flex items-center justify-center mb-3">
+                    <i class="fas fa-shield-halved text-purple-400"></i>
                 </div>
-                <h3 class="font-bold text-gray-900 mb-1">Sécurisé</h3>
-                <p class="text-sm text-gray-500">Vos fichiers sont traités en temps réel et n'ont jamais stockés. La suppression est automatique après traitement.</p>
+                <h3 class="font-bold text-white mb-1">Sécurisé</h3>
+                <p class="text-sm text-slate-400">Vos fichiers sont traités en temps réel et ne sont jamais stockés. La suppression est automatique après traitement.</p>
             </div>
         </section>
 
         {{-- FAQ (SEO) --}}
-        <section class="mt-12 bg-white rounded-xl border border-gray-200 p-6">
-            <h2 class="text-lg font-bold text-gray-900 mb-4">Questions fréquentes</h2>
-            <div class="space-y-4 text-sm">
+        <section class="mt-12 glass-card rounded-xl p-6">
+            <h2 class="text-lg font-bold text-white mb-4">
+                <i class="fas fa-circle-question mr-2 text-indigo-400"></i>Questions fréquentes
+            </h2>
+            <div class="space-y-3 text-sm">
                 <details class="group">
-                    <summary class="font-medium text-gray-900 cursor-pointer hover:text-brand-600">Qu'est-ce que le format Factur-X ?</summary>
-                    <p class="mt-2 text-gray-600 pl-4">Factur-X est le standard franco-allemand de facturation électronique. C'est un PDF hybride contenant un fichier XML structuré (CII CrossIndustryInvoice). Il sera obligatoire pour toutes les entreprises françaises à partir de 2026.</p>
+                    <summary class="font-medium text-slate-300 cursor-pointer hover:text-indigo-400 transition-colors py-2 flex items-center justify-between">
+                        Qu'est-ce que le format Factur-X ?
+                        <i class="fas fa-chevron-down text-xs text-slate-600 group-open:rotate-180 transition-transform"></i>
+                    </summary>
+                    <p class="mt-1 text-slate-500 pl-4 pb-2">Factur-X est le standard franco-allemand de facturation électronique. C'est un PDF hybride contenant un fichier XML structuré (CII CrossIndustryInvoice). Il sera obligatoire pour toutes les entreprises françaises à partir de 2026.</p>
                 </details>
-                <details class="group">
-                    <summary class="font-medium text-gray-900 cursor-pointer hover:text-brand-600">Combien de conversions gratuites puis-je faire ?</summary>
-                    <p class="mt-2 text-gray-600 pl-4">Vous pouvez convertir {{ $limit }} factures par mois gratuitement sans créer de compte. En vous inscrivant à FRECORP, vous obtenez des conversions illimitées et un ERP complet.</p>
+                <details class="group border-t border-slate-700/50">
+                    <summary class="font-medium text-slate-300 cursor-pointer hover:text-indigo-400 transition-colors py-2 flex items-center justify-between">
+                        Combien de conversions gratuites puis-je faire ?
+                        <i class="fas fa-chevron-down text-xs text-slate-600 group-open:rotate-180 transition-transform"></i>
+                    </summary>
+                    <p class="mt-1 text-slate-500 pl-4 pb-2">Vous pouvez convertir {{ $limit }} factures par mois gratuitement sans créer de compte. En vous inscrivant à FRECORP, vous obtenez des conversions illimitées et un ERP complet.</p>
                 </details>
-                <details class="group">
-                    <summary class="font-medium text-gray-900 cursor-pointer hover:text-brand-600">Quels formats de fichiers sont acceptés ?</summary>
-                    <p class="mt-2 text-gray-600 pl-4">PDF (texte ou scanné), images (JPEG, PNG, WebP), et tableurs (Excel XLSX, CSV). La taille maximum est de 10 Mo.</p>
+                <details class="group border-t border-slate-700/50">
+                    <summary class="font-medium text-slate-300 cursor-pointer hover:text-indigo-400 transition-colors py-2 flex items-center justify-between">
+                        Quels formats de fichiers sont acceptés ?
+                        <i class="fas fa-chevron-down text-xs text-slate-600 group-open:rotate-180 transition-transform"></i>
+                    </summary>
+                    <p class="mt-1 text-slate-500 pl-4 pb-2">PDF (texte ou scanné), images (JPEG, PNG, WebP), et tableurs (Excel XLSX, CSV). La taille maximum est de 10 Mo.</p>
                 </details>
-                <details class="group">
-                    <summary class="font-medium text-gray-900 cursor-pointer hover:text-brand-600">Mes données sont-elles en sécurité ?</summary>
-                    <p class="mt-2 text-gray-600 pl-4">Oui. Les fichiers sont traités en temps réel sur nos serveurs en France et supprimés automatiquement après 24h. Aucune donnée n'est conservée ou partagée.</p>
+                <details class="group border-t border-slate-700/50">
+                    <summary class="font-medium text-slate-300 cursor-pointer hover:text-indigo-400 transition-colors py-2 flex items-center justify-between">
+                        Mes données sont-elles en sécurité ?
+                        <i class="fas fa-chevron-down text-xs text-slate-600 group-open:rotate-180 transition-transform"></i>
+                    </summary>
+                    <p class="mt-1 text-slate-500 pl-4 pb-2">Oui. Les fichiers sont traités en temps réel sur nos serveurs en France et supprimés automatiquement après 24h. Aucune donnée n'est conservée ou partagée.</p>
                 </details>
             </div>
         </section>
     </main>
 
     {{-- Footer --}}
-    <footer class="bg-white border-t border-gray-200 py-6">
-        <div class="max-w-5xl mx-auto px-4 flex items-center justify-between text-sm text-gray-500">
+    <footer class="border-t border-slate-800/50 py-6 relative z-10">
+        <div class="max-w-5xl mx-auto px-4 flex items-center justify-between text-sm text-slate-500">
             <p>&copy; {{ date('Y') }} FRECORP — ERP français pour TPE/PME</p>
-            <a href="https://app.frecorp.fr" class="text-brand-600 hover:underline">app.frecorp.fr</a>
+            <a href="https://frecorp.fr" class="text-indigo-400 hover:text-indigo-300 transition-colors">frecorp.fr</a>
         </div>
     </footer>
 
@@ -478,13 +589,13 @@
             const tbody = document.getElementById('lines-body');
             if (index === null) index = tbody.rows.length;
             const tr = document.createElement('tr');
-            tr.className = 'border-t border-gray-100';
+            tr.className = 'border-t border-slate-700/30';
             tr.innerHTML = `
-                <td class="py-1.5 pr-2"><input type="text" data-field="description" value="${escHtml(line.description || '')}" class="w-full rounded border-gray-300 text-sm py-1.5" /></td>
-                <td class="py-1.5 px-2"><input type="number" data-field="quantity" value="${line.quantity || 1}" step="0.01" min="0" class="w-full rounded border-gray-300 text-sm text-center py-1.5 calc-trigger" /></td>
-                <td class="py-1.5 px-2"><input type="number" data-field="unit_price_ht" value="${line.unit_price_ht || 0}" step="0.01" min="0" class="w-full rounded border-gray-300 text-sm text-right py-1.5 calc-trigger" /></td>
+                <td class="py-1.5 pr-2"><input type="text" data-field="description" value="${escHtml(line.description || '')}" class="w-full rounded dark-input text-sm py-1.5 px-2" /></td>
+                <td class="py-1.5 px-2"><input type="number" data-field="quantity" value="${line.quantity || 1}" step="0.01" min="0" class="w-full rounded dark-input text-sm text-center py-1.5 px-2 calc-trigger" /></td>
+                <td class="py-1.5 px-2"><input type="number" data-field="unit_price_ht" value="${line.unit_price_ht || 0}" step="0.01" min="0" class="w-full rounded dark-input text-sm text-right py-1.5 px-2 calc-trigger" /></td>
                 <td class="py-1.5 px-2">
-                    <select data-field="vat_rate" class="w-full rounded border-gray-300 text-sm text-center py-1.5 calc-trigger">
+                    <select data-field="vat_rate" class="w-full rounded dark-input text-sm text-center py-1.5 px-2 calc-trigger">
                         <option value="20" ${(line.vat_rate == 20 || !line.vat_rate) ? 'selected' : ''}>20%</option>
                         <option value="10" ${line.vat_rate == 10 ? 'selected' : ''}>10%</option>
                         <option value="5.5" ${line.vat_rate == 5.5 ? 'selected' : ''}>5,5%</option>
@@ -492,8 +603,8 @@
                         <option value="0" ${line.vat_rate == 0 ? 'selected' : ''}>0%</option>
                     </select>
                 </td>
-                <td class="py-1.5 px-2 text-right font-medium line-total">0,00 €</td>
-                <td class="py-1.5 pl-1"><button class="remove-line text-gray-400 hover:text-red-500"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg></button></td>
+                <td class="py-1.5 px-2 text-right font-medium text-slate-300 line-total">0,00 €</td>
+                <td class="py-1.5 pl-1"><button class="remove-line text-slate-600 hover:text-red-400 transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg></button></td>
             `;
             tbody.appendChild(tr);
 
@@ -617,7 +728,7 @@
                 alert('Erreur réseau : ' + err.message);
             } finally {
                 btn.disabled = false;
-                btn.innerHTML = '<svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg> Générer le Factur-X';
+                btn.innerHTML = '<i class="fas fa-check-circle mr-2"></i> Générer le Factur-X';
             }
         });
     })();
