@@ -21,7 +21,7 @@
     
     <!-- Démo avec screenshots -->
     <url>
-        <loc>https://frecorp.fr/demo.html</loc>
+        <loc>https://frecorp.fr/demo</loc>
         <lastmod>2026-02-06</lastmod>
         <changefreq>monthly</changefreq>
         <priority>0.8</priority>
@@ -59,7 +59,7 @@
     
     <!-- Roadmap -->
     <url>
-        <loc>https://frecorp.fr/roadmap.html</loc>
+        <loc>https://frecorp.fr/roadmap</loc>
         <lastmod>2026-02-06</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.7</priority>
@@ -67,7 +67,7 @@
     
     <!-- Mentions légales -->
     <url>
-        <loc>https://frecorp.fr/mentions-legales.html</loc>
+        <loc>https://frecorp.fr/mentions-legales</loc>
         <lastmod>2026-02-06</lastmod>
         <changefreq>yearly</changefreq>
         <priority>0.3</priority>
@@ -75,7 +75,7 @@
     
     <!-- CGU -->
     <url>
-        <loc>https://frecorp.fr/cgu.html</loc>
+        <loc>https://frecorp.fr/cgu</loc>
         <lastmod>2026-02-06</lastmod>
         <changefreq>yearly</changefreq>
         <priority>0.3</priority>
@@ -83,7 +83,7 @@
     
     <!-- Confidentialité -->
     <url>
-        <loc>https://frecorp.fr/confidentialite.html</loc>
+        <loc>https://frecorp.fr/confidentialite</loc>
         <lastmod>2026-02-06</lastmod>
         <changefreq>yearly</changefreq>
         <priority>0.3</priority>
@@ -91,7 +91,7 @@
     
     <!-- RGPD -->
     <url>
-        <loc>https://frecorp.fr/rgpd.html</loc>
+        <loc>https://frecorp.fr/rgpd</loc>
         <lastmod>2026-02-06</lastmod>
         <changefreq>yearly</changefreq>
         <priority>0.3</priority>

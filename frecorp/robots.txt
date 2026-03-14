@@ -5,14 +5,15 @@ User-agent: *
 Allow: /
 
 # Pages principales
-Allow: /index.html
-Allow: /demo.html
+Allow: /
+Allow: /demo
+Allow: /roadmap
 
 # Pages légales
-Allow: /mentions-legales.html
-Allow: /cgu.html
-Allow: /confidentialite.html
-Allow: /rgpd.html
+Allow: /mentions-legales
+Allow: /cgu
+Allow: /confidentialite
+Allow: /rgpd
 
 # Assets (images, logos)
 Allow: /assets/

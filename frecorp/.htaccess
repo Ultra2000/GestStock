@@ -55,6 +55,19 @@ RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
 RewriteCond %{HTTP_HOST} ^www\.frecorp\.fr [NC]
 RewriteRule ^(.*)$ https://frecorp.fr/$1 [L,R=301]
 
+# URLs propres: rediriger les .html vers des URLs sans extension
+RewriteCond %{THE_REQUEST} \s/+index\.html[\s?] [NC]
+RewriteRule ^index\.html$ / [R=301,L]
+
+RewriteCond %{THE_REQUEST} \s/+(.+?)\.html[\s?] [NC]
+RewriteRule ^ %1 [R=301,L]
+
+# Réécriture interne: /demo -> /demo.html
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME}.html -f
+RewriteRule ^([^/]+)/?$ $1.html [L]
+
 # Pages d'erreur personnalisées
 ErrorDocument 404 /404.html
 ErrorDocument 500 /500.html
