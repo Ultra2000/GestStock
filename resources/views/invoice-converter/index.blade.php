@@ -14,8 +14,33 @@
     <meta property="og:description" content="Convertissez vos factures PDF en Factur-X EN16931 conforme. Gratuit, rapide, par IA.">
     <meta property="og:type" content="website">
     <meta property="og:url" content="{{ url('/convertir-facture') }}">
+    <meta property="og:site_name" content="FRECORP">
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Convertisseur Factur-X gratuit — FRECORP">
+    <meta name="twitter:description" content="Convertissez vos factures PDF, images ou Excel en Factur-X EN16931. 5 conversions gratuites par mois.">
 
     <meta name="csrf-token" content="{{ csrf_token() }}">
+
+    <!-- Structured Data -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "Convertisseur Factur-X gratuit - FRECORP",
+        "url": "{{ url('/convertir-facture') }}",
+        "applicationCategory": "BusinessApplication",
+        "operatingSystem": "Web",
+        "description": "Convertisseur IA pour transformer des factures PDF, images ou Excel en Factur-X conforme EN16931.",
+        "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "EUR",
+            "description": "{{ $limit }} conversions gratuites par mois"
+        }
+    }
+    </script>
 
     <!-- External Resources -->
     <script src="https://cdn.tailwindcss.com"></script>
