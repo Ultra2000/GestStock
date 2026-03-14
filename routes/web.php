@@ -18,6 +18,8 @@ Route::get('/', function () {
 Route::get('/sitemap.xml', function () {
     $lastmod = now()->toDateString();
     $converterUrl = url('/convertir-facture');
+    $loginUrl = url('/admin/login');
+    $registerUrl = url('/admin/register');
 
     $xml = <<<XML
 <?xml version="1.0" encoding="UTF-8"?>
@@ -27,6 +29,18 @@ Route::get('/sitemap.xml', function () {
         <lastmod>{$lastmod}</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.9</priority>
+    </url>
+    <url>
+        <loc>{$loginUrl}</loc>
+        <lastmod>{$lastmod}</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.6</priority>
+    </url>
+    <url>
+        <loc>{$registerUrl}</loc>
+        <lastmod>{$lastmod}</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.7</priority>
     </url>
 </urlset>
 XML;
