@@ -35,11 +35,7 @@ class CreateSale extends CreateRecord
         $sale = $this->record;
         $items = $this->data['items'] ?? [];
 
-        // Désactiver le recalcul automatique pendant la création en lot
-        // pour éviter de générer calculateTotal() N fois (1 par article)
-        Sale::$skipRecalc = true;
-
-        try {
+        Sale::withoutRecalc(function () use ($sale, $items) {
             foreach ($items as $item) {
                 $sale->items()->create([
                     'product_id' => $item['product_id'],
@@ -50,9 +46,7 @@ class CreateSale extends CreateRecord
                     'total_price' => $item['total_price'],
                 ]);
             }
-        } finally {
-            Sale::$skipRecalc = false;
-        }
+        });
 
         // Recalculer les totaux UNE SEULE FOIS avec tous les articles
         $sale->calculateTotal();

@@ -1,4 +1,4 @@
-@include('sales.templates._invoice-data')
+<?php require base_path('resources/views/sales/templates/_invoice_data.php'); ?>
 <!DOCTYPE html>
 <html lang="fr">
 <head>

@@ -407,6 +407,30 @@ class SaleResource extends Resource
                     ->modalHeading('Envoyer la facture par email')
                     ->modalButton('Envoyer')
                     ->color('success'),
+                Tables\Actions\Action::make('send_to_factpulse')
+                    ->label('Dématérialiser (FactPulse)')
+                    ->icon('heroicon-o-sparkles')
+                    ->color('purple')
+                    ->requiresConfirmation()
+                    ->modalHeading('Envoyer vers la plateforme légale')
+                    ->modalDescription('Cela va générer le Factur-X et le router via l\'annuaire PDP automatiquement.')
+                    ->action(function (Sale $record, \App\Services\FactPulseService $fpService) {
+                        try {
+                            $fpService->submitInvoice($record);
+                            \Filament\Notifications\Notification::make()
+                                ->title('Facture traitée avec succès')
+                                ->body('Envoyée via FactPulse et routée vers la PDP de votre client.')
+                                ->success()
+                                ->send();
+                        } catch (\Exception $e) {
+                            \Filament\Notifications\Notification::make()
+                                ->title('Erreur FactPulse')
+                                ->body($e->getMessage())
+                                ->danger()
+                                ->send();
+                        }
+                    })
+                    ->visible(fn (Sale $record) => $record->status === 'completed' && !$record->ppf_status),
                 Tables\Actions\Action::make('send_to_ppf')
                     ->label('Envoyer au PPF')
                     ->icon('heroicon-o-paper-airplane')

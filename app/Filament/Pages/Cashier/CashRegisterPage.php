@@ -285,18 +285,15 @@ class CashRegisterPage extends Page
                 $sale->status = 'completed';
                 $sale->save();
 
-                // Désactiver le recalcul automatique pendant la création en lot
-                Sale::$skipRecalc = true;
-
-                try {
+                Sale::withoutRecalc(function () use ($payload, $companyId, $sale) {
                     foreach ($payload['items'] as $line) {
                         $product = Product::where('company_id', $companyId)
                             ->lockForUpdate()
                             ->findOrFail($line['product_id']);
-                        
+
                         $qty = (float) $line['quantity'];
                         if ($qty < 0.01) $qty = 1;
-                        
+
                         if ($product->stock < $qty) {
                             throw new \RuntimeException('Stock insuffisant pour ' . $product->name);
                         }
@@ -315,9 +312,7 @@ class CashRegisterPage extends Page
                             'total_price' => $qty * $unit,
                         ]);
                     }
-                } finally {
-                    Sale::$skipRecalc = false;
-                }
+                });
 
                 // Recalculer les totaux UNE SEULE FOIS avec tous les articles
                 $sale->calculateTotal();

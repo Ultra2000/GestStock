@@ -8,15 +8,21 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('purchase_items', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('purchase_id')->constrained()->onDelete('cascade');
-            $table->foreignId('product_id')->constrained()->onDelete('cascade');
-            $table->integer('quantity');
-            $table->decimal('unit_price', 10, 2);
-            $table->decimal('total_price', 10, 2);
-            $table->timestamps();
-        });
+        if (!Schema::hasTable('purchase_items')) {
+            Schema::create('purchase_items', function (Blueprint $table) {
+                $table->id();
+                $table->foreignId('purchase_id')->constrained()->cascadeOnDelete();
+                $table->foreignId('product_id')->constrained()->cascadeOnDelete();
+                $table->decimal('quantity', 10, 2);
+                $table->decimal('unit_price', 10, 2);
+                $table->decimal('unit_price_ht', 10, 2)->default(0);
+                $table->decimal('vat_rate', 5, 2)->default(20);
+                $table->decimal('vat_amount', 10, 2)->default(0);
+                $table->decimal('total_price_ht', 10, 2)->default(0);
+                $table->decimal('total_price', 10, 2);
+                $table->timestamps();
+            });
+        }
     }
 
     public function down(): void

@@ -17,8 +17,26 @@ class Sale extends Model
     /**
      * Flag pour désactiver le recalcul automatique pendant la création en lot d'articles.
      * Quand true, SaleItem::saved ne déclenchera pas calculateTotal().
+     *
+     * ⚠️  Ne pas manipuler directement — utiliser Sale::withoutRecalc(fn) pour garantir
+     *     la remise à false même en cas d'exception, et limiter le risque de pollution
+     *     d'état sur Laravel Octane / FrankenPHP.
      */
     public static bool $skipRecalc = false;
+
+    /**
+     * Exécute $callback en désactivant le recalcul automatique des totaux,
+     * puis remet le flag à false dans un bloc finally (safe pour Octane).
+     */
+    public static function withoutRecalc(callable $callback): void
+    {
+        self::$skipRecalc = true;
+        try {
+            $callback();
+        } finally {
+            self::$skipRecalc = false;
+        }
+    }
 
     protected $fillable = [
         'company_id',

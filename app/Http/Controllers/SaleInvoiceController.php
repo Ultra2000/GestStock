@@ -12,23 +12,7 @@ class SaleInvoiceController extends Controller
 {
     public function generate(Sale $sale, FacturXService $facturXService)
     {
-        if ($sale->company) {
-            Filament::setTenant($sale->company);
-        }
-        $this->authorize('view', $sale);
-
-        $company = $sale->company;
-        $sale->load(['items.product', 'customer', 'warehouse']);
-        
-        $verificationUrl = URL::signedRoute('sales.invoice.verify', ['sale' => $sale->id]);
-        $verificationCode = substr(sha1($sale->id . '|' . $sale->invoice_number . '|' . ($sale->total ?? $sale->items->sum('total_price')) . '|' . $sale->created_at), 0, 12);
-        
-        // Sélection du modèle de facture
-        $template = $company->settings['invoice_template'] ?? 'corporate';
-        $validTemplates = ['minimal', 'corporate', 'creative', 'dark'];
-        if (!in_array($template, $validTemplates)) {
-            $template = 'corporate';
-        }
+        [$company, $verificationUrl, $verificationCode, $template] = $this->prepareInvoiceData($sale);
 
         $pdf = PDF::loadView("sales.templates.{$template}", [
             'sale' => $sale,
@@ -37,9 +21,7 @@ class SaleInvoiceController extends Controller
             'verificationCode' => $verificationCode,
         ])->setPaper('a4');
 
-        // Generate Factur-X (PDF/A-3 + XML)
-        $pdfContent = $pdf->output();
-        $facturxContent = $facturXService->generate($sale, $pdfContent);
+        $facturxContent = $facturXService->generate($sale, $pdf->output());
 
         return response($facturxContent)
             ->header('Content-Type', 'application/pdf')
@@ -48,25 +30,15 @@ class SaleInvoiceController extends Controller
 
     public function preview(Sale $sale, FacturXService $facturXService)
     {
-        if ($sale->company) {
-            Filament::setTenant($sale->company);
-        }
-        $this->authorize('view', $sale);
+        [$company, $verificationUrl, $verificationCode] = $this->prepareInvoiceData($sale);
 
-        $company = $sale->company;
-        $sale->load(['items.product', 'customer', 'warehouse']);
-        
-        $verificationUrl = URL::signedRoute('sales.invoice.verify', ['sale' => $sale->id]);
-        $verificationCode = substr(sha1($sale->id . '|' . $sale->invoice_number . '|' . ($sale->total ?? $sale->items->sum('total_price')) . '|' . $sale->created_at), 0, 12);
-        
-        // Generate XML for preview
         $facturxXml = null;
         try {
             $facturxXml = $facturXService->generateXml($sale);
         } catch (\Throwable $e) {
             $facturxXml = '<!-- Error generating XML: ' . htmlspecialchars($e->getMessage()) . ' -->';
         }
-        
+
         return view('sales.invoice', [
             'sale' => $sale,
             'company' => $company,
@@ -75,5 +47,29 @@ class SaleInvoiceController extends Controller
             'previewMode' => true,
             'facturxXml' => $facturxXml,
         ]);
+    }
+
+    private function prepareInvoiceData(Sale $sale): array
+    {
+        if ($sale->company) {
+            Filament::setTenant($sale->company);
+        }
+        $this->authorize('view', $sale);
+
+        $company = $sale->company;
+        $sale->load(['items.product', 'customer', 'warehouse']);
+
+        $verificationUrl = URL::signedRoute('sales.invoice.verify', ['sale' => $sale->id]);
+        $verificationCode = substr(
+            sha1($sale->id . '|' . $sale->invoice_number . '|' . ($sale->total ?? $sale->items->sum('total_price')) . '|' . $sale->created_at),
+            0, 12
+        );
+
+        $template = $company->settings['invoice_template'] ?? 'corporate';
+        if (!in_array($template, ['minimal', 'corporate', 'creative', 'dark'])) {
+            $template = 'corporate';
+        }
+
+        return [$company, $verificationUrl, $verificationCode, $template];
     }
 } 

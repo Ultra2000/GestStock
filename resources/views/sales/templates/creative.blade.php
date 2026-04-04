@@ -1,4 +1,4 @@
-@include('sales.templates._invoice-data')
+<?php require base_path('resources/views/sales/templates/_invoice_data.php'); ?>
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -138,7 +138,7 @@
         </td>
         <td>
             <div class="info-label info-label-indigo">Échéance</div>
-            <div class="info-name">{{ $dueDate }}</div>
+            <div class="info-name">{{ $dueDate instanceof \Carbon\Carbon ? $dueDate->format('d/m/Y') : \Carbon\Carbon::parse($dueDate)->format('d/m/Y') }}</div>
             <div class="info-text">
                 Émis le {{ $sale->created_at->format('d/m/Y') }}<br>
                 Mode: {{ ucfirst($sale->payment_method ?? 'Non spécifié') }}<br>

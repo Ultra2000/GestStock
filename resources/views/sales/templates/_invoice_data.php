@@ -1,5 +1,4 @@
-{{-- Shared invoice data calculations - included by all PDF templates --}}
-@php
+<?php // Shared invoice data calculations
     $currency = $company->currency ?? 'EUR';
     $status = $sale->status;
     $statusClass = 'status-' . ($status ?: 'pending');
@@ -81,7 +80,7 @@
     $natureOpLabels = ['goods' => 'Vente de biens', 'services' => 'Prestation de services', 'mixed' => 'Mixte'];
 
     // 4. Échéance & Conditions de paiement
-    $dueDate = $sale->due_date ?? $sale->created_at->addDays(30);
+    $dueDate = $sale->due_date ?? $sale->created_at->copy()->addDays(30);
     $paymentTerms = $accountingSettings->payment_terms ?? null;
 
     // 5. Pénalités & Recouvrement (B2B obligatoire)
@@ -109,4 +108,4 @@
     if ($company->logo_path) {
         $logoSrc = public_path('storage/' . $company->logo_path);
     }
-@endphp
+?>

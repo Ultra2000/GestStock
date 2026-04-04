@@ -1,4 +1,4 @@
-@include('sales.templates._invoice-data')
+<?php require base_path('resources/views/sales/templates/_invoice_data.php'); ?>
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -142,7 +142,7 @@
             <div class="info-comment">// TERMES</div>
             <div style="color: #ffffff; font-size: 12px; font-weight: bold;">NET 30 DAYS</div>
             <div class="info-text" style="margin-top: 4px;">
-                DUE: {{ $dueDate }}<br>
+                DUE: {{ $dueDate instanceof \Carbon\Carbon ? $dueDate->format('d/m/Y') : \Carbon\Carbon::parse($dueDate)->format('d/m/Y') }}<br>
                 MODE: {{ strtoupper($sale->payment_method ?? 'VIREMENT') }}<br>
                 REF: {{ $sale->reference ?? $sale->invoice_number }}
                 @if($sale->warehouse)<br>DEPOT: {{ $sale->warehouse->name }}@endif

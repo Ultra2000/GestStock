@@ -35,6 +35,13 @@ return [
         ],
     ],
 
+    'factpulse' => [
+        'api_url' => env('FACTPULSE_API_URL', 'https://api.factpulse.fr/v1'),
+        'email' => env('FACTPULSE_EMAIL', ''),
+        'password' => env('FACTPULSE_PASSWORD', ''),
+        'client_uid' => env('FACTPULSE_CLIENT_UID', ''),
+    ],
+
     'ppf' => [
         // Environnement global : 'sandbox' ou 'production'
         'environment' => env('PISTE_ENVIRONMENT', 'sandbox'),
