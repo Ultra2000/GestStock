@@ -48,6 +48,11 @@ class RecurringOrder extends Model
         return $this->hasMany(RecurringOrderItem::class);
     }
 
+    public function sales(): HasMany
+    {
+        return $this->hasMany(Sale::class, 'recurring_order_id');
+    }
+
     public function calculateTotal(): void
     {
         $this->total = $this->items->sum(function ($item) {
@@ -97,14 +102,15 @@ class RecurringOrder extends Model
 
     public function calculateNextDate(): \Carbon\Carbon
     {
+        $base = $this->next_order_date->copy();
         return match($this->frequency) {
-            'daily' => $this->next_order_date->addDay(),
-            'weekly' => $this->next_order_date->addWeek(),
-            'biweekly' => $this->next_order_date->addWeeks(2),
-            'monthly' => $this->next_order_date->addMonth(),
-            'quarterly' => $this->next_order_date->addMonths(3),
-            'yearly' => $this->next_order_date->addYear(),
-            default => $this->next_order_date->addMonth(),
+            'daily'     => $base->addDay(),
+            'weekly'    => $base->addWeek(),
+            'biweekly'  => $base->addWeeks(2),
+            'monthly'   => $base->addMonth(),
+            'quarterly' => $base->addMonths(3),
+            'yearly'    => $base->addYear(),
+            default     => $base->addMonth(),
         };
     }
 

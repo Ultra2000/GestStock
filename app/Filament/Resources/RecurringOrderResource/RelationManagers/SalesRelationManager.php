@@ -16,63 +16,56 @@ class SalesRelationManager extends RelationManager
 
     public function form(Form $form): Form
     {
-        return $form
-            ->schema([
-                Forms\Components\TextInput::make('reference')
-                    ->required()
-                    ->maxLength(255),
-            ]);
+        return $form->schema([
+            Forms\Components\TextInput::make('invoice_number')
+                ->required()
+                ->maxLength(255),
+        ]);
     }
 
     public function table(Table $table): Table
     {
         return $table
-            ->recordTitleAttribute('reference')
+            ->recordTitleAttribute('invoice_number')
             ->columns([
-                Tables\Columns\TextColumn::make('reference')
-                    ->label('Référence')
+                Tables\Columns\TextColumn::make('invoice_number')
+                    ->label('Facture')
                     ->searchable()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('sale_date')
+                Tables\Columns\TextColumn::make('created_at')
                     ->label('Date')
                     ->date('d/m/Y')
                     ->sortable(),
-                Tables\Columns\TextColumn::make('total_amount')
+                Tables\Columns\TextColumn::make('total')
                     ->label('Montant')
                     ->money('EUR')
                     ->sortable(),
-                Tables\Columns\BadgeColumn::make('status')
+                Tables\Columns\TextColumn::make('status')
                     ->label('Statut')
-                    ->colors([
-                        'warning' => 'pending',
-                        'info' => 'processing',
-                        'success' => 'completed',
-                        'danger' => 'cancelled',
-                    ]),
-                Tables\Columns\BadgeColumn::make('payment_status')
-                    ->label('Paiement')
-                    ->colors([
-                        'warning' => 'pending',
-                        'info' => 'partial',
-                        'success' => 'paid',
-                        'danger' => 'refunded',
-                    ]),
+                    ->badge()
+                    ->color(fn (string $state): string => match ($state) {
+                        'completed' => 'success',
+                        'cancelled' => 'danger',
+                        default     => 'warning',
+                    })
+                    ->formatStateUsing(fn ($state) => match ($state) {
+                        'completed' => 'Terminée',
+                        'cancelled' => 'Annulée',
+                        default     => 'En attente',
+                    }),
             ])
-            ->filters([
-                //
-            ])
-            ->headerActions([
-                //
-            ])
+            ->filters([])
+            ->headerActions([])
             ->actions([
                 Tables\Actions\Action::make('view')
                     ->label('Voir')
                     ->icon('heroicon-o-eye')
-                    ->url(fn ($record) => route('filament.app.resources.sales.view', ['record' => $record, 'tenant' => \Filament\Facades\Filament::getTenant()])),
+                    ->url(fn ($record) => route('filament.app.resources.sales.edit', [
+                        'record' => $record,
+                        'tenant' => \Filament\Facades\Filament::getTenant(),
+                    ])),
             ])
-            ->bulkActions([
-                //
-            ])
+            ->bulkActions([])
             ->defaultSort('created_at', 'desc');
     }
 }

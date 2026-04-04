@@ -22,7 +22,7 @@ class RecurringOrderResource extends Resource
 
     protected static ?string $navigationGroup = 'Ventes';
 
-    protected static ?string $navigationLabel = 'Commandes';
+    protected static ?string $navigationLabel = 'Commandes récurrentes';
 
     protected static ?string $modelLabel = 'Commande récurrente';
 
@@ -38,11 +38,6 @@ class RecurringOrderResource extends Resource
                     ->schema([
                         Forms\Components\Section::make('Informations générales')
                             ->schema([
-                                Forms\Components\TextInput::make('reference')
-                                    ->label('Référence')
-                                    ->default(fn () => 'REC-' . date('Ym') . '-' . str_pad(RecurringOrder::whereMonth('created_at', now()->month)->count() + 1, 4, '0', STR_PAD_LEFT))
-                                    ->disabled()
-                                    ->dehydrated(),
                                 Forms\Components\TextInput::make('name')
                                     ->label('Nom de l\'abonnement')
                                     ->required()
@@ -66,7 +61,8 @@ class RecurringOrderResource extends Resource
                                     ]),
                                 Forms\Components\Textarea::make('description')
                                     ->label('Description')
-                                    ->rows(2),
+                                    ->rows(2)
+                                    ->columnSpanFull(),
                             ])->columns(2),
 
                         Forms\Components\Section::make('Planification')
@@ -74,21 +70,15 @@ class RecurringOrderResource extends Resource
                                 Forms\Components\Select::make('frequency')
                                     ->label('Fréquence')
                                     ->options([
-                                        'daily' => 'Quotidien',
-                                        'weekly' => 'Hebdomadaire',
-                                        'biweekly' => 'Bimensuel',
-                                        'monthly' => 'Mensuel',
+                                        'daily'     => 'Quotidien',
+                                        'weekly'    => 'Hebdomadaire',
+                                        'biweekly'  => 'Bimensuel',
+                                        'monthly'   => 'Mensuel',
                                         'quarterly' => 'Trimestriel',
-                                        'yearly' => 'Annuel',
+                                        'yearly'    => 'Annuel',
                                     ])
                                     ->default('monthly')
-                                    ->required()
-                                    ->live(),
-                                Forms\Components\TextInput::make('frequency_value')
-                                    ->label('Valeur (ex: tous les X jours)')
-                                    ->numeric()
-                                    ->default(1)
-                                    ->minValue(1),
+                                    ->required(),
                                 Forms\Components\DatePicker::make('start_date')
                                     ->label('Date de début')
                                     ->required()
@@ -96,15 +86,11 @@ class RecurringOrderResource extends Resource
                                 Forms\Components\DatePicker::make('end_date')
                                     ->label('Date de fin (optionnel)')
                                     ->afterOrEqual('start_date'),
-                                Forms\Components\DatePicker::make('next_execution')
+                                Forms\Components\DatePicker::make('next_order_date')
                                     ->label('Prochaine exécution')
                                     ->required()
                                     ->default(now()),
-                                Forms\Components\TextInput::make('max_executions')
-                                    ->label('Nombre max d\'exécutions (optionnel)')
-                                    ->numeric()
-                                    ->minValue(1),
-                            ])->columns(3),
+                            ])->columns(2),
 
                         Forms\Components\Section::make('Articles')
                             ->schema([
@@ -121,7 +107,7 @@ class RecurringOrderResource extends Resource
                                                 if ($state) {
                                                     $product = Product::find($state);
                                                     if ($product) {
-                                                        $set('unit_price', $product->selling_price);
+                                                        $set('unit_price', $product->price);
                                                     }
                                                 }
                                             })
@@ -132,30 +118,15 @@ class RecurringOrderResource extends Resource
                                             ->default(1)
                                             ->minValue(0.01)
                                             ->required()
-                                            ->live()
-                                            ->afterStateUpdated(function ($state, Forms\Get $get, Forms\Set $set) {
-                                                $set('total', $state * $get('unit_price'));
-                                            })
                                             ->columnSpan(2),
                                         Forms\Components\TextInput::make('unit_price')
                                             ->label('Prix unit.')
                                             ->numeric()
                                             ->prefix('€')
                                             ->required()
-                                            ->live()
-                                            ->afterStateUpdated(function ($state, Forms\Get $get, Forms\Set $set) {
-                                                $set('total', $get('quantity') * $state);
-                                            })
-                                            ->columnSpan(2),
-                                        Forms\Components\TextInput::make('total')
-                                            ->label('Total')
-                                            ->numeric()
-                                            ->prefix('€')
-                                            ->disabled()
-                                            ->dehydrated()
                                             ->columnSpan(2),
                                     ])
-                                    ->columns(10)
+                                    ->columns(8)
                                     ->defaultItems(1)
                                     ->addActionLabel('Ajouter un article')
                                     ->reorderable()
@@ -171,62 +142,27 @@ class RecurringOrderResource extends Resource
                                 Forms\Components\Select::make('status')
                                     ->label('Statut')
                                     ->options([
-                                        'active' => 'Actif',
-                                        'paused' => 'En pause',
+                                        'active'    => 'Actif',
+                                        'paused'    => 'En pause',
                                         'cancelled' => 'Annulé',
                                         'completed' => 'Terminé',
                                     ])
                                     ->default('active')
                                     ->required(),
-                                Forms\Components\Toggle::make('auto_generate')
-                                    ->label('Génération auto')
-                                    ->helperText('Créer auto. les ventes à la date prévue')
-                                    ->default(true),
-                                Forms\Components\Toggle::make('auto_send_invoice')
-                                    ->label('Envoi auto facture')
-                                    ->helperText('Envoyer la facture par email')
-                                    ->default(false),
                             ]),
 
                         Forms\Components\Section::make('Statistiques')
                             ->schema([
-                                Forms\Components\Placeholder::make('executions_count')
+                                Forms\Components\Placeholder::make('orders_generated')
                                     ->label('Exécutions')
-                                    ->content(fn ($record) => $record ? $record->executions_count ?? 0 : 0),
-                                Forms\Components\Placeholder::make('last_execution')
-                                    ->label('Dernière exécution')
-                                    ->content(fn ($record) => $record?->last_execution ? $record->last_execution->format('d/m/Y') : '-'),
-                                Forms\Components\Placeholder::make('total_amount')
+                                    ->content(fn ($record) => $record?->orders_generated ?? 0),
+                                Forms\Components\Placeholder::make('total_generated')
                                     ->label('CA généré')
-                                    ->content(fn ($record) => $record ? number_format($record->sales->sum('total_amount'), 2, ',', ' ') . ' €' : '0,00 €'),
+                                    ->content(fn ($record) => $record
+                                        ? number_format($record->sales()->sum('total'), 2, ',', ' ') . ' €'
+                                        : '0,00 €'),
                             ])
                             ->visible(fn ($record) => $record !== null),
-
-                        Forms\Components\Section::make('Totaux')
-                            ->schema([
-                                Forms\Components\Placeholder::make('subtotal_display')
-                                    ->label('Sous-total')
-                                    ->content(function (Forms\Get $get) {
-                                        $items = $get('items') ?? [];
-                                        $subtotal = collect($items)->sum(fn ($item) => ($item['quantity'] ?? 0) * ($item['unit_price'] ?? 0));
-                                        return number_format($subtotal, 2, ',', ' ') . ' €';
-                                    }),
-                                Forms\Components\TextInput::make('tax_rate')
-                                    ->label('Taux TVA (%)')
-                                    ->numeric()
-                                    ->default(20)
-                                    ->suffix('%')
-                                    ->live(),
-                                Forms\Components\Placeholder::make('total_display')
-                                    ->label('Total TTC / exécution')
-                                    ->content(function (Forms\Get $get) {
-                                        $items = $get('items') ?? [];
-                                        $subtotal = collect($items)->sum(fn ($item) => ($item['quantity'] ?? 0) * ($item['unit_price'] ?? 0));
-                                        $taxRate = $get('tax_rate') ?? 20;
-                                        $total = $subtotal * (1 + $taxRate / 100);
-                                        return number_format($total, 2, ',', ' ') . ' €';
-                                    }),
-                            ]),
 
                         Forms\Components\Section::make('Notes')
                             ->schema([
@@ -242,10 +178,6 @@ class RecurringOrderResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('reference')
-                    ->label('Référence')
-                    ->searchable()
-                    ->sortable(),
                 Tables\Columns\TextColumn::make('name')
                     ->label('Nom')
                     ->searchable()
@@ -254,74 +186,75 @@ class RecurringOrderResource extends Resource
                     ->label('Client')
                     ->searchable()
                     ->sortable(),
-                Tables\Columns\BadgeColumn::make('frequency')
+                Tables\Columns\TextColumn::make('frequency')
                     ->label('Fréquence')
-                    ->colors([
-                        'gray' => 'daily',
-                        'info' => 'weekly',
-                        'primary' => 'biweekly',
-                        'success' => 'monthly',
-                        'warning' => 'quarterly',
-                        'danger' => 'yearly',
-                    ])
-                    ->formatStateUsing(fn ($state) => match($state) {
-                        'daily' => 'Quotidien',
-                        'weekly' => 'Hebdomadaire',
-                        'biweekly' => 'Bimensuel',
-                        'monthly' => 'Mensuel',
+                    ->badge()
+                    ->color(fn (string $state): string => match ($state) {
+                        'daily'     => 'gray',
+                        'weekly'    => 'info',
+                        'biweekly'  => 'primary',
+                        'monthly'   => 'success',
+                        'quarterly' => 'warning',
+                        'yearly'    => 'danger',
+                        default     => 'gray',
+                    })
+                    ->formatStateUsing(fn ($state) => match ($state) {
+                        'daily'     => 'Quotidien',
+                        'weekly'    => 'Hebdomadaire',
+                        'biweekly'  => 'Bimensuel',
+                        'monthly'   => 'Mensuel',
                         'quarterly' => 'Trimestriel',
-                        'yearly' => 'Annuel',
-                        default => $state,
+                        'yearly'    => 'Annuel',
+                        default     => $state,
                     }),
-                Tables\Columns\TextColumn::make('next_execution')
+                Tables\Columns\TextColumn::make('next_order_date')
                     ->label('Prochaine')
                     ->date('d/m/Y')
                     ->sortable()
-                    ->color(fn ($record) => $record->next_execution?->isPast() ? 'danger' : 'success'),
-                Tables\Columns\TextColumn::make('executions_count')
+                    ->color(fn ($record) => $record->next_order_date?->isPast() ? 'danger' : 'success'),
+                Tables\Columns\TextColumn::make('orders_generated')
                     ->label('Exécutions')
                     ->sortable(),
-                Tables\Columns\TextColumn::make('total_amount')
-                    ->label('Montant')
+                Tables\Columns\TextColumn::make('total')
+                    ->label('Montant/cycle')
                     ->money('EUR')
                     ->sortable(),
-                Tables\Columns\IconColumn::make('auto_generate')
-                    ->label('Auto')
-                    ->boolean(),
-                Tables\Columns\BadgeColumn::make('status')
+                Tables\Columns\TextColumn::make('status')
                     ->label('Statut')
-                    ->colors([
-                        'success' => 'active',
-                        'warning' => 'paused',
-                        'danger' => 'cancelled',
-                        'gray' => 'completed',
-                    ])
-                    ->formatStateUsing(fn ($state) => match($state) {
-                        'active' => 'Actif',
-                        'paused' => 'En pause',
+                    ->badge()
+                    ->color(fn (string $state): string => match ($state) {
+                        'active'    => 'success',
+                        'paused'    => 'warning',
+                        'cancelled' => 'danger',
+                        'completed' => 'gray',
+                        default     => 'gray',
+                    })
+                    ->formatStateUsing(fn ($state) => match ($state) {
+                        'active'    => 'Actif',
+                        'paused'    => 'En pause',
                         'cancelled' => 'Annulé',
                         'completed' => 'Terminé',
-                        default => $state,
+                        default     => $state,
                     }),
             ])
             ->filters([
                 Tables\Filters\SelectFilter::make('status')
                     ->label('Statut')
                     ->options([
-                        'active' => 'Actif',
-                        'paused' => 'En pause',
+                        'active'    => 'Actif',
+                        'paused'    => 'En pause',
                         'cancelled' => 'Annulé',
                         'completed' => 'Terminé',
                     ]),
                 Tables\Filters\SelectFilter::make('frequency')
                     ->label('Fréquence')
                     ->options([
-                        'daily' => 'Quotidien',
-                        'weekly' => 'Hebdomadaire',
-                        'biweekly' => 'Bimensuel',
-                        'monthly' => 'Mensuel',
+                        'daily'     => 'Quotidien',
+                        'weekly'    => 'Hebdomadaire',
+                        'biweekly'  => 'Bimensuel',
+                        'monthly'   => 'Mensuel',
                         'quarterly' => 'Trimestriel',
-                        'yearly' => 'Annuel',
+                        'yearly'    => 'Annuel',
                     ]),
                 Tables\Filters\SelectFilter::make('customer')
                     ->label('Client')
@@ -343,7 +276,7 @@ class RecurringOrderResource extends Resource
                             if ($sale) {
                                 \Filament\Notifications\Notification::make()
                                     ->title('Vente générée')
-                                    ->body("Vente #{$sale->reference} créée avec succès")
+                                    ->body("Facture #{$sale->invoice_number} créée avec succès")
                                     ->success()
                                     ->send();
                             }
@@ -374,12 +307,10 @@ class RecurringOrderResource extends Resource
                         ->label('Dupliquer')
                         ->icon('heroicon-o-document-duplicate')
                         ->action(function (RecurringOrder $record) {
-                            $newOrder = $record->replicate(['reference', 'executions_count', 'last_execution']);
-                            $newOrder->reference = 'REC-' . date('Ym') . '-' . str_pad(RecurringOrder::whereMonth('created_at', now()->month)->count() + 1, 4, '0', STR_PAD_LEFT);
+                            $newOrder = $record->replicate(['orders_generated']);
                             $newOrder->status = 'active';
-                            $newOrder->executions_count = 0;
-                            $newOrder->last_execution = null;
-                            $newOrder->next_execution = now();
+                            $newOrder->orders_generated = 0;
+                            $newOrder->next_order_date = now();
                             $newOrder->save();
 
                             foreach ($record->items as $item) {
@@ -411,7 +342,7 @@ class RecurringOrderResource extends Resource
                         ->requiresConfirmation(),
                 ]),
             ])
-            ->defaultSort('next_execution', 'asc');
+            ->defaultSort('next_order_date', 'asc');
     }
 
     public static function getRelations(): array
@@ -424,10 +355,10 @@ class RecurringOrderResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListRecurringOrders::route('/'),
+            'index'  => Pages\ListRecurringOrders::route('/'),
             'create' => Pages\CreateRecurringOrder::route('/create'),
-            'view' => Pages\ViewRecurringOrder::route('/{record}'),
-            'edit' => Pages\EditRecurringOrder::route('/{record}/edit'),
+            'view'   => Pages\ViewRecurringOrder::route('/{record}'),
+            'edit'   => Pages\EditRecurringOrder::route('/{record}/edit'),
         ];
     }
 
