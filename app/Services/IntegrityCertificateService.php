@@ -210,7 +210,7 @@ class IntegrityCertificateService
     {
         $purchasesData = DB::table('purchases')
             ->where('company_id', $this->companyId)
-            ->whereNotNull('reference')
+            ->whereNotNull('invoice_number')
             ->selectRaw('SUM(total) as total_ttc, SUM(total_vat) as total_vat, COUNT(*) as count')
             ->first();
 

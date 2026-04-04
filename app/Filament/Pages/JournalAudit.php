@@ -127,7 +127,7 @@ class JournalAudit extends Page
     {
         // Source A (Métier)
         $purchasesData = Purchase::where('company_id', $companyId)
-            ->whereNotNull('reference')
+            ->whereNotNull('invoice_number')
             ->selectRaw('SUM(total) as total_ttc, SUM(total_vat) as total_vat, COUNT(*) as count')
             ->first();
 
@@ -384,14 +384,14 @@ class JournalAudit extends Page
                 'icon' => 'heroicon-o-exclamation-triangle',
                 'title' => "Vente sans écriture",
                 'description' => "Facture {$sale->invoice_number} ({$sale->total} €) n'a pas d'écriture comptable",
-                'date' => $sale->created_at->format('d/m/Y'),
+                'date' => optional($sale->created_at)->format('d/m/Y') ?? '-',
                 'action' => "Régénérer les écritures",
             ];
         }
 
         // 2. Achats sans écritures comptables
         $purchasesWithoutEntries = Purchase::where('company_id', $companyId)
-            ->whereNotNull('reference')
+            ->whereNotNull('invoice_number')
             ->whereNotExists(function ($query) {
                 $query->select(DB::raw(1))
                     ->from('accounting_entries')
@@ -399,15 +399,15 @@ class JournalAudit extends Page
                     ->where('accounting_entries.source_type', Purchase::class);
             })
             ->limit(5)
-            ->get(['id', 'reference', 'total', 'created_at']);
+            ->get(['id', 'invoice_number', 'total', 'created_at']);
 
         foreach ($purchasesWithoutEntries as $purchase) {
             $anomalies[] = [
                 'type' => 'danger',
                 'icon' => 'heroicon-o-exclamation-triangle',
                 'title' => "Achat sans écriture",
-                'description' => "Achat {$purchase->reference} ({$purchase->total} €) n'a pas d'écriture comptable",
-                'date' => $purchase->created_at->format('d/m/Y'),
+                'description' => "Achat {$purchase->invoice_number} ({$purchase->total} €) n'a pas d'écriture comptable",
+                'date' => optional($purchase->created_at)->format('d/m/Y') ?? '-',
                 'action' => "Régénérer les écritures",
             ];
         }
