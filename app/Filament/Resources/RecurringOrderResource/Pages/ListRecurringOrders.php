@@ -25,15 +25,15 @@ class ListRecurringOrders extends ListRecords
             'all' => Tab::make('Tous'),
             'active' => Tab::make('Actifs')
                 ->modifyQueryUsing(fn (Builder $query) => $query->where('status', 'active'))
-                ->badge(fn () => $this->getModel()::where('status', 'active')->count())
+                ->badge(fn () => RecurringOrderResource::getEloquentQuery()->where('status', 'active')->count())
                 ->badgeColor('success'),
             'paused' => Tab::make('En pause')
                 ->modifyQueryUsing(fn (Builder $query) => $query->where('status', 'paused'))
-                ->badge(fn () => $this->getModel()::where('status', 'paused')->count())
+                ->badge(fn () => RecurringOrderResource::getEloquentQuery()->where('status', 'paused')->count())
                 ->badgeColor('warning'),
             'due' => Tab::make('À exécuter')
-                ->modifyQueryUsing(fn (Builder $query) => $query->where('status', 'active')->where('next_execution', '<=', now()))
-                ->badge(fn () => $this->getModel()::where('status', 'active')->where('next_execution', '<=', now())->count())
+                ->modifyQueryUsing(fn (Builder $query) => $query->where('status', 'active')->where('next_order_date', '<=', now()))
+                ->badge(fn () => RecurringOrderResource::getEloquentQuery()->where('status', 'active')->where('next_order_date', '<=', now())->count())
                 ->badgeColor('danger'),
         ];
     }

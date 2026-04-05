@@ -26,7 +26,7 @@ class ViewRecurringOrder extends ViewRecord
                     if ($sale) {
                         \Filament\Notifications\Notification::make()
                             ->title('Vente générée')
-                            ->body("Vente #{$sale->reference} créée")
+                            ->body("Vente #{$sale->invoice_number} créée")
                             ->success()
                             ->send();
                     }
@@ -41,8 +41,6 @@ class ViewRecurringOrder extends ViewRecord
             ->schema([
                 Infolists\Components\Section::make('Informations générales')
                     ->schema([
-                        Infolists\Components\TextEntry::make('reference')
-                            ->label('Référence'),
                         Infolists\Components\TextEntry::make('name')
                             ->label('Nom'),
                         Infolists\Components\TextEntry::make('customer.name')
@@ -57,7 +55,7 @@ class ViewRecurringOrder extends ViewRecord
                                 'completed' => 'gray',
                                 default => 'gray',
                             }),
-                    ])->columns(4),
+                    ])->columns(3),
 
                 Infolists\Components\Section::make('Planification')
                     ->schema([
@@ -79,32 +77,22 @@ class ViewRecurringOrder extends ViewRecord
                             ->label('Fin')
                             ->date('d/m/Y')
                             ->placeholder('-'),
-                        Infolists\Components\TextEntry::make('next_execution')
+                        Infolists\Components\TextEntry::make('next_order_date')
                             ->label('Prochaine exécution')
                             ->date('d/m/Y')
                             ->placeholder('-')
-                            ->color(fn ($record) => $record->next_execution?->isPast() ? 'danger' : 'success'),
-                        Infolists\Components\TextEntry::make('executions_count')
+                            ->color(fn ($record) => $record->next_order_date?->isPast() ? 'danger' : 'success'),
+                        Infolists\Components\TextEntry::make('orders_generated')
                             ->label('Exécutions'),
-                        Infolists\Components\TextEntry::make('last_execution')
-                            ->label('Dernière exécution')
-                            ->date('d/m/Y')
-                            ->placeholder('-'),
                     ])->columns(3),
 
                 Infolists\Components\Section::make('Montants')
                     ->schema([
-                        Infolists\Components\TextEntry::make('subtotal')
-                            ->label('Sous-total')
-                            ->money('EUR'),
-                        Infolists\Components\TextEntry::make('tax_amount')
-                            ->label('TVA')
-                            ->money('EUR'),
-                        Infolists\Components\TextEntry::make('total_amount')
-                            ->label('Total TTC')
+                        Infolists\Components\TextEntry::make('total')
+                            ->label('Total / cycle')
                             ->money('EUR')
                             ->weight('bold'),
-                    ])->columns(3),
+                    ])->columns(1),
             ]);
     }
 }
