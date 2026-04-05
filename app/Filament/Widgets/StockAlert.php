@@ -5,6 +5,7 @@ namespace App\Filament\Widgets;
 use App\Models\Product;
 use Filament\Widgets\StatsOverviewWidget as BaseWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
+use Filament\Facades\Filament;
 
 class StockAlert extends BaseWidget
 {
@@ -17,7 +18,10 @@ class StockAlert extends BaseWidget
 
     protected function getStats(): array
     {
-        $lowStockProducts = Product::where('stock', '<', 10)
+        $companyId = Filament::getTenant()?->id;
+
+        $lowStockProducts = Product::where('company_id', $companyId)
+            ->where('stock', '<', 10)
             ->orderBy('stock')
             ->take(5)
             ->get();

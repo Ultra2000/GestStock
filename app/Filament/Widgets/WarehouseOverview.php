@@ -74,12 +74,12 @@ class WarehouseOverview extends BaseWidget
 
     protected function getStockValueChart(int $companyId): array
     {
-        // Get stock value by day for the last 7 days
         $data = [];
         for ($i = 6; $i >= 0; $i--) {
             $date = now()->subDays($i);
-            // Simplified - in production you'd calculate historical values
-            $data[] = rand(80, 120);
+            $data[] = StockMovement::where('company_id', $companyId)
+                ->whereDate('created_at', $date)
+                ->count();
         }
         return $data;
     }

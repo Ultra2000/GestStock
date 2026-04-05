@@ -10,6 +10,7 @@ use App\Filament\Widgets\QuotesChartWidget;
 use App\Filament\Widgets\SalesChart;
 use App\Filament\Widgets\StatsOverview;
 use App\Filament\Widgets\StockAlert;
+use App\Filament\Widgets\UnpaidInvoicesWidget;
 use App\Filament\Widgets\UrssafOverviewWidget;
 use App\Filament\Widgets\VatSummaryWidget;
 use App\Filament\Widgets\WarehouseOverview;
@@ -31,7 +32,10 @@ class DefaultDashboard extends BaseDashboard
             
             // Statistiques principales
             StatsOverview::class,
-            
+
+            // Factures impayées
+            UnpaidInvoicesWidget::class,
+
             // Ventes & Devis
             SalesChart::class,
             OrdersStatsWidget::class,

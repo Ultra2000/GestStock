@@ -16,11 +16,13 @@ class StatsOverview extends BaseWidget
 
     protected function getStats(): array
     {
-        $totalSales = Sale::where('status', 'completed')->sum('total');
-        $totalProducts = Product::count();
-        $lowStockProducts = Product::where('stock', '<', 10)->count();
-        $totalCustomers = Customer::count();
+        $companyId = Filament::getTenant()?->id;
         $currency = Filament::getTenant()->currency ?? 'FCFA';
+
+        $totalSales = Sale::where('company_id', $companyId)->where('status', 'completed')->sum('total');
+        $totalProducts = Product::where('company_id', $companyId)->count();
+        $lowStockProducts = Product::where('company_id', $companyId)->where('stock', '<', 10)->count();
+        $totalCustomers = Customer::where('company_id', $companyId)->count();
 
         return [
             Stat::make('Chiffre d\'affaires', number_format($totalSales, 0, ',', ' ') . ' ' . $currency)

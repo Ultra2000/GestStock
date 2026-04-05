@@ -65,7 +65,7 @@ class OrdersStatsWidget extends BaseWidget
 
         $dueToday = RecurringOrder::where('company_id', $companyId)
             ->where('status', 'active')
-            ->whereDate('next_execution', Carbon::today())
+            ->whereDate('next_order_date', Carbon::today())
             ->count();
 
         return [
