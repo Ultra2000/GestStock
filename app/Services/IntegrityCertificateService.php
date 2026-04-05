@@ -190,7 +190,8 @@ class IntegrityCertificateService
         $accountingCA = AccountingEntry::where('company_id', $this->companyId)
             ->where('account_number', 'like', '7%')
             ->where('source_type', Sale::class)
-            ->sum('credit');
+            ->selectRaw('COALESCE(SUM(credit), 0) - COALESCE(SUM(debit), 0) as net')
+            ->value('net') ?? 0;
 
         $difference = round($salesTotalHT - $accountingCA, 2);
 
@@ -221,7 +222,8 @@ class IntegrityCertificateService
         $accountingCharges = AccountingEntry::where('company_id', $this->companyId)
             ->where('account_number', 'like', '6%')
             ->where('source_type', 'App\\Models\\Purchase')
-            ->sum('debit');
+            ->selectRaw('COALESCE(SUM(debit), 0) - COALESCE(SUM(credit), 0) as net')
+            ->value('net') ?? 0;
 
         $difference = round($purchasesHT - $accountingCharges, 2);
 
@@ -314,7 +316,8 @@ class IntegrityCertificateService
         $accountedVat = AccountingEntry::where('company_id', $this->companyId)
             ->where('account_number', 'like', '4457%')
             ->where('account_number', 'not like', '44574%')
-            ->sum('credit');
+            ->selectRaw('COALESCE(SUM(credit), 0) - COALESCE(SUM(debit), 0) as net')
+            ->value('net') ?? 0;
 
         $pendingVat = 0;
         if ($isEncaissements) {

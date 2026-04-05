@@ -95,11 +95,13 @@ class JournalAudit extends Page
         $salesTotalHT = $salesTotalTTC - $salesTotalVAT;
         $salesCount = $salesData->count ?? 0;
 
-        // Source B (Comptable) : Total des écritures classe 7 (Produits)
+        // Source B (Comptable) : Total NET des écritures classe 7 (Produits)
+        // SUM(credit) - SUM(debit) pour tenir compte des contre-passations (avoirs)
         $accountingCA = AccountingEntry::where('company_id', $companyId)
             ->where('account_number', 'like', '7%')
             ->where('source_type', Sale::class)
-            ->sum('credit');
+            ->selectRaw('COALESCE(SUM(credit), 0) - COALESCE(SUM(debit), 0) as net')
+            ->value('net') ?? 0;
 
         // Calcul de l'écart
         $difference = round($salesTotalHT - $accountingCA, 2);
@@ -136,11 +138,13 @@ class JournalAudit extends Page
         $purchasesHT = $purchasesTTC - $purchasesVAT;
         $purchasesCount = $purchasesData->count ?? 0;
 
-        // Source B (Comptable) : Total des écritures classe 6 (Charges)
+        // Source B (Comptable) : Total NET des écritures classe 6 (Charges)
+        // SUM(debit) - SUM(credit) pour tenir compte des contre-passations
         $accountingCharges = AccountingEntry::where('company_id', $companyId)
             ->where('account_number', 'like', '6%')
             ->where('source_type', Purchase::class)
-            ->sum('debit');
+            ->selectRaw('COALESCE(SUM(debit), 0) - COALESCE(SUM(credit), 0) as net')
+            ->value('net') ?? 0;
 
         $difference = round($purchasesHT - $accountingCharges, 2);
         $isValid = abs($difference) < 0.01;
@@ -303,11 +307,13 @@ class JournalAudit extends Page
             ->whereNotNull('invoice_number')
             ->sum('total_vat');
 
-        // TVA collectée comptabilisée (comptes 4457xx)
+        // TVA collectée comptabilisée NET (comptes 4457xx)
+        // SUM(credit) - SUM(debit) pour tenir compte des contre-passations (avoirs)
         $accountedVatCollected = AccountingEntry::where('company_id', $companyId)
             ->where('account_number', 'like', '4457%')
             ->where('account_number', 'not like', '44574%') // Exclure TVA en attente
-            ->sum('credit');
+            ->selectRaw('COALESCE(SUM(credit), 0) - COALESCE(SUM(debit), 0) as net')
+            ->value('net') ?? 0;
 
         // TVA en attente (régime encaissements)
         $pendingVat = 0;

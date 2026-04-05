@@ -497,6 +497,8 @@ class SaleResource extends Resource
                         $creditNote->status = 'completed'; // L'avoir est validé immédiatement
                         $creditNote->notes = "Avoir annulant la facture n°{$record->invoice_number}";
                         $creditNote->total = -$record->total; // Montant négatif
+                        $creditNote->total_ht = -($record->total_ht ?? 0);
+                        $creditNote->total_vat = -($record->total_vat ?? 0);
                         $creditNote->save();
 
                         // 2. Dupliquer les articles avec quantités inversées (pour l'affichage)
