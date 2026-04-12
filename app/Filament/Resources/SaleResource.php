@@ -414,7 +414,20 @@ class SaleResource extends Resource
                             ->rows(3),
                     ])
                     ->action(function (array $data, Sale $record) {
-                        \Mail::to($data['email'])->send(new \App\Mail\InvoiceMail('sale', $record, $data['message'] ?? ''));
+                        try {
+                            \Mail::to($data['email'])->send(new \App\Mail\InvoiceMail('sale', $record, $data['message'] ?? ''));
+                            \Filament\Notifications\Notification::make()
+                                ->title('Email envoyé')
+                                ->body("Facture envoyée à {$data['email']}")
+                                ->success()
+                                ->send();
+                        } catch (\Exception $e) {
+                            \Filament\Notifications\Notification::make()
+                                ->title('Échec de l\'envoi')
+                                ->body($e->getMessage())
+                                ->danger()
+                                ->send();
+                        }
                     })
                     ->requiresConfirmation()
                     ->modalHeading('Envoyer la facture par email')
