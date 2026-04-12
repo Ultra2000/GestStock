@@ -6,5 +6,5 @@ use App\Models\AttendanceLog;
 
 class AttendanceLogPolicy extends BasePolicy
 {
-    protected string $module = 'hr';
+    protected string $module = 'attendance';
 }

@@ -6,5 +6,5 @@ use App\Models\Schedule;
 
 class SchedulePolicy extends BasePolicy
 {
-    protected string $module = 'hr';
+    protected string $module = 'schedule';
 }

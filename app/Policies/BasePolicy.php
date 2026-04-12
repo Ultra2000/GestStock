@@ -22,7 +22,7 @@ abstract class BasePolicy
     {
         return match($this->module) {
             'warehouses', 'transfers', 'inventory' => 'stock',
-            'employees', 'leaves', 'attendance', 'schedule', 'hr' => 'hr',
+            'employees', 'leaves', 'attendance', 'schedule', 'commissions', 'hr' => 'hr',
             'accounting', 'accounting_rules', 'accounting_categories' => 'accounting',
             'banking', 'bank_accounts', 'bank_transactions' => 'banking',
             'pos' => 'pos',
@@ -89,7 +89,9 @@ abstract class BasePolicy
      */
     public function update(User $user, $model): bool
     {
-        return $user->hasPermission("{$this->module}.update") || $user->hasPermission("{$this->module}.manage");
+        return $user->hasPermission("{$this->module}.update")
+            || $user->hasPermission("{$this->module}.edit")
+            || $user->hasPermission("{$this->module}.manage");
     }
 
     /**
@@ -113,7 +115,9 @@ abstract class BasePolicy
      */
     public function restore(User $user, $model): bool
     {
-        return $user->hasPermission("{$this->module}.update") || $user->hasPermission("{$this->module}.manage");
+        return $user->hasPermission("{$this->module}.update")
+            || $user->hasPermission("{$this->module}.edit")
+            || $user->hasPermission("{$this->module}.manage");
     }
 
     /**

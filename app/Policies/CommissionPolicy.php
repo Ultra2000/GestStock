@@ -6,5 +6,5 @@ use App\Models\Commission;
 
 class CommissionPolicy extends BasePolicy
 {
-    protected string $module = 'hr';
+    protected string $module = 'commissions';
 }

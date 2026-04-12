@@ -79,10 +79,14 @@ class RolesAndPermissionsSeeder extends Seeder
         ['name' => 'Modifier des employés', 'slug' => 'employees.edit', 'description' => 'Peut modifier les employés', 'module' => 'employees', 'action' => 'update'],
         ['name' => 'Supprimer des employés', 'slug' => 'employees.delete', 'description' => 'Peut supprimer des employés', 'module' => 'employees', 'action' => 'delete'],
         
-        ['name' => 'Gérer le planning', 'slug' => 'schedule.manage', 'description' => 'Peut gérer le planning', 'module' => 'hr', 'action' => 'manage'],
-        ['name' => 'Gérer les congés', 'slug' => 'leaves.manage', 'description' => 'Peut approuver/refuser les congés', 'module' => 'hr', 'action' => 'manage'],
-        ['name' => 'Voir le pointage', 'slug' => 'attendance.view', 'description' => 'Peut consulter les pointages', 'module' => 'hr', 'action' => 'view'],
-        ['name' => 'Gérer le pointage', 'slug' => 'attendance.manage', 'description' => 'Peut modifier les pointages', 'module' => 'hr', 'action' => 'manage'],
+        ['name' => 'Voir le planning', 'slug' => 'schedule.view', 'description' => 'Peut consulter le planning', 'module' => 'schedule', 'action' => 'view'],
+        ['name' => 'Gérer le planning', 'slug' => 'schedule.manage', 'description' => 'Peut gérer le planning', 'module' => 'schedule', 'action' => 'manage'],
+        ['name' => 'Voir les congés', 'slug' => 'leaves.view', 'description' => 'Peut consulter les demandes de congés', 'module' => 'leaves', 'action' => 'view'],
+        ['name' => 'Gérer les congés', 'slug' => 'leaves.manage', 'description' => 'Peut approuver/refuser les congés', 'module' => 'leaves', 'action' => 'manage'],
+        ['name' => 'Voir le pointage', 'slug' => 'attendance.view', 'description' => 'Peut consulter les pointages', 'module' => 'attendance', 'action' => 'view'],
+        ['name' => 'Gérer le pointage', 'slug' => 'attendance.manage', 'description' => 'Peut modifier les pointages', 'module' => 'attendance', 'action' => 'manage'],
+        ['name' => 'Voir les commissions', 'slug' => 'commissions.view', 'description' => 'Peut consulter les commissions', 'module' => 'commissions', 'action' => 'view'],
+        ['name' => 'Gérer les commissions', 'slug' => 'commissions.manage', 'description' => 'Peut gérer les commissions', 'module' => 'commissions', 'action' => 'manage'],
         
         // Comptabilité
         ['name' => 'Voir la comptabilité', 'slug' => 'accounting.view', 'description' => 'Peut consulter les règles et catégories', 'module' => 'accounting', 'action' => 'view'],
@@ -122,7 +126,7 @@ class RolesAndPermissionsSeeder extends Seeder
                 'pos.access', 'pos.session', 'pos.reports',
                 'warehouses.view', 'transfers.view', 'transfers.create', 'transfers.approve',
                 'inventory.view', 'inventory.manage',
-                'employees.view', 'schedule.manage', 'leaves.manage', 'attendance.view',
+                'employees.view', 'schedule.view', 'schedule.manage', 'leaves.view', 'leaves.manage', 'attendance.view', 'commissions.view',
                 'accounting.view', 'banking.view',
                 'reports.view',
             ],
@@ -179,9 +183,10 @@ class RolesAndPermissionsSeeder extends Seeder
             'description' => 'Gestion des ressources humaines',
             'permissions' => [
                 'employees.view', 'employees.create', 'employees.edit', 'employees.delete',
-                'schedule.manage',
-                'leaves.manage',
+                'schedule.view', 'schedule.manage',
+                'leaves.view', 'leaves.manage',
                 'attendance.view', 'attendance.manage',
+                'commissions.view', 'commissions.manage',
             ],
         ],
         'user' => [
