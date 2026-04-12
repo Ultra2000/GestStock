@@ -53,8 +53,29 @@ class Register extends BaseRegister
         ]);
 
         $this->notifyAdmin($user);
+        $this->notifyUser($user);
 
         return $user;
+    }
+
+    protected function notifyUser(User $user): void
+    {
+        try {
+            Mail::raw(
+                "Bonjour {$user->name},\n\n" .
+                "Bienvenue sur FRECORP ERP ! Votre compte a bien été créé.\n\n" .
+                "Vous pouvez dès maintenant vous connecter et créer votre entreprise :\n" .
+                config('app.url') . "/admin\n\n" .
+                "Si vous avez des questions, répondez simplement à cet email.\n\n" .
+                "L'équipe FRECORP",
+                function ($message) use ($user) {
+                    $message->to($user->email, $user->name)
+                            ->subject("Bienvenue sur FRECORP ERP !");
+                }
+            );
+        } catch (\Exception $e) {
+            Log::error('Échec de la notification utilisateur inscription : ' . $e->getMessage());
+        }
     }
 
     protected function notifyAdmin(User $user): void
