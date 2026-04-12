@@ -7,6 +7,8 @@ use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
 use Filament\Pages\Auth\Register as BaseRegister;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Log;
 
 class Register extends BaseRegister
 {
@@ -50,6 +52,33 @@ class Register extends BaseRegister
             'role' => 'admin', // Rôle admin par défaut
         ]);
 
+        $this->notifyAdmin($user);
+
         return $user;
+    }
+
+    protected function notifyAdmin(User $user): void
+    {
+        $adminEmail = config('app.admin_notification_email', config('mail.from.address'));
+
+        if (!$adminEmail) {
+            return;
+        }
+
+        try {
+            Mail::raw(
+                "Nouvel utilisateur inscrit sur FRECORP ERP :\n\n" .
+                "Nom    : {$user->name}\n" .
+                "Email  : {$user->email}\n" .
+                "Date   : " . now()->format('d/m/Y à H:i') . "\n\n" .
+                "Connectez-vous sur " . config('app.url') . "/admin pour gérer cet utilisateur.",
+                function ($message) use ($adminEmail, $user) {
+                    $message->to($adminEmail)
+                            ->subject("[FRECORP] Nouvelle inscription : {$user->name}");
+                }
+            );
+        } catch (\Exception $e) {
+            Log::error('Échec de la notification admin inscription : ' . $e->getMessage());
+        }
     }
 }

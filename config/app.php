@@ -54,6 +54,8 @@ return [
 
     'url' => env('APP_URL', 'http://localhost'),
 
+    'admin_notification_email' => env('ADMIN_NOTIFICATION_EMAIL'),
+
     /*
     |--------------------------------------------------------------------------
     | Application Timezone
