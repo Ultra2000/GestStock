@@ -2,7 +2,9 @@
 
 namespace App\Filament\Pages\Tenancy;
 
+use App\Models\AccountingSetting;
 use App\Models\Company;
+use App\Models\Warehouse;
 use Database\Seeders\RolesAndPermissionsSeeder;
 use Filament\Facades\Filament;
 use Filament\Forms\Components\Actions\Action;
@@ -179,6 +181,21 @@ class RegisterCompany extends RegisterTenant
         if ($adminRole) {
             auth()->user()->assignRole($adminRole, $company);
         }
+
+        // Créer les paramètres comptables par défaut (PCG français)
+        AccountingSetting::getForCompany($company->id);
+
+        // Créer un entrepôt principal par défaut
+        Warehouse::create([
+            'company_id' => $company->id,
+            'code'       => 'PRINC',
+            'name'       => 'Entrepôt Principal',
+            'type'       => 'warehouse',
+            'is_default' => true,
+            'is_active'  => true,
+            'allow_negative_stock' => false,
+            'is_pos_location'      => true,
+        ]);
 
         return $company;
     }
