@@ -43,3 +43,33 @@ Schedule::call(function () {
         }
     }
 })->everyThirtyMinutes()->name('ppf-sync-all')->withoutOverlapping();
+
+/**
+ * Traitement des commandes récurrentes dues
+ * Toutes les heures — génère automatiquement les commandes planifiées
+ */
+Schedule::command('orders:process-recurring')
+    ->hourly()
+    ->name('process-recurring-orders')
+    ->withoutOverlapping()
+    ->runInBackground();
+
+/**
+ * Traitement des présences RH
+ * Tous les jours à 23h30 — clôture les pointages du jour
+ */
+Schedule::command('hr:process-attendance')
+    ->dailyAt('23:30')
+    ->name('process-attendance')
+    ->withoutOverlapping()
+    ->runInBackground();
+
+/**
+ * Calcul des commissions
+ * Tous les 1er du mois à 01h00 — calcule les commissions du mois précédent
+ */
+Schedule::command('hr:calculate-commissions')
+    ->monthlyOn(1, '01:00')
+    ->name('calculate-commissions')
+    ->withoutOverlapping()
+    ->runInBackground();
