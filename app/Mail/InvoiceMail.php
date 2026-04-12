@@ -30,20 +30,17 @@ class InvoiceMail extends Mailable
         $company = $this->model->company;
         $filename = ($this->type === 'purchase' ? 'facture-achat-' : 'facture-vente-') . $this->model->invoice_number . '.pdf';
 
-        $pdf = Pdf::loadView($view, [
+        $viewData = [
             $this->type === 'purchase' ? 'purchase' : 'sale' => $this->model,
             'company' => $company,
             'previewMode' => false,
-        ])->setPaper('A4', 'portrait');
+        ];
+
+        $pdf = Pdf::loadView($view, $viewData)->setPaper('A4', 'portrait');
 
         return $this->subject('Facture #' . $this->model->invoice_number)
-            ->view('emails.invoice')
-            ->with([
-                'type' => $this->type,
-                'model' => $this->model,
-                'company' => $company,
-                'customMessage' => $this->customMessage,
-            ])
+            ->view($view)
+            ->with($viewData)
             ->attachData($pdf->output(), $filename, [
                 'mime' => 'application/pdf',
             ]);
