@@ -532,7 +532,7 @@
     $totalAvantRemise = $sale->items->sum('total_price');
     $discountAmount = $totalAvantRemise * ($discountPercent / 100);
     
-    function amountToWordsFr($number, $currency = 'EUR') {
+    if (!function_exists('amountToWordsFr')) { function amountToWordsFr($number, $currency = 'EUR') {
         $fmt = new \NumberFormatter('fr_FR', \NumberFormatter::SPELLOUT);
         $euros = floor($number);
         $centimes = round(($number - $euros) * 100);
@@ -555,8 +555,8 @@
             $text .= ' et ' . $fmt->format($centimes) . ' ' . $centimeWord;
         }
         return $text;
-    }
-    
+    } }
+
     // Nom de devise en lettres (pour affichage simple)
     $currencyNames = [
         'EUR' => 'euros',
