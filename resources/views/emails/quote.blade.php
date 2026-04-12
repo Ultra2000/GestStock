@@ -14,7 +14,7 @@
                     <tr>
                         <td style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 32px; text-align: center;">
                             <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: 700;">
-                                {{ $quote->user->company->name }}
+                                {{ $quote->company->name }}
                             </h1>
                             <p style="margin: 8px 0 0; color: #e0e7ff; font-size: 16px;">
                                 Nouveau devis disponible
@@ -70,7 +70,7 @@
                                                         <tr>
                                                             <td style="color: #64748b; font-size: 16px; font-weight: 700;">Montant total TTC :</td>
                                                             <td style="color: #667eea; font-size: 24px; font-weight: 700; text-align: right;">
-                                                                {{ number_format($quote->total, 2, ',', ' ') }} €
+                                                                {{ number_format($quote->total, 2, ',', ' ') }} {{ $quote->company->currency ?? 'EUR' }}
                                                             </td>
                                                         </tr>
                                                     </table>
@@ -121,16 +121,16 @@
                                 <tr>
                                     <td style="color: #64748b; font-size: 14px; line-height: 1.6;">
                                         <strong style="color: #1e293b; display: block; margin-bottom: 8px;">
-                                            {{ $quote->user->company->name }}
+                                            {{ $quote->company->name }}
                                         </strong>
-                                        @if($quote->user->company->address)
-                                            {{ $quote->user->company->address }}<br>
+                                        @if($quote->company->address)
+                                            {{ $quote->company->address }}<br>
                                         @endif
-                                        @if($quote->user->company->phone)
-                                            Tél : {{ $quote->user->company->phone }}<br>
+                                        @if($quote->company->phone)
+                                            Tél : {{ $quote->company->phone }}<br>
                                         @endif
-                                        @if($quote->user->company->email)
-                                            Email : {{ $quote->user->company->email }}
+                                        @if($quote->company->email)
+                                            Email : {{ $quote->company->email }}
                                         @endif
                                     </td>
                                 </tr>

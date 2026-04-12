@@ -407,7 +407,8 @@ class SaleResource extends Resource
                         Forms\Components\TextInput::make('email')
                             ->label('Destinataire')
                             ->email()
-                            ->required(),
+                            ->required()
+                            ->default(fn (Sale $record) => $record->customer?->email),
                         Forms\Components\Textarea::make('message')
                             ->label('Message (optionnel)')
                             ->rows(3),

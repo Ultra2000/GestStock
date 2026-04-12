@@ -100,6 +100,6 @@ class Invitation extends Model
      */
     public function getAcceptUrl(): string
     {
-        return route('invitation.accept', ['token' => $this->token]);
+        return route('invitation.show', ['token' => $this->token]);
     }
 }

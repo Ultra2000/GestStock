@@ -23,7 +23,7 @@ class QuoteMail extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: "Devis {$this->quote->quote_number} - {$this->quote->user->company->name}",
+            subject: "Devis {$this->quote->quote_number} - {$this->quote->company->name}",
         );
     }
 

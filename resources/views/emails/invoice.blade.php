@@ -14,7 +14,7 @@
     @endif
 
     <p>
-        Montant total TTC: <strong>{{ number_format($model->total, 2, ',', ' ') }} €</strong><br>
+        Montant total TTC: <strong>{{ number_format($model->total, 2, ',', ' ') }} {{ $company->currency ?? 'EUR' }}</strong><br>
         Date: {{ $model->created_at->format('d/m/Y H:i') }}<br>
         Type: {{ $type === 'purchase' ? 'Achat' : 'Vente' }}
     </p>
