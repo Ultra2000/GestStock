@@ -25,7 +25,7 @@ class PpfSettings extends Page implements Forms\Contracts\HasForms
 
     public static function shouldRegisterNavigation(): bool
     {
-        return Filament::getTenant()?->isModuleEnabled('accounting') ?? true;
+        return false; // Remplacé par FactPulseSettings — Chorus Pro est B2G uniquement
     }
 
     public static function canAccess(): bool

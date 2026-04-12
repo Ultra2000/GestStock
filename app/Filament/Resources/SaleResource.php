@@ -318,38 +318,50 @@ class SaleResource extends Resource
                     ->money(fn () => \Filament\Facades\Filament::getTenant()->currency)
                     ->sortable(),
                 Tables\Columns\TextColumn::make('ppf_status')
-                    ->label('Statut Chorus Pro')
+                    ->label('Dématérialisation')
                     ->badge()
                     ->color(fn (?string $state): string => match ($state) {
-                        'DEPOSEE' => 'gray',
+                        // Statuts FactPulse
+                        'submitted'  => 'info',
+                        'delivered'  => 'success',
+                        'rejected'   => 'danger',
+                        'error'      => 'danger',
+                        // Statuts Chorus Pro (B2G)
+                        'DEPOSEE'           => 'gray',
                         'MISE_A_DISPOSITION' => 'info',
-                        'PRISE_EN_CHARGE' => 'warning',
-                        'MISE_EN_PAIEMENT' => 'success',
-                        'PAYEE' => 'success',
-                        'SUSPENDUE' => 'warning',
-                        'REJETEE' => 'danger',
-                        'ERREUR' => 'danger',
+                        'PRISE_EN_CHARGE'   => 'warning',
+                        'MISE_EN_PAIEMENT'  => 'success',
+                        'PAYEE'             => 'success',
+                        'SUSPENDUE'         => 'warning',
+                        'REJETEE'           => 'danger',
+                        'ERREUR'            => 'danger',
                         default => 'gray',
                     })
                     ->formatStateUsing(fn (?string $state): string => match ($state) {
-                        'DEPOSEE' => '📥 Déposée',
+                        // Statuts FactPulse
+                        'submitted'  => '📤 Soumise',
+                        'delivered'  => '✅ Transmise',
+                        'rejected'   => '✗ Rejetée',
+                        'error'      => '⚠️ Erreur',
+                        // Statuts Chorus Pro (B2G)
+                        'DEPOSEE'           => '📥 Déposée',
                         'MISE_A_DISPOSITION' => '📤 Mise à disposition',
-                        'PRISE_EN_CHARGE' => '✓ Prise en charge',
-                        'MISE_EN_PAIEMENT' => '💳 Mise en paiement',
-                        'PAYEE' => '💰 Payée',
-                        'SUSPENDUE' => '⏸️ Suspendue',
-                        'REJETEE' => '✗ Rejetée',
-                        'ERREUR' => '⚠️ Erreur',
-                        null => '-',
+                        'PRISE_EN_CHARGE'   => '✓ Prise en charge',
+                        'MISE_EN_PAIEMENT'  => '💳 Mise en paiement',
+                        'PAYEE'             => '💰 Payée',
+                        'SUSPENDUE'         => '⏸️ Suspendue',
+                        'REJETEE'           => '✗ Rejetée',
+                        'ERREUR'            => '⚠️ Erreur',
+                        null  => '-',
                         default => $state,
                     })
                     ->toggleable(),
                 Tables\Columns\TextColumn::make('ppf_id')
-                    ->label('N° Flux PPF')
+                    ->label('Réf. dématérialisation')
                     ->toggleable(isToggledHiddenByDefault: true)
                     ->copyable(),
                 Tables\Columns\TextColumn::make('ppf_synced_at')
-                    ->label('Dernière synchro PPF')
+                    ->label('Dernière mise à jour')
                     ->dateTime()
                     ->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\TextColumn::make('created_at')
@@ -431,55 +443,16 @@ class SaleResource extends Resource
                         }
                     })
                     ->visible(fn (Sale $record) => $record->status === 'completed' && !$record->ppf_status),
-                Tables\Actions\Action::make('send_to_ppf')
-                    ->label('Envoyer au PPF')
-                    ->icon('heroicon-o-paper-airplane')
-                    ->color('success')
-                    ->requiresConfirmation()
-                    ->action(function (Sale $record, \App\Services\Integration\PpfService $ppfService) {
-                        try {
-                            $ppfService->sendInvoice($record);
-                            \Filament\Notifications\Notification::make()
-                                ->title('Facture envoyée au PPF')
-                                ->success()
-                                ->send();
-                        } catch (\Exception $e) {
-                            \Filament\Notifications\Notification::make()
-                                ->title('Erreur lors de l\'envoi')
-                                ->body($e->getMessage())
-                                ->danger()
-                                ->send();
-                        }
-                    })
-                    ->visible(fn (Sale $record) => $record->status === 'completed' && !$record->ppf_status),
                 Tables\Actions\Action::make('refresh_ppf_status')
-                    ->label('Actualiser statut PPF')
+                    ->label('Actualiser statut')
                     ->icon('heroicon-o-arrow-path')
                     ->color('info')
-                    ->action(function (Sale $record, \App\Services\Integration\PpfService $ppfService) {
-                        try {
-                            $synced = $ppfService->syncInvoiceStatus($record);
-                            if ($synced) {
-                                $record->update(['ppf_synced_at' => now()]);
-                                \Filament\Notifications\Notification::make()
-                                    ->title('Statut mis à jour')
-                                    ->body('Statut: ' . $record->fresh()->ppf_status)
-                                    ->success()
-                                    ->send();
-                            } else {
-                                \Filament\Notifications\Notification::make()
-                                    ->title('Facture non trouvée')
-                                    ->body('La facture n\'a pas encore été traitée par Chorus Pro')
-                                    ->warning()
-                                    ->send();
-                            }
-                        } catch (\Exception $e) {
-                            \Filament\Notifications\Notification::make()
-                                ->title('Erreur lors de la synchronisation')
-                                ->body($e->getMessage())
-                                ->danger()
-                                ->send();
-                        }
+                    ->action(function (Sale $record) {
+                        $record->update(['ppf_synced_at' => now()]);
+                        \Filament\Notifications\Notification::make()
+                            ->title('Statut: ' . ($record->fresh()->ppf_status ?? 'en attente'))
+                            ->info()
+                            ->send();
                     })
                     ->visible(fn (Sale $record) => $record->ppf_id !== null),
                 Tables\Actions\Action::make('credit_note')

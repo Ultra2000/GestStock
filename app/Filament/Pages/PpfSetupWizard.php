@@ -23,15 +23,7 @@ class PpfSetupWizard extends Page implements Forms\Contracts\HasForms
 
     public static function shouldRegisterNavigation(): bool
     {
-        // Masquer si le module comptabilité est désactivé
-        $company = \Filament\Facades\Filament::getTenant();
-        if (!$company?->isModuleEnabled('accounting')) {
-            return false;
-        }
-
-        // Masquer l'assistant si déjà configuré
-        $integration = $company->integrations()->where('service_name', 'ppf')->first();
-        return !($integration && $integration->is_active && !empty($integration->settings['fournisseur_login']));
+        return false; // Assistant Chorus Pro B2G — non utilisé, remplacé par FactPulse
     }
 
     public static function canAccess(): bool

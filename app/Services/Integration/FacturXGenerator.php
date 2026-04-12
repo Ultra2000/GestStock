@@ -18,7 +18,10 @@ class FacturXGenerator
         
         // Format dates
         $issueDate = $sale->created_at->format('Ymd');
-        $dueDate = $sale->created_at->addDays(30)->format('Ymd');
+        // Utiliser due_date si disponible, sinon J+30 (sans muter created_at)
+        $dueDate = $sale->due_date
+            ? \Carbon\Carbon::parse($sale->due_date)->format('Ymd')
+            : $sale->created_at->copy()->addDays(30)->format('Ymd');
 
         // Numéro de facture (max 20 caractères pour Chorus Pro)
         $invoiceNumber = substr($sale->invoice_number, 0, 20);
