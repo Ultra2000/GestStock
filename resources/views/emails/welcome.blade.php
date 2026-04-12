@@ -111,7 +111,7 @@
                             </div>
 
                             <p style="margin:0;font-size:13px;color:#94a3b8;text-align:center;">
-                                Des questions ? Écrivez-nous à <a href="mailto:frejusbouraima@frecorp.fr" style="color:#6366f1;text-decoration:none;">frejusbouraima@frecorp.fr</a>
+                                Des questions ? Écrivez-nous à <a href="mailto:contact@frecorp.fr" style="color:#6366f1;text-decoration:none;">contact@frecorp.fr</a>
                             </p>
                         </td>
                     </tr>
