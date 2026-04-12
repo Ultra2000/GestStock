@@ -61,13 +61,14 @@ class Register extends BaseRegister
     protected function notifyUser(User $user): void
     {
         try {
-            Mail::raw(
-                "Bonjour {$user->name},\n\n" .
-                "Bienvenue sur FRECORP ERP ! Votre compte a bien été créé.\n\n" .
-                "Vous pouvez dès maintenant vous connecter et créer votre entreprise :\n" .
-                config('app.url') . "/admin\n\n" .
-                "Si vous avez des questions, répondez simplement à cet email.\n\n" .
-                "L'équipe FRECORP",
+            Mail::send(
+                'emails.welcome',
+                [
+                    'userName'      => $user->name,
+                    'userEmail'     => $user->email,
+                    'registeredAt'  => now()->format('d/m/Y à H:i'),
+                    'loginUrl'      => config('app.url') . '/admin',
+                ],
                 function ($message) use ($user) {
                     $message->to($user->email, $user->name)
                             ->subject("Bienvenue sur FRECORP ERP !");
