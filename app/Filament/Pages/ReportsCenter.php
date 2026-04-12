@@ -20,7 +20,7 @@ class ReportsCenter extends Page implements HasForms
     protected static ?string $navigationLabel = 'Centre de Rapports';
     protected static ?string $title = 'Centre de Rapports PDF';
     protected static ?string $navigationGroup = 'Comptabilité';
-    protected static ?int $navigationSort = 100;
+    protected static ?int $navigationSort = 15;
 
     protected static string $view = 'filament.pages.reports-center';
 

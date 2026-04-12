@@ -44,7 +44,7 @@ class AccountingExport extends Page implements HasForms
 
     protected static ?string $navigationGroup = 'Comptabilité';
 
-    protected static ?int $navigationSort = 10;
+    protected static ?int $navigationSort = 11;
 
     public ?array $data = [];
     public ?array $previewData = null;

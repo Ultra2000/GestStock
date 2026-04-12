@@ -20,7 +20,7 @@ class MySchedule extends Page
 
     protected static ?string $title = 'Mon Planning';
 
-    protected static ?int $navigationSort = 3;
+    protected static ?int $navigationSort = 4;
 
     protected static string $view = 'filament.pages.h-r.my-schedule';
 

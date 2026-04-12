@@ -21,7 +21,7 @@ class CommissionResource extends Resource
 
     protected static ?string $navigationGroup = 'RH';
 
-    protected static ?int $navigationSort = 99;
+    protected static ?int $navigationSort = 7;
 
     protected static ?string $navigationLabel = 'Commissions';
 

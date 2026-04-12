@@ -24,7 +24,7 @@ class AccountingCorrection extends Page implements HasForms
     protected static ?string $navigationLabel = 'Écritures OD';
     protected static ?string $title = 'Opérations Diverses & Corrections';
     protected static ?string $navigationGroup = 'Comptabilité';
-    protected static ?int $navigationSort = 8;
+    protected static ?int $navigationSort = 9;
 
     public static function shouldRegisterNavigation(): bool
     {

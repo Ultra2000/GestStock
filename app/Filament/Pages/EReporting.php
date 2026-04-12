@@ -18,7 +18,7 @@ class EReporting extends Page implements HasForms
 
     protected static ?string $navigationIcon = 'heroicon-o-document-chart-bar';
     protected static ?string $navigationGroup = 'Comptabilité';
-    protected static ?int $navigationSort = 8;
+    protected static ?int $navigationSort = 10;
     protected static ?string $navigationLabel = 'E-Reporting';
     protected static ?string $title = 'E-Reporting — B2C & International';
     protected static string $view = 'filament.pages.e-reporting';

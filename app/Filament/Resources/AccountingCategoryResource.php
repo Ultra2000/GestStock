@@ -21,7 +21,7 @@ class AccountingCategoryResource extends Resource
     protected static ?string $navigationIcon = 'heroicon-o-tag';
     protected static ?string $navigationGroup = 'Comptabilité';
     protected static ?string $navigationLabel = 'Catégories comptables';
-    protected static ?int $navigationSort = 3;
+    protected static ?int $navigationSort = 4;
 
     public static function shouldRegisterNavigation(): bool
     {

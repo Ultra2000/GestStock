@@ -16,8 +16,8 @@ class ImportInvoice extends Page implements HasForms
     use InteractsWithForms, WithFileUploads;
 
     protected static ?string $navigationIcon = 'heroicon-o-document-arrow-up';
-    protected static ?string $navigationGroup = 'Stocks & Achats';
-    protected static ?int $navigationSort = 4;
+    protected static ?string $navigationGroup = 'Comptabilité';
+    protected static ?int $navigationSort = 12;
     protected static ?string $navigationLabel = 'Import factures XML';
     protected static ?string $title = 'Import de factures fournisseurs (UBL / CII)';
     protected static string $view = 'filament.pages.import-invoice';

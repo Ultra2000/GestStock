@@ -20,7 +20,7 @@ class AccountingRuleResource extends Resource
     protected static ?string $navigationIcon = 'heroicon-o-variable';
     protected static ?string $navigationGroup = 'Comptabilité';
     protected static ?string $navigationLabel = 'Règles d\'imputation';
-    protected static ?int $navigationSort = 4;
+    protected static ?int $navigationSort = 5;
 
     public static function shouldRegisterNavigation(): bool
     {

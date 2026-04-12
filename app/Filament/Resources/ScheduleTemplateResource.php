@@ -27,7 +27,7 @@ class ScheduleTemplateResource extends Resource
 
     protected static ?string $pluralModelLabel = 'Templates de Planning';
 
-    protected static ?int $navigationSort = 4;
+    protected static ?int $navigationSort = 6;
 
     public static function canAccess(): bool
     {

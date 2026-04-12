@@ -46,7 +46,7 @@ class AccountingSettingResource extends Resource
 
     protected static ?string $navigationGroup = 'Comptabilité';
 
-    protected static ?int $navigationSort = 20;
+    protected static ?int $navigationSort = 14;
 
     public static function form(Form $form): Form
     {

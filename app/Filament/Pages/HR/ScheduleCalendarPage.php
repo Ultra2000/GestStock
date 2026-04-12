@@ -15,7 +15,7 @@ class ScheduleCalendarPage extends Page
 
     protected static ?string $title = 'Calendrier des plannings';
 
-    protected static ?int $navigationSort = 2;
+    protected static ?int $navigationSort = 2; // Calendrier
 
     protected static string $view = 'filament.pages.h-r.schedule-calendar-page';
 

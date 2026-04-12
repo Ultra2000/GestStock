@@ -19,7 +19,7 @@ class InvoiceConverter extends Page implements HasForms
 
     protected static ?string $navigationIcon = 'heroicon-o-document-magnifying-glass';
     protected static ?string $navigationGroup = 'Comptabilité';
-    protected static ?int $navigationSort = 15;
+    protected static ?int $navigationSort = 13;
     protected static ?string $navigationLabel = 'Convertir en Factur-X';
     protected static ?string $title = 'Convertisseur de factures → Factur-X';
     protected static string $view = 'filament.pages.invoice-converter';

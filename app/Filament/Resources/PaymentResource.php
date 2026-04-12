@@ -28,7 +28,7 @@ class PaymentResource extends Resource
 
     protected static ?string $navigationGroup = 'Comptabilité';
 
-    protected static ?int $navigationSort = 15;
+    protected static ?int $navigationSort = 7;
 
     public static function shouldRegisterNavigation(): bool
     {

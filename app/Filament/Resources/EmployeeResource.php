@@ -29,7 +29,7 @@ class EmployeeResource extends Resource
 
     protected static ?string $pluralModelLabel = 'Employés';
 
-    protected static ?int $navigationSort = 4;
+    protected static ?int $navigationSort = 5;
     
     public static function shouldRegisterNavigation(): bool
     {
