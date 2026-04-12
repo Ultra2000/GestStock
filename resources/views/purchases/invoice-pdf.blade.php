@@ -17,7 +17,7 @@
         }
         
         body {
-            font-family: 'Inter', 'DejaVu Sans', Helvetica, Arial, sans-serif;
+            font-family: 'DejaVu Sans', Helvetica, Arial, sans-serif;
             font-size: 10px;
             color: #1e293b;
             line-height: 1.5;

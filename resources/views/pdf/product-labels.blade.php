@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <style>
         @page { size: A4; margin: 14mm; }
-        body { font-family: 'Inter', 'DejaVu Sans', Helvetica, Arial, sans-serif; font-size: 11px; color: #1e293b; letter-spacing: 0.01em; }
+        body { font-family: 'DejaVu Sans', Helvetica, Arial, sans-serif; font-size: 11px; color: #1e293b; letter-spacing: 0.01em; }
         .grid { display: flex; flex-wrap: wrap; }
         .label { width: calc(100% / {{ $columns }}); padding:4px 6px; box-sizing: border-box; border:1px dashed #ddd; margin-bottom:6px; text-align:center; }
         .name { font-weight:600; font-size:11px; line-height:1.1; }

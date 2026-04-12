@@ -32,7 +32,7 @@
         * { box-sizing: border-box; margin: 0; padding: 0; }
         
         body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-family: @if(!empty($previewMode)) 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, @endif 'DejaVu Sans', sans-serif;
             font-size: 13px;
             color: var(--gray-800);
             background: #fff;
