@@ -925,63 +925,50 @@
                 {{-- SECTION: FACTURATION ELECTRONIQUE --}}
                 @if($activeSection === 'einvoicing')
                 <div>
-                    <h2>Facturation electronique (FactPulse)</h2>
+                    <h2>Facturation electronique</h2>
 
                     <div class="not-prose mb-6 rounded-xl bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 p-4">
                         <div class="flex gap-3">
                             <x-heroicon-s-information-circle class="h-6 w-6 text-blue-500 shrink-0 mt-0.5" />
                             <div>
-                                <p class="font-semibold text-blue-900 dark:text-blue-300">Obligation legale a partir de 2026</p>
-                                <p class="text-sm text-blue-700 dark:text-blue-400 mt-1">La reforme de la facturation electronique impose a toutes les entreprises francaises de transmettre leurs factures B2B via une <strong>Plateforme de Dematerialisation Partenaire (PDP)</strong> agreee. FRECORP ERP est integre avec <strong>FactPulse</strong>, PDP certifie par la DGFiP.</p>
+                                <p class="font-semibold text-blue-900 dark:text-blue-300">Qu'est-ce que la facturation electronique ?</p>
+                                <p class="text-sm text-blue-700 dark:text-blue-400 mt-1">A partir de 2026, toutes les entreprises francaises seront obligees de transmettre leurs factures entre professionnels via une plateforme officielle agreee par l'Etat. FRECORP ERP s'occupe de tout automatiquement : vous n'avez qu'a cliquer sur un bouton.</p>
                             </div>
                         </div>
                     </div>
 
-                    <div class="not-prose mb-6 rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 p-3">
-                        <p class="text-sm text-amber-800 dark:text-amber-300"><strong>Chorus Pro vs FactPulse :</strong> Chorus Pro est reserve aux factures <strong>B2G</strong> (secteur public). Pour les factures <strong>B2B</strong> (entreprises privees), il faut obligatoirement passer par un PDP comme FactPulse. FRECORP ERP utilise FactPulse pour couvrir les deux cas.</p>
+                    <h3>10.1 Verifier que la connexion est active</h3>
+                    <p><strong>Menu :</strong> Administration &rarr; FactPulse</p>
+                    <p>Cette page indique si votre compte de facturation electronique est correctement connecte. Si le statut affiche <strong>Non configure</strong>, contactez votre administrateur pour activer le service.</p>
+
+                    <div class="not-prose mt-4 mb-6 rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 p-3">
+                        <p class="text-sm text-amber-800 dark:text-amber-300"><strong>Important :</strong> La facturation electronique ne concerne que les ventes entre professionnels (entreprises). Les ventes aux particuliers ne sont pas concernees.</p>
                     </div>
 
-                    <h3>10.1 Configuration FactPulse</h3>
-                    <p><strong>Menu :</strong> Administration &rarr; FactPulse</p>
-                    <p>Ajoutez les identifiants FactPulse dans le fichier <code>.env</code> de votre serveur :</p>
-                    <table>
-                        <thead><tr><th>Variable</th><th>Description</th></tr></thead>
-                        <tbody>
-                            <tr><td><code>FACTPULSE_API_URL</code></td><td>URL de l'API FactPulse (fournie par FactPulse)</td></tr>
-                            <tr><td><code>FACTPULSE_EMAIL</code></td><td>Votre email de compte FactPulse</td></tr>
-                            <tr><td><code>FACTPULSE_PASSWORD</code></td><td>Votre mot de passe FactPulse</td></tr>
-                            <tr><td><code>FACTPULSE_CLIENT_UID</code></td><td>Identifiant unique client (fourni par FactPulse)</td></tr>
-                        </tbody>
-                    </table>
-                    <p class="mt-3">Cliquez sur <strong>Tester la connexion</strong> pour verifier que les credentials fonctionnent. La page affiche le statut de configuration (configure / non configure).</p>
-
-                    <h3>10.2 Dematerialiser une facture</h3>
-                    <p>Depuis une vente validee (menu <strong>Ventes &rarr; Ventes</strong>) :</p>
+                    <h3>10.2 Envoyer une facture electroniquement</h3>
+                    <p>Une fois la vente validee, depuis la liste <strong>Ventes &rarr; Ventes</strong> :</p>
                     <ol>
-                        <li>Ouvrez une vente au statut <strong>Validee</strong></li>
-                        <li>Cliquez sur <strong>Dematerialiser (FactPulse)</strong></li>
-                        <li>Le systeme genere automatiquement le fichier <strong>Factur-X</strong> (PDF + XML CII embarque) et le soumet a FactPulse</li>
-                        <li>La reference de transmission est enregistree dans la colonne <strong>Ref. dematerialisation</strong></li>
+                        <li>Repérez la vente concernée dans le tableau</li>
+                        <li>Cliquez sur le bouton <strong>Dematerialiser (FactPulse)</strong></li>
+                        <li>La facture est envoyee automatiquement a la plateforme officielle</li>
+                        <li>Un numero de reference s'affiche dans la colonne <strong>Ref. dematerialisation</strong></li>
                     </ol>
 
-                    <h4>Suivi du statut de dematerialisation</h4>
+                    <div class="not-prose mt-4 mb-6 rounded-lg bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 p-3">
+                        <p class="text-sm text-green-800 dark:text-green-300"><strong>Bon a savoir :</strong> Vous pouvez envoyer la facture electroniquement <em>en plus</em> de l'envoyer par email au client. Les deux actions sont independantes.</p>
+                    </div>
+
+                    <h3>10.3 Lire les statuts</h3>
+                    <p>Apres l'envoi, la colonne <strong>Dematerialisation</strong> dans la liste des ventes indique ou en est votre facture :</p>
                     <table>
-                        <thead><tr><th>Statut</th><th>Signification</th></tr></thead>
+                        <thead><tr><th>Statut</th><th>Ce que ca signifie</th><th>Que faire ?</th></tr></thead>
                         <tbody>
-                            <tr><td><span class="text-blue-600 dark:text-blue-400 font-medium">📤 Soumise</span></td><td>Facture transmise a FactPulse, en attente de traitement</td></tr>
-                            <tr><td><span class="text-green-600 dark:text-green-400 font-medium">✅ Transmise</span></td><td>Facture acceptee et routee vers le destinataire</td></tr>
-                            <tr><td><span class="text-red-600 dark:text-red-400 font-medium">✗ Rejetee</span></td><td>Facture refusee (donnees incorrectes, SIRET invalide…)</td></tr>
-                            <tr><td><span class="text-orange-600 dark:text-orange-400 font-medium">⚠️ Erreur</span></td><td>Erreur technique lors de la transmission</td></tr>
+                            <tr><td><span class="text-blue-600 dark:text-blue-400 font-medium">📤 Soumise</span></td><td>La facture a ete envoyee, la plateforme la traite</td><td>Patienter, c'est normal</td></tr>
+                            <tr><td><span class="text-green-600 dark:text-green-400 font-medium">✅ Transmise</span></td><td>La facture est bien arrivee chez votre client</td><td>Rien, c'est regle</td></tr>
+                            <tr><td><span class="text-red-600 dark:text-red-400 font-medium">✗ Rejetee</span></td><td>La facture a ete refusee (ex : SIRET du client incorrect)</td><td>Verifiez les infos du client puis renvoyez</td></tr>
+                            <tr><td><span class="text-orange-600 dark:text-orange-400 font-medium">⚠️ Erreur</span></td><td>Un probleme technique s'est produit</td><td>Reessayez ou contactez votre administrateur</td></tr>
                         </tbody>
                     </table>
-
-                    <h3>10.3 Format Factur-X</h3>
-                    <p>FRECORP ERP genere des factures au format <strong>Factur-X CII</strong> (profil EN 16931), la norme europeenne de facturation electronique structuree. Ce format contient :</p>
-                    <ul>
-                        <li>Un PDF lisible par l'humain (la facture habituelle)</li>
-                        <li>Un fichier XML structure <code>factur-x.xml</code> embarque dans le PDF, contenant toutes les donnees de la facture en format machine-readable</li>
-                    </ul>
-                    <p>Ce double format garantit la conformite legale tout en restant lisible par vos clients.</p>
                 </div>
                 @endif
 
