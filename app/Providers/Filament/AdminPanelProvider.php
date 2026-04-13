@@ -133,11 +133,36 @@ class AdminPanelProvider extends PanelProvider
                 SubstituteBindings::class,
                 DisableBladeIconComponents::class,
                 DispatchServingFilamentEvent::class,
+                \App\Http\Middleware\CheckSubscription::class,
             ])
             ->authMiddleware([
                 Authenticate::class,
             ])
             ->authGuard('web')
+            ->renderHook(
+                PanelsRenderHook::BODY_START,
+                function () {
+                    $company = \Filament\Facades\Filament::getTenant();
+                    if (!$company || !$company->isOnTrial()) {
+                        return '';
+                    }
+                    $days = $company->trialDaysLeft();
+                    if ($days > 14) {
+                        return '';
+                    }
+                    $color = $days <= 3 ? 'bg-red-600' : 'bg-amber-500';
+                    $msg   = $days <= 0
+                        ? 'Votre période d\'essai gratuite se termine aujourd\'hui.'
+                        : "Il vous reste <strong>{$days} jour" . ($days > 1 ? 's' : '') . "</strong> d'essai gratuit.";
+                    return new \Illuminate\Support\HtmlString("
+                        <div class='{$color} text-white text-center text-sm py-2 px-4 font-medium'>
+                            {$msg}
+                            &nbsp;·&nbsp;
+                            <a href='mailto:contact@frecorp.fr?subject=Abonnement - {$company->name}' class='underline font-bold'>S'abonner maintenant (19€/mois)</a>
+                        </div>
+                    ");
+                }
+            )
             ->renderHook(
                 PanelsRenderHook::HEAD_END,
                 fn () => new HtmlString('<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">')

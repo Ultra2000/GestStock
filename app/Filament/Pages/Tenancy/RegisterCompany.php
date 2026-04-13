@@ -167,6 +167,10 @@ class RegisterCompany extends RegisterTenant
         // Générer un slug unique
         $data['slug'] = $this->generateUniqueSlug($data['name']);
 
+        $data['subscription_status'] = 'trial';
+        $data['subscription_plan']   = 'trial';
+        $data['trial_ends_at']       = now()->addMonths(6);
+
         $company = Company::create($data);
 
         // Créer les rôles par défaut via la source unique de vérité

@@ -33,12 +33,63 @@ class Company extends Model
         'currency',
         'country_code',
         'is_active',
+        'subscription_status',
+        'subscription_plan',
+        'trial_ends_at',
+        'subscription_ends_at',
     ];
 
     protected $casts = [
-        'settings' => 'array',
-        'is_active' => 'boolean',
+        'settings'             => 'array',
+        'is_active'            => 'boolean',
+        'trial_ends_at'        => 'datetime',
+        'subscription_ends_at' => 'datetime',
     ];
+
+    // -------------------------------------------------------------------------
+    // Subscription helpers
+    // -------------------------------------------------------------------------
+
+    public function isOnTrial(): bool
+    {
+        return $this->subscription_status === 'trial'
+            && $this->trial_ends_at
+            && $this->trial_ends_at->isFuture();
+    }
+
+    public function isSubscriptionActive(): bool
+    {
+        return $this->subscription_status === 'active';
+    }
+
+    public function hasActiveAccess(): bool
+    {
+        return $this->isOnTrial() || $this->isSubscriptionActive();
+    }
+
+    public function isTrialExpired(): bool
+    {
+        return $this->subscription_status === 'trial'
+            && $this->trial_ends_at
+            && $this->trial_ends_at->isPast();
+    }
+
+    public function trialDaysLeft(): int
+    {
+        if (!$this->isOnTrial()) {
+            return 0;
+        }
+        return (int) now()->diffInDays($this->trial_ends_at, false);
+    }
+
+    public function startTrial(int $months = 6): void
+    {
+        $this->update([
+            'subscription_status' => 'trial',
+            'subscription_plan'   => 'trial',
+            'trial_ends_at'       => now()->addMonths($months),
+        ]);
+    }
 
     protected static function boot()
     {
