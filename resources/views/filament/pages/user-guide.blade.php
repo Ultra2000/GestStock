@@ -251,10 +251,9 @@
                     <table>
                         <thead><tr><th>Action</th><th>Description</th></tr></thead>
                         <tbody>
-                            <tr><td>Facture PDF</td><td>Telecharge le PDF de la facture</td></tr>
-                            <tr><td>Envoyer par email</td><td>Envoie la facture PDF par email</td></tr>
-                            <tr><td>Envoyer au PPF</td><td>Transmet la facture a Chorus Pro (facturation electronique)</td></tr>
-                            <tr><td>Actualiser statut PPF</td><td>Synchronise le statut depuis Chorus Pro</td></tr>
+                            <tr><td>Facture PDF</td><td>Telecharge ou previsualise le PDF de la facture</td></tr>
+                            <tr><td>Envoyer par email</td><td>Envoie la facture complete (HTML + PDF joint) au client. L'email est pre-rempli avec l'adresse email du client. Vous pouvez ajouter un message personnalise.</td></tr>
+                            <tr><td>Dematerialiser (FactPulse)</td><td>Transmet la facture a la plateforme de dematerialisation FactPulse au format Factur-X (obligation legale B2B a partir de 2026)</td></tr>
                             <tr><td>Generer un avoir</td><td>Cree une facture d'avoir negative, restaure le stock, contre-passe les ecritures</td></tr>
                         </tbody>
                     </table>
@@ -876,11 +875,14 @@
                     <table>
                         <thead><tr><th>Role</th><th>Acces type</th></tr></thead>
                         <tbody>
-                            <tr><td><span class="font-semibold text-red-600 dark:text-red-400">Admin</span></td><td>Acces complet (ne peut pas etre supprime)</td></tr>
-                            <tr><td><span class="font-semibold text-orange-600 dark:text-orange-400">Manager</span></td><td>Gestion operationnelle</td></tr>
-                            <tr><td><span class="font-semibold text-blue-600 dark:text-blue-400">Vendeur</span></td><td>Ventes et clients</td></tr>
-                            <tr><td><span class="font-semibold text-cyan-600 dark:text-cyan-400">Caissier</span></td><td>Caisse uniquement</td></tr>
-                            <tr><td><span class="font-semibold text-green-600 dark:text-green-400">Comptable</span></td><td>Comptabilite et rapports</td></tr>
+                            <tr><td><span class="font-semibold text-red-600 dark:text-red-400">Admin</span></td><td>Acces complet a toutes les fonctionnalites</td></tr>
+                            <tr><td><span class="font-semibold text-orange-600 dark:text-orange-400">Manager</span></td><td>Gestion operationnelle : ventes, achats, stock, RH, comptabilite (lecture)</td></tr>
+                            <tr><td><span class="font-semibold text-blue-600 dark:text-blue-400">Vendeur</span></td><td>Ventes, devis, clients, caisse (lecture)</td></tr>
+                            <tr><td><span class="font-semibold text-cyan-600 dark:text-cyan-400">Caissier</span></td><td>Caisse POS et ventes uniquement</td></tr>
+                            <tr><td><span class="font-semibold text-violet-600 dark:text-violet-400">Magasinier</span></td><td>Stock, entrepots, transferts, inventaires</td></tr>
+                            <tr><td><span class="font-semibold text-green-600 dark:text-green-400">Comptable</span></td><td>Comptabilite, banque et rapports financiers</td></tr>
+                            <tr><td><span class="font-semibold text-pink-600 dark:text-pink-400">Responsable RH</span></td><td>Employes, planning, conges, pointage, commissions</td></tr>
+                            <tr><td><span class="font-semibold text-gray-600 dark:text-gray-400">Utilisateur</span></td><td>Acces lecture seule (produits, ventes, clients) — role par defaut</td></tr>
                         </tbody>
                     </table>
 
@@ -923,53 +925,63 @@
                 {{-- SECTION: FACTURATION ELECTRONIQUE --}}
                 @if($activeSection === 'einvoicing')
                 <div>
-                    <h2>Facturation electronique (PPF / Chorus Pro)</h2>
+                    <h2>Facturation electronique (FactPulse)</h2>
 
-                    <h3>10.1 Assistant de configuration</h3>
-                    <p><strong>Menu :</strong> Administration &rarr; Assistant facturation</p>
-                    <p>Wizard en 5 etapes :</p>
-                    <ol>
-                        <li><strong>Introduction</strong> : informations sur l'obligation de facturation electronique (2026)</li>
-                        <li><strong>Creation de compte</strong> : guide pour creer un compte Chorus Pro</li>
-                        <li><strong>Identifiants</strong> : saisie du SIRET, login (TECH_xxx@cpro.fr) et mot de passe</li>
-                        <li><strong>Test de connexion</strong> : verification que les identifiants fonctionnent</li>
-                        <li><strong>Confirmation</strong> : activation de l'integration</li>
-                    </ol>
+                    <div class="not-prose mb-6 rounded-xl bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 p-4">
+                        <div class="flex gap-3">
+                            <x-heroicon-s-information-circle class="h-6 w-6 text-blue-500 shrink-0 mt-0.5" />
+                            <div>
+                                <p class="font-semibold text-blue-900 dark:text-blue-300">Obligation legale a partir de 2026</p>
+                                <p class="text-sm text-blue-700 dark:text-blue-400 mt-1">La reforme de la facturation electronique impose a toutes les entreprises francaises de transmettre leurs factures B2B via une <strong>Plateforme de Dematerialisation Partenaire (PDP)</strong> agreee. FRECORP ERP est integre avec <strong>FactPulse</strong>, PDP certifie par la DGFiP.</p>
+                            </div>
+                        </div>
+                    </div>
 
-                    <h3>10.2 Parametres PPF</h3>
-                    <p><strong>Menu :</strong> Administration &rarr; Facturation electronique</p>
+                    <div class="not-prose mb-6 rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 p-3">
+                        <p class="text-sm text-amber-800 dark:text-amber-300"><strong>Chorus Pro vs FactPulse :</strong> Chorus Pro est reserve aux factures <strong>B2G</strong> (secteur public). Pour les factures <strong>B2B</strong> (entreprises privees), il faut obligatoirement passer par un PDP comme FactPulse. FRECORP ERP utilise FactPulse pour couvrir les deux cas.</p>
+                    </div>
+
+                    <h3>10.1 Configuration FactPulse</h3>
+                    <p><strong>Menu :</strong> Administration &rarr; FactPulse</p>
+                    <p>Ajoutez les identifiants FactPulse dans le fichier <code>.env</code> de votre serveur :</p>
                     <table>
-                        <thead><tr><th>Champ</th><th>Description</th></tr></thead>
+                        <thead><tr><th>Variable</th><th>Description</th></tr></thead>
                         <tbody>
-                            <tr><td>Actif</td><td>Activer/desactiver l'integration</td></tr>
-                            <tr><td>SIRET fournisseur</td><td>Votre SIRET pour Chorus Pro</td></tr>
-                            <tr><td>Login</td><td>Identifiant technique (format TECH_xxx@cpro.fr)</td></tr>
-                            <tr><td>Mot de passe</td><td>Mot de passe Chorus Pro</td></tr>
+                            <tr><td><code>FACTPULSE_API_URL</code></td><td>URL de l'API FactPulse (fournie par FactPulse)</td></tr>
+                            <tr><td><code>FACTPULSE_EMAIL</code></td><td>Votre email de compte FactPulse</td></tr>
+                            <tr><td><code>FACTPULSE_PASSWORD</code></td><td>Votre mot de passe FactPulse</td></tr>
+                            <tr><td><code>FACTPULSE_CLIENT_UID</code></td><td>Identifiant unique client (fourni par FactPulse)</td></tr>
                         </tbody>
                     </table>
-                    <p><strong>Action :</strong> &laquo;&nbsp;Tester la connexion&nbsp;&raquo; &mdash; verifie l'authentification avec Chorus Pro.</p>
+                    <p class="mt-3">Cliquez sur <strong>Tester la connexion</strong> pour verifier que les credentials fonctionnent. La page affiche le statut de configuration (configure / non configure).</p>
 
-                    <h3>10.3 Envoyer une facture au PPF</h3>
-                    <p>Depuis une vente validee (menu Ventes &rarr; Ventes) :</p>
+                    <h3>10.2 Dematerialiser une facture</h3>
+                    <p>Depuis une vente validee (menu <strong>Ventes &rarr; Ventes</strong>) :</p>
                     <ol>
                         <li>Ouvrez une vente au statut <strong>Validee</strong></li>
-                        <li>Cliquez sur <strong>Envoyer au PPF</strong></li>
-                        <li>La facture est transmise a Chorus Pro au format Factur-X</li>
+                        <li>Cliquez sur <strong>Dematerialiser (FactPulse)</strong></li>
+                        <li>Le systeme genere automatiquement le fichier <strong>Factur-X</strong> (PDF + XML CII embarque) et le soumet a FactPulse</li>
+                        <li>La reference de transmission est enregistree dans la colonne <strong>Ref. dematerialisation</strong></li>
                     </ol>
 
-                    <h4>Suivi du statut PPF</h4>
+                    <h4>Suivi du statut de dematerialisation</h4>
                     <table>
                         <thead><tr><th>Statut</th><th>Signification</th></tr></thead>
                         <tbody>
-                            <tr><td><span class="text-blue-600 dark:text-blue-400 font-medium">Deposee</span></td><td>Facture deposee sur la plateforme</td></tr>
-                            <tr><td><span class="text-indigo-600 dark:text-indigo-400 font-medium">Mise a disposition</span></td><td>Facture disponible pour le client</td></tr>
-                            <tr><td><span class="text-cyan-600 dark:text-cyan-400 font-medium">Prise en charge</span></td><td>Facture recue par le client</td></tr>
-                            <tr><td><span class="text-yellow-600 dark:text-yellow-400 font-medium">Mise en paiement</span></td><td>Paiement en cours</td></tr>
-                            <tr><td><span class="text-green-600 dark:text-green-400 font-medium">Payee</span></td><td>Paiement effectue</td></tr>
-                            <tr><td><span class="text-orange-600 dark:text-orange-400 font-medium">Suspendue</span></td><td>Facture en attente</td></tr>
-                            <tr><td><span class="text-red-600 dark:text-red-400 font-medium">Rejetee</span></td><td>Facture refusee</td></tr>
+                            <tr><td><span class="text-blue-600 dark:text-blue-400 font-medium">📤 Soumise</span></td><td>Facture transmise a FactPulse, en attente de traitement</td></tr>
+                            <tr><td><span class="text-green-600 dark:text-green-400 font-medium">✅ Transmise</span></td><td>Facture acceptee et routee vers le destinataire</td></tr>
+                            <tr><td><span class="text-red-600 dark:text-red-400 font-medium">✗ Rejetee</span></td><td>Facture refusee (donnees incorrectes, SIRET invalide…)</td></tr>
+                            <tr><td><span class="text-orange-600 dark:text-orange-400 font-medium">⚠️ Erreur</span></td><td>Erreur technique lors de la transmission</td></tr>
                         </tbody>
                     </table>
+
+                    <h3>10.3 Format Factur-X</h3>
+                    <p>FRECORP ERP genere des factures au format <strong>Factur-X CII</strong> (profil EN 16931), la norme europeenne de facturation electronique structuree. Ce format contient :</p>
+                    <ul>
+                        <li>Un PDF lisible par l'humain (la facture habituelle)</li>
+                        <li>Un fichier XML structure <code>factur-x.xml</code> embarque dans le PDF, contenant toutes les donnees de la facture en format machine-readable</li>
+                    </ul>
+                    <p>Ce double format garantit la conformite legale tout en restant lisible par vos clients.</p>
                 </div>
                 @endif
 
