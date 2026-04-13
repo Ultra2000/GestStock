@@ -4,9 +4,9 @@
     <meta charset="UTF-8">
     <title>Déclaration CA3 - {{ $period['label'] }}</title>
     <style>
-        @page { size: A4; margin: 15mm; }
+        @page { size: A4 portrait; margin: 15mm 15mm 15mm 15mm; }
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'DejaVu Sans', Helvetica, Arial, sans-serif; font-size: 11px; color: #1e293b; line-height: 1.5; }
+        body { font-family: 'DejaVu Sans', Helvetica, Arial, sans-serif; font-size: 11px; color: #1e293b; line-height: 1.5; margin: 15mm; }
 
         /* Header */
         .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px; padding-bottom: 16px; border-bottom: 3px solid #1e293b; }

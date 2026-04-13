@@ -197,7 +197,7 @@ class Ca3Declaration extends Page implements HasForms
                             ),
                         ],
                         'currency' => $company->currency ?? 'EUR',
-                    ])->setPaper('A4', 'portrait');
+                    ])->setPaper([0, 0, 595.28, 841.89], 'portrait'); // A4 en points (72dpi)
 
                     $filename = 'CA3-' . Carbon::parse($this->data['start_date'])->format('Y-m') . '.pdf';
 
