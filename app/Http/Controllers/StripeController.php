@@ -85,7 +85,7 @@ class StripeController extends Controller
             );
         }
 
-        return redirect(route('filament.admin.pages.dashboard', ['tenant' => $tenant]))
+        return redirect(route('filament.admin.pages.default-dashboard', ['tenant' => $tenant]))
             ->with('success', 'Abonnement activé ! Bienvenue sur FRECORP Standard.');
     }
 
