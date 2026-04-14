@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\Company;
-use Filament\Facades\Filament;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Stripe\Stripe;
@@ -24,11 +23,14 @@ class StripeController extends Controller
     public function checkout(Request $request)
     {
         $request->validate([
-            'plan' => 'required|in:monthly,yearly',
+            'plan'         => 'required|in:monthly,yearly',
+            'company_slug' => 'required|string',
         ]);
 
-        $company = Filament::getTenant();
-        if (!$company) {
+        $company = Company::where('slug', $request->company_slug)->firstOrFail();
+
+        // Vérifier que l'utilisateur appartient à cette company
+        if (!auth()->user()->companies()->where('companies.id', $company->id)->exists()) {
             abort(403);
         }
 

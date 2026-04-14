@@ -42,6 +42,7 @@
                     <form method="POST" action="{{ route('stripe.checkout') }}">
                         @csrf
                         <input type="hidden" name="plan" value="monthly">
+                        <input type="hidden" name="company_slug" value="{{ $company->slug }}">
                         <button type="submit"
                             class="block w-full text-center bg-gray-800 hover:bg-gray-700 text-white font-bold py-3 rounded-xl transition">
                             S'abonner — 30€/mois
@@ -69,6 +70,7 @@
                     <form method="POST" action="{{ route('stripe.checkout') }}">
                         @csrf
                         <input type="hidden" name="plan" value="yearly">
+                        <input type="hidden" name="company_slug" value="{{ $company->slug }}">
                         <button type="submit"
                             class="block w-full text-center bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3 rounded-xl transition">
                             S'abonner — 300€/an
