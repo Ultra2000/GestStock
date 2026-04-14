@@ -45,7 +45,7 @@ class GeminiExtractor implements AiExtractorInterface
         );
 
         if (!$response->successful()) {
-            Log::error('Gemini API error: ' . $response->body());
+            Log::error('Gemini API error', ['status' => $response->status(), 'hint' => substr($response->body(), 0, 200)]);
             throw new \Exception('Erreur Gemini API: ' . ($response->json('error.message') ?? $response->body()));
         }
 
@@ -100,7 +100,7 @@ class GeminiExtractor implements AiExtractorInterface
         );
 
         if (!$response->successful()) {
-            Log::error('Gemini Vision API error: ' . $response->body());
+            Log::error('Gemini Vision API error', ['status' => $response->status(), 'hint' => substr($response->body(), 0, 200)]);
             throw new \Exception('Erreur Gemini Vision: ' . ($response->json('error.message') ?? $response->body()));
         }
 

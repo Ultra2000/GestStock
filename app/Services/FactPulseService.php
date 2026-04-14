@@ -106,14 +106,14 @@ class FactPulseService
             ]
         ];
         
-        Log::info("Envoi facture via FactPulse démarré", ['invoice' => $sale->invoice_number, 'siret_client' => $customer->siret]);
+        Log::info("Envoi facture via FactPulse démarré", ['invoice' => $sale->invoice_number]);
 
         // Appel API. (On suppose l'endpoint de génération ici)
         $response = Http::withHeaders($headers)
             ->post($this->apiUrl . '/invoices/generate-and-submit', $payload);
 
         if ($response->failed()) {
-            Log::error("Erreur FactPulse: " . $response->body());
+            Log::error("Erreur FactPulse", ['status' => $response->status(), 'hint' => substr($response->body(), 0, 200)]);
             throw new Exception("Erreur de communication avec FactPulse: " . $response->status() . " - " . $response->body());
         }
 

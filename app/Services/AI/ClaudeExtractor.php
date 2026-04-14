@@ -42,7 +42,7 @@ class ClaudeExtractor implements AiExtractorInterface
         ]);
 
         if (!$response->successful()) {
-            Log::error('Claude API error: ' . $response->body());
+            Log::error('Claude API error', ['status' => $response->status(), 'hint' => substr($response->body(), 0, 200)]);
             throw new \Exception('Erreur Claude API: ' . ($response->json('error.message') ?? $response->body()));
         }
 
@@ -95,7 +95,7 @@ class ClaudeExtractor implements AiExtractorInterface
         ]);
 
         if (!$response->successful()) {
-            Log::error('Claude Vision API error: ' . $response->body());
+            Log::error('Claude Vision API error', ['status' => $response->status(), 'hint' => substr($response->body(), 0, 200)]);
             throw new \Exception('Erreur Claude Vision: ' . ($response->json('error.message') ?? $response->body()));
         }
 
