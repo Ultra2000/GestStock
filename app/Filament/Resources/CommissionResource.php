@@ -29,11 +29,20 @@ class CommissionResource extends Resource
 
     protected static ?string $pluralModelLabel = 'Commissions';
     
-    protected static bool $shouldRegisterNavigation = false;
+    public static function shouldRegisterNavigation(): bool
+    {
+        $user = auth()->user();
+        if (!$user) return false;
+        if (!(Filament::getTenant()?->isModuleEnabled('hr') ?? false)) return false;
+        return $user->isAdmin() || $user->hasPermission('commissions.view') || $user->hasPermission('commissions.manage');
+    }
 
     public static function canAccess(): bool
     {
-        return Filament::getTenant()?->isModuleEnabled('hr') ?? true;
+        $user = auth()->user();
+        if (!$user) return false;
+        if (!(Filament::getTenant()?->isModuleEnabled('hr') ?? false)) return false;
+        return $user->isAdmin() || $user->hasPermission('commissions.view') || $user->hasPermission('commissions.manage');
     }
 
     public static function form(Form $form): Form

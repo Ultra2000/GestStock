@@ -4,6 +4,7 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\AttendanceLogResource\Pages;
 use App\Models\AttendanceLog;
+use Filament\Facades\Filament;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
@@ -19,7 +20,21 @@ class AttendanceLogResource extends Resource
     protected static ?string $navigationLabel = 'Logs Pointage';
     protected static ?string $modelLabel = 'Log Pointage';
     protected static ?string $pluralModelLabel = 'Logs Pointage';
-    protected static bool $shouldRegisterNavigation = false;
+    public static function shouldRegisterNavigation(): bool
+    {
+        $user = auth()->user();
+        if (!$user) return false;
+        if (!(Filament::getTenant()?->isModuleEnabled('hr') ?? false)) return false;
+        return $user->isAdmin() || $user->hasPermission('attendance.view') || $user->hasPermission('attendance.manage');
+    }
+
+    public static function canAccess(): bool
+    {
+        $user = auth()->user();
+        if (!$user) return false;
+        if (!(Filament::getTenant()?->isModuleEnabled('hr') ?? false)) return false;
+        return $user->isAdmin() || $user->hasPermission('attendance.view') || $user->hasPermission('attendance.manage');
+    }
 
     public static function canCreate(): bool
     {

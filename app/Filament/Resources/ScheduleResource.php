@@ -29,7 +29,13 @@ class ScheduleResource extends Resource
 
     protected static ?int $navigationSort = 99;
     
-    protected static bool $shouldRegisterNavigation = false;
+    public static function shouldRegisterNavigation(): bool
+    {
+        $user = auth()->user();
+        if (!$user) return false;
+        if (!(Filament::getTenant()?->isModuleEnabled('hr') ?? false)) return false;
+        return $user->isAdmin() || $user->hasPermission('schedule.view') || $user->hasPermission('schedule.manage');
+    }
 
     public static function canAccess(): bool
     {
