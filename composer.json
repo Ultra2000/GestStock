@@ -19,6 +19,7 @@
         "smalot/pdfparser": "^0.19.0",
         "spatie/browsershot": "^5.2",
         "spatie/laravel-activitylog": "^4.10",
+        "stripe/stripe-php": "^13.0",
         "tiime/factur-x": "^0.1.0"
     },
     "require-dev": {

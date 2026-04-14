@@ -96,6 +96,17 @@ Route::middleware('auth')->prefix('api/pos')->group(function () {
 
 require __DIR__.'/auth.php';
 
+// Stripe — paiement abonnement
+Route::middleware('auth')->group(function () {
+    Route::post('/stripe/checkout', [\App\Http\Controllers\StripeController::class, 'checkout'])
+        ->name('stripe.checkout');
+    Route::get('/stripe/success/{tenant}', [\App\Http\Controllers\StripeController::class, 'success'])
+        ->name('stripe.success');
+});
+// Webhook Stripe (sans auth — Stripe signe la requête)
+Route::post('/stripe/webhook', [\App\Http\Controllers\StripeController::class, 'webhook'])
+    ->name('stripe.webhook');
+
 // Téléchargement sécurisé des documents employés (stockage privé)
 Route::get('/employee-documents/{id}/download', function (int $id) {
     $document = \App\Models\EmployeeDocument::findOrFail($id);

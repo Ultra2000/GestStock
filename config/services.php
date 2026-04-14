@@ -35,6 +35,14 @@ return [
         ],
     ],
 
+    'stripe' => [
+        'key'             => env('STRIPE_KEY'),
+        'secret'          => env('STRIPE_SECRET'),
+        'webhook_secret'  => env('STRIPE_WEBHOOK_SECRET'),
+        'price_monthly'   => env('STRIPE_PRICE_MONTHLY'),
+        'price_yearly'    => env('STRIPE_PRICE_YEARLY'),
+    ],
+
     'factpulse' => [
         'api_url' => env('FACTPULSE_API_URL', 'https://api.factpulse.fr/v1'),
         'email' => env('FACTPULSE_EMAIL', ''),
