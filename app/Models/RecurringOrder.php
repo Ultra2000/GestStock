@@ -16,21 +16,32 @@ class RecurringOrder extends Model
         'customer_id',
         'user_id',
         'name',
+        'reference',
         'frequency',
         'start_date',
         'end_date',
         'next_order_date',
+        'next_execution',
         'status',
+        'auto_generate',
+        'auto_send_invoice',
+        'max_executions',
+        'executions_count',
         'total',
+        'total_amount',
         'orders_generated',
         'notes',
     ];
 
     protected $casts = [
-        'start_date' => 'date',
-        'end_date' => 'date',
-        'next_order_date' => 'date',
-        'total' => 'decimal:2',
+        'start_date'        => 'date',
+        'end_date'          => 'date',
+        'next_order_date'   => 'date',
+        'next_execution'    => 'datetime',
+        'auto_generate'     => 'boolean',
+        'auto_send_invoice' => 'boolean',
+        'total'             => 'decimal:2',
+        'total_amount'      => 'decimal:2',
     ];
 
     public function customer(): BelongsTo
