@@ -3,6 +3,7 @@
 namespace App\Filament\Pages\Tenancy;
 
 use App\Models\AccountingSetting;
+use App\Models\AppSetting;
 use App\Models\Company;
 use App\Models\Warehouse;
 use Database\Seeders\RolesAndPermissionsSeeder;
@@ -167,9 +168,10 @@ class RegisterCompany extends RegisterTenant
         // Générer un slug unique
         $data['slug'] = $this->generateUniqueSlug($data['name']);
 
+        $trialDays = AppSetting::get('trial_days', 180);
         $data['subscription_status'] = 'trial';
         $data['subscription_plan']   = 'trial';
-        $data['trial_ends_at']       = now()->addMonths(6);
+        $data['trial_ends_at']       = now()->addDays($trialDays);
 
         $company = Company::create($data);
 
