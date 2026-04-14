@@ -158,7 +158,7 @@ class AdminPanelProvider extends PanelProvider
                         <div class='{$color} text-white text-center text-sm py-2 px-4 font-medium'>
                             {$msg}
                             &nbsp;·&nbsp;
-                            <a href='mailto:contact@frecorp.fr?subject=Abonnement - {$company->name}' class='underline font-bold'>S'abonner maintenant (19€/mois)</a>
+                            <a href='mailto:contact@frecorp.fr?subject=Abonnement - {$company->name}' class='underline font-bold'>S'abonner maintenant (30€/mois)</a>
                         </div>
                     ");
                 }

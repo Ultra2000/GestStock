@@ -28,7 +28,7 @@
                     <div>
                         <span class="text-xs font-bold uppercase tracking-widest text-indigo-500">Plan Standard</span>
                         <div class="text-3xl font-bold text-gray-900 dark:text-white mt-1">
-                            19€<span class="text-base font-normal text-gray-400">/mois</span>
+                            30€<span class="text-base font-normal text-gray-400">/mois</span>
                         </div>
                     </div>
                     <span class="bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 text-xs font-bold px-3 py-1 rounded-full">
