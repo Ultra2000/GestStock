@@ -41,7 +41,6 @@ class FactPulseSettings extends Page implements Forms\Contracts\HasForms
     {
         $this->form->fill([
             'configured' => app(FactPulseService::class)->isConfigured(),
-            'api_url'    => config('services.factpulse.api_url'),
         ]);
     }
 
@@ -49,86 +48,121 @@ class FactPulseSettings extends Page implements Forms\Contracts\HasForms
     {
         $configured = app(FactPulseService::class)->isConfigured();
 
+        $statusHtml = $configured
+            ? '<div class="flex items-center gap-3 p-4 bg-emerald-50 dark:bg-emerald-900/20 rounded-xl border border-emerald-200 dark:border-emerald-800">
+                   <div class="w-10 h-10 rounded-full bg-emerald-100 dark:bg-emerald-800 flex items-center justify-center flex-shrink-0">
+                       <svg class="w-5 h-5 text-emerald-600 dark:text-emerald-300" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+                   </div>
+                   <div>
+                       <p class="font-semibold text-emerald-700 dark:text-emerald-300">Facturation électronique activée</p>
+                       <p class="text-sm text-emerald-600 dark:text-emerald-400 mt-0.5">Vos factures sont prêtes à être envoyées automatiquement à vos clients.</p>
+                   </div>
+               </div>'
+            : '<div class="flex items-center gap-3 p-4 bg-amber-50 dark:bg-amber-900/20 rounded-xl border border-amber-200 dark:border-amber-800">
+                   <div class="w-10 h-10 rounded-full bg-amber-100 dark:bg-amber-800 flex items-center justify-center flex-shrink-0">
+                       <svg class="w-5 h-5 text-amber-600 dark:text-amber-300" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
+                   </div>
+                   <div>
+                       <p class="font-semibold text-amber-700 dark:text-amber-300">Activation en cours de préparation</p>
+                       <p class="text-sm text-amber-600 dark:text-amber-400 mt-0.5">La facturation électronique sera disponible prochainement sur votre compte. Aucune action n\'est requise de votre part.</p>
+                   </div>
+               </div>';
+
         return $form
             ->schema([
-                Forms\Components\Section::make('État de la configuration')
+                Forms\Components\Section::make('État du service')
                     ->schema([
                         Forms\Components\Placeholder::make('status')
                             ->label('')
-                            ->content(new HtmlString(
-                                $configured
-                                    ? '<div class="flex items-center gap-2 text-sm font-medium text-emerald-600 dark:text-emerald-400">
-                                           <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
-                                           FactPulse est configuré et prêt à l\'emploi.
-                                       </div>'
-                                    : '<div class="flex items-center gap-2 text-sm font-medium text-amber-600 dark:text-amber-400">
-                                           <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
-                                           FactPulse n\'est pas encore configuré. Ajoutez les variables ci-dessous dans votre fichier <code class="bg-gray-100 dark:bg-gray-800 px-1 rounded">.env</code>.
-                                       </div>'
-                            )),
+                            ->content(new HtmlString($statusHtml)),
                     ]),
 
-                Forms\Components\Section::make('Variables .env à configurer sur le serveur')
-                    ->description('Ces valeurs sont fournies par FactPulse lors de votre inscription.')
-                    ->schema([
-                        Forms\Components\Placeholder::make('env_block')
-                            ->label('')
-                            ->content(new HtmlString('
-                                <pre class="text-xs bg-gray-900 text-green-400 p-4 rounded-lg overflow-x-auto leading-relaxed">
-FACTPULSE_API_URL=https://api.factpulse.fr/v1
-FACTPULSE_EMAIL=votre@email.com
-FACTPULSE_PASSWORD=votre_mot_de_passe
-FACTPULSE_CLIENT_UID=votre_client_uid
-                                </pre>
-                                <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">
-                                    Après modification du .env, exécutez <code class="bg-gray-100 dark:bg-gray-800 px-1 rounded">php artisan config:clear</code> sur le serveur.
-                                </p>
-                            ')),
-                    ]),
-
-                Forms\Components\Section::make('Comment ça fonctionne ?')
+                Forms\Components\Section::make('Comment fonctionne l\'envoi à votre PDP ?')
+                    ->description('PDP = Plateforme de Dématérialisation Partenaire, le tiers de confiance qui achemine vos factures.')
                     ->schema([
                         Forms\Components\Placeholder::make('howto')
                             ->label('')
                             ->content(new HtmlString('
-                                <div class="space-y-3 text-sm">
-                                    <div class="flex gap-3">
-                                        <span class="flex-shrink-0 w-6 h-6 bg-indigo-100 dark:bg-indigo-900 text-indigo-600 dark:text-indigo-300 rounded-full flex items-center justify-center text-xs font-bold">1</span>
-                                        <span>Sur une facture <strong>Terminée</strong>, cliquez sur <strong>"Dématérialiser (FactPulse)"</strong></span>
+                                <div class="space-y-4 text-sm">
+
+                                    <p class="text-gray-600 dark:text-gray-400">
+                                        Depuis le 1er janvier 2026, la loi impose l\'envoi des factures entre entreprises
+                                        par voie électronique via un réseau sécurisé certifié par l\'État.
+                                        FRECORP s\'en charge automatiquement pour vous, sans manipulation technique.
+                                    </p>
+
+                                    <div class="flex gap-4 items-start">
+                                        <span class="flex-shrink-0 w-8 h-8 bg-indigo-100 dark:bg-indigo-900 text-indigo-600 dark:text-indigo-300 rounded-full flex items-center justify-center text-sm font-bold">1</span>
+                                        <div>
+                                            <p class="font-semibold text-gray-800 dark:text-gray-200">Vous finalisez votre facture</p>
+                                            <p class="text-gray-500 dark:text-gray-400 mt-0.5">Créez et validez votre facture normalement dans FRECORP, comme vous le faites déjà.</p>
+                                        </div>
                                     </div>
-                                    <div class="flex gap-3">
-                                        <span class="flex-shrink-0 w-6 h-6 bg-indigo-100 dark:bg-indigo-900 text-indigo-600 dark:text-indigo-300 rounded-full flex items-center justify-center text-xs font-bold">2</span>
-                                        <span>FRECORP envoie les données à FactPulse (numéro, montants, SIRET émetteur + destinataire)</span>
+
+                                    <div class="flex gap-4 items-start">
+                                        <span class="flex-shrink-0 w-8 h-8 bg-indigo-100 dark:bg-indigo-900 text-indigo-600 dark:text-indigo-300 rounded-full flex items-center justify-center text-sm font-bold">2</span>
+                                        <div>
+                                            <p class="font-semibold text-gray-800 dark:text-gray-200">Vous cliquez sur « Envoyer »</p>
+                                            <p class="text-gray-500 dark:text-gray-400 mt-0.5">Un simple bouton sur la facture déclenche l\'envoi. FRECORP transmet automatiquement votre facture à notre PDP partenaire (FactPulse).</p>
+                                        </div>
                                     </div>
-                                    <div class="flex gap-3">
-                                        <span class="flex-shrink-0 w-6 h-6 bg-indigo-100 dark:bg-indigo-900 text-indigo-600 dark:text-indigo-300 rounded-full flex items-center justify-center text-xs font-bold">3</span>
-                                        <span>FactPulse génère le <strong>Factur-X</strong> et route automatiquement vers le <strong>PDP du destinataire</strong> via l\'annuaire officiel</span>
+
+                                    <div class="flex gap-4 items-start">
+                                        <span class="flex-shrink-0 w-8 h-8 bg-indigo-100 dark:bg-indigo-900 text-indigo-600 dark:text-indigo-300 rounded-full flex items-center justify-center text-sm font-bold">3</span>
+                                        <div>
+                                            <p class="font-semibold text-gray-800 dark:text-gray-200">FactPulse achemine la facture</p>
+                                            <p class="text-gray-500 dark:text-gray-400 mt-0.5">FactPulse consulte l\'annuaire officiel de l\'État pour identifier le PDP utilisé par votre client, puis lui transmet la facture dans le bon format légal.</p>
+                                        </div>
                                     </div>
-                                    <div class="flex gap-3">
-                                        <span class="flex-shrink-0 w-6 h-6 bg-indigo-100 dark:bg-indigo-900 text-indigo-600 dark:text-indigo-300 rounded-full flex items-center justify-center text-xs font-bold">4</span>
-                                        <span>Le statut (<em>soumise → transmise</em>) est affiché dans la liste des factures</span>
+
+                                    <div class="flex gap-4 items-start">
+                                        <span class="flex-shrink-0 w-8 h-8 bg-indigo-100 dark:bg-indigo-900 text-indigo-600 dark:text-indigo-300 rounded-full flex items-center justify-center text-sm font-bold">4</span>
+                                        <div>
+                                            <p class="font-semibold text-gray-800 dark:text-gray-200">Vous suivez l\'état en temps réel</p>
+                                            <p class="text-gray-500 dark:text-gray-400 mt-0.5">Le statut de chaque facture est mis à jour automatiquement : <em>Envoyée → Reçue → Acceptée</em>. Vous savez toujours où en est votre facture.</p>
+                                        </div>
                                     </div>
-                                    <div class="mt-3 p-3 bg-amber-50 dark:bg-amber-900/20 rounded-lg border border-amber-200 dark:border-amber-800 text-amber-700 dark:text-amber-300">
-                                        <strong>Prérequis :</strong> le client destinataire doit avoir un <strong>SIRET</strong> renseigné dans sa fiche.
+
+                                    <div class="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl border border-blue-200 dark:border-blue-800 mt-2">
+                                        <p class="text-sm text-blue-700 dark:text-blue-300">
+                                            <strong>Seul prérequis :</strong> votre client doit avoir son numéro <strong>SIRET</strong> renseigné dans sa fiche. C\'est ce numéro qui permet d\'identifier son PDP dans l\'annuaire.
+                                        </p>
+                                    </div>
+
+                                </div>
+                            ')),
+                    ]),
+
+                Forms\Components\Section::make('Questions fréquentes')
+                    ->collapsible()
+                    ->collapsed(true)
+                    ->schema([
+                        Forms\Components\Placeholder::make('faq')
+                            ->label('')
+                            ->content(new HtmlString('
+                                <div class="space-y-4 text-sm text-gray-600 dark:text-gray-400">
+                                    <div>
+                                        <p class="font-semibold text-gray-800 dark:text-gray-200">Dois-je faire quelque chose pour activer ça ?</p>
+                                        <p class="mt-1">Non, c\'est FRECORP qui gère tout. Dès que le service est actif, le bouton d\'envoi apparaît sur vos factures.</p>
+                                    </div>
+                                    <div>
+                                        <p class="font-semibold text-gray-800 dark:text-gray-200">Mes factures aux particuliers sont-elles concernées ?</p>
+                                        <p class="mt-1">Non. La facturation électronique obligatoire ne concerne que les transactions entre entreprises (B2B). Vos factures aux particuliers ne changent pas.</p>
+                                    </div>
+                                    <div>
+                                        <p class="font-semibold text-gray-800 dark:text-gray-200">Que se passe-t-il si mon client n\'est pas encore inscrit à un PDP ?</p>
+                                        <p class="mt-1">L\'État a prévu une période de transition. FactPulse gère automatiquement les cas particuliers. Vous serez notifié si une facture ne peut pas être transmise.</p>
                                     </div>
                                 </div>
                             ')),
-                    ])
-                    ->collapsible()
-                    ->collapsed(false),
+                    ]),
             ])
             ->statePath('data');
     }
 
     protected function getHeaderActions(): array
     {
-        return [
-            Action::make('test')
-                ->label('Tester la connexion')
-                ->icon('heroicon-o-signal')
-                ->color('gray')
-                ->action('testConnection'),
-        ];
+        return [];
     }
 
     public function testConnection(): void
