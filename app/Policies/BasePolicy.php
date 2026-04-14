@@ -69,10 +69,30 @@ abstract class BasePolicy
     }
 
     /**
+     * Vérifie que le modèle appartient bien au tenant courant.
+     * Protège contre les accès cross-tenant.
+     */
+    protected function belongsToCurrentTenant($model): bool
+    {
+        if (!property_exists($model, 'company_id') && !isset($model->company_id)) {
+            return true; // Pas de notion de tenant sur ce modèle
+        }
+        try {
+            $tenant = Filament::getTenant();
+            return $tenant && (int) $model->company_id === (int) $tenant->id;
+        } catch (\Exception $e) {
+            return true; // Hors contexte Filament (console, etc.)
+        }
+    }
+
+    /**
      * Determine whether the user can view the model.
      */
     public function view(User $user, $model): bool
     {
+        if (!$this->belongsToCurrentTenant($model)) {
+            return false;
+        }
         return $user->hasPermission("{$this->module}.view") || $user->hasPermission("{$this->module}.manage");
     }
 
@@ -89,6 +109,9 @@ abstract class BasePolicy
      */
     public function update(User $user, $model): bool
     {
+        if (!$this->belongsToCurrentTenant($model)) {
+            return false;
+        }
         return $user->hasPermission("{$this->module}.update")
             || $user->hasPermission("{$this->module}.edit")
             || $user->hasPermission("{$this->module}.manage");
@@ -99,6 +122,9 @@ abstract class BasePolicy
      */
     public function delete(User $user, $model): bool
     {
+        if (!$this->belongsToCurrentTenant($model)) {
+            return false;
+        }
         return $user->hasPermission("{$this->module}.delete") || $user->hasPermission("{$this->module}.manage");
     }
 

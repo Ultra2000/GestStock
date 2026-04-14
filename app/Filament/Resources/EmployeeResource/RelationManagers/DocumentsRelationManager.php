@@ -39,7 +39,9 @@ class DocumentsRelationManager extends RelationManager
                 Forms\Components\FileUpload::make('file_path')
                     ->label('Fichier')
                     ->required()
+                    ->disk('local')
                     ->directory('employee-documents')
+                    ->visibility('private')
                     ->acceptedFileTypes(['application/pdf', 'image/*'])
                     ->maxSize(5120),
                 Forms\Components\DatePicker::make('expiry_date')
@@ -95,7 +97,7 @@ class DocumentsRelationManager extends RelationManager
                 Tables\Actions\Action::make('download')
                     ->label('Télécharger')
                     ->icon('heroicon-o-arrow-down-tray')
-                    ->url(fn ($record) => asset('storage/' . $record->file_path))
+                    ->url(fn ($record) => route('employee.document.download', $record->id))
                     ->openUrlInNewTab(),
                 Tables\Actions\EditAction::make(),
                 Tables\Actions\DeleteAction::make(),

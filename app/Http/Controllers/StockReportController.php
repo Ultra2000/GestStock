@@ -24,6 +24,12 @@ class StockReportController extends Controller
             abort(400, 'Company ID required');
         }
 
+        // Vérifier que l'utilisateur appartient bien à cette entreprise
+        $authUser = auth()->user();
+        if (!$authUser->is_super_admin && !$authUser->companies()->where('companies.id', $companyId)->exists()) {
+            abort(403, 'Accès refusé');
+        }
+
         $company = Company::findOrFail($companyId);
         
         // Filtres optionnels
@@ -92,6 +98,12 @@ class StockReportController extends Controller
             abort(400, 'Company ID required');
         }
 
+        // Vérifier que l'utilisateur appartient bien à cette entreprise
+        $authUser = auth()->user();
+        if (!$authUser->is_super_admin && !$authUser->companies()->where('companies.id', $companyId)->exists()) {
+            abort(403, 'Accès refusé');
+        }
+
         $company = Company::findOrFail($companyId);
         
         $warehouseId = $request->query('warehouse_id');
@@ -149,6 +161,12 @@ class StockReportController extends Controller
         
         if (!$companyId) {
             abort(400, 'Company ID required');
+        }
+
+        // Vérifier que l'utilisateur appartient bien à cette entreprise
+        $authUser = auth()->user();
+        if (!$authUser->is_super_admin && !$authUser->companies()->where('companies.id', $companyId)->exists()) {
+            abort(403, 'Accès refusé');
         }
 
         $company = Company::findOrFail($companyId);

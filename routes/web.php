@@ -96,6 +96,28 @@ Route::middleware('auth')->prefix('api/pos')->group(function () {
 
 require __DIR__.'/auth.php';
 
+// Téléchargement sécurisé des documents employés (stockage privé)
+Route::get('/employee-documents/{id}/download', function (int $id) {
+    $document = \App\Models\EmployeeDocument::findOrFail($id);
+
+    // Vérifier que l'utilisateur appartient à la même entreprise que l'employé
+    $user = auth()->user();
+    $employee = $document->employee;
+    $hasAccess = $user->is_super_admin
+        || $user->companies()->where('companies.id', $employee->company_id)->exists();
+
+    if (!$hasAccess) {
+        abort(403);
+    }
+
+    $path = storage_path('app/' . $document->file_path);
+    if (!file_exists($path)) {
+        abort(404, 'Fichier introuvable');
+    }
+
+    return response()->download($path, $document->name . '.' . pathinfo($path, PATHINFO_EXTENSION));
+})->middleware('auth')->name('employee.document.download');
+
 // Route de test pour débugger l'accès admin
 Route::get('/test-admin', function () {
     $user = auth()->user();

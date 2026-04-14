@@ -33,6 +33,14 @@ class Company extends Model
         'currency',
         'country_code',
         'is_active',
+    ];
+
+    /**
+     * Champs réservés à la gestion interne de l'abonnement.
+     * Non exposés dans $fillable pour éviter le mass assignment.
+     * Utiliser startTrial(), activateSubscription() pour les modifier.
+     */
+    protected array $subscriptionFields = [
         'subscription_status',
         'subscription_plan',
         'trial_ends_at',
@@ -82,13 +90,27 @@ class Company extends Model
         return (int) now()->diffInDays($this->trial_ends_at, false);
     }
 
-    public function startTrial(int $months = 6): void
+    public function startTrial(int $days = 180): void
     {
-        $this->update([
+        $this->forceFill([
             'subscription_status' => 'trial',
             'subscription_plan'   => 'trial',
-            'trial_ends_at'       => now()->addMonths($months),
-        ]);
+            'trial_ends_at'       => now()->addDays($days),
+        ])->save();
+    }
+
+    public function activateSubscription(string $plan = 'standard', ?\Carbon\Carbon $endsAt = null): void
+    {
+        $this->forceFill([
+            'subscription_status'  => 'active',
+            'subscription_plan'    => $plan,
+            'subscription_ends_at' => $endsAt,
+        ])->save();
+    }
+
+    public function expireSubscription(): void
+    {
+        $this->forceFill(['subscription_status' => 'expired'])->save();
     }
 
     protected static function boot()

@@ -168,12 +168,11 @@ class RegisterCompany extends RegisterTenant
         // Générer un slug unique
         $data['slug'] = $this->generateUniqueSlug($data['name']);
 
-        $trialDays = AppSetting::get('trial_days', 180);
-        $data['subscription_status'] = 'trial';
-        $data['subscription_plan']   = 'trial';
-        $data['trial_ends_at']       = now()->addDays($trialDays);
-
         $company = Company::create($data);
+
+        // Démarrer le trial via la méthode dédiée (pas via mass assignment)
+        $trialDays = AppSetting::get('trial_days', 180);
+        $company->startTrial($trialDays);
 
         // Créer les rôles par défaut via la source unique de vérité
         $seeder = new RolesAndPermissionsSeeder();
