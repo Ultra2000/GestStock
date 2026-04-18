@@ -25,29 +25,14 @@ class GeminiExtractor implements AiExtractorInterface
     {
         $prompt = $this->buildPrompt($text);
 
-        $response = Http::withHeaders([
-            'Content-Type' => 'application/json',
-        ])->timeout(60)->post(
-            "https://generativelanguage.googleapis.com/v1beta/models/{$this->model}:generateContent?key={$this->apiKey}",
-            [
-                'contents' => [
-                    [
-                        'parts' => [
-                            ['text' => $prompt],
-                        ],
-                    ],
-                ],
-                'generationConfig' => [
-                    'responseMimeType' => 'application/json',
-                    'temperature' => 0.1,
-                ],
-            ]
-        );
+        $payload = [
+            'contents' => [[
+                'parts' => [['text' => $prompt]],
+            ]],
+            'generationConfig' => ['responseMimeType' => 'application/json', 'temperature' => 0.1],
+        ];
 
-        if (!$response->successful()) {
-            Log::error('Gemini API error', ['status' => $response->status(), 'hint' => substr($response->body(), 0, 200)]);
-            throw new \Exception('Erreur Gemini API: ' . ($response->json('error.message') ?? $response->body()));
-        }
+        $response = $this->callWithRetry($payload, 'Gemini API error');
 
         $content = $response->json('candidates.0.content.parts.0.text');
 
@@ -74,35 +59,17 @@ class GeminiExtractor implements AiExtractorInterface
     {
         $prompt = $this->buildPrompt('');
 
-        $response = Http::withHeaders([
-            'Content-Type' => 'application/json',
-        ])->timeout(60)->post(
-            "https://generativelanguage.googleapis.com/v1beta/models/{$this->model}:generateContent?key={$this->apiKey}",
-            [
-                'contents' => [
-                    [
-                        'parts' => [
-                            [
-                                'inlineData' => [
-                                    'mimeType' => $mimeType,
-                                    'data' => $base64Image,
-                                ],
-                            ],
-                            ['text' => $prompt],
-                        ],
-                    ],
+        $payload = [
+            'contents' => [[
+                'parts' => [
+                    ['inlineData' => ['mimeType' => $mimeType, 'data' => $base64Image]],
+                    ['text' => $prompt],
                 ],
-                'generationConfig' => [
-                    'responseMimeType' => 'application/json',
-                    'temperature' => 0.1,
-                ],
-            ]
-        );
+            ]],
+            'generationConfig' => ['responseMimeType' => 'application/json', 'temperature' => 0.1],
+        ];
 
-        if (!$response->successful()) {
-            Log::error('Gemini Vision API error', ['status' => $response->status(), 'hint' => substr($response->body(), 0, 200)]);
-            throw new \Exception('Erreur Gemini Vision: ' . ($response->json('error.message') ?? $response->body()));
-        }
+        $response = $this->callWithRetry($payload, 'Gemini Vision API error');
 
         $content = $response->json('candidates.0.content.parts.0.text');
 
@@ -122,6 +89,35 @@ class GeminiExtractor implements AiExtractorInterface
         }
 
         return $this->normalizeData($data);
+    }
+
+    private function callWithRetry(array $payload, string $logContext): \Illuminate\Http\Client\Response
+    {
+        $url = "https://generativelanguage.googleapis.com/v1beta/models/{$this->model}:generateContent?key={$this->apiKey}";
+        $attempts = 3;
+
+        for ($i = 1; $i <= $attempts; $i++) {
+            $response = Http::withHeaders(['Content-Type' => 'application/json'])
+                ->timeout(60)
+                ->post($url, $payload);
+
+            if ($response->successful()) {
+                return $response;
+            }
+
+            $status = $response->status();
+
+            // Retry uniquement sur surcharge temporaire
+            if (in_array($status, [429, 503]) && $i < $attempts) {
+                sleep(2 * $i);
+                continue;
+            }
+
+            Log::error($logContext, ['status' => $status, 'hint' => substr($response->body(), 0, 200)]);
+            throw new \Exception('Erreur Gemini API: ' . ($response->json('error.message') ?? $response->body()));
+        }
+
+        throw new \Exception('Gemini API indisponible après ' . $attempts . ' tentatives');
     }
 
     protected function buildPrompt(string $text): string
