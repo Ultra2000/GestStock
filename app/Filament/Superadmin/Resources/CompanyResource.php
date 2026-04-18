@@ -79,18 +79,19 @@ class CompanyResource extends Resource
                 Tables\Columns\TextColumn::make('subscription_status')
                     ->label('Abonnement')
                     ->badge()
-                    ->color(fn (string $value): string => match ($value) {
+                    ->color(fn (?string $value): string => match ($value) {
                         'active'   => 'success',
                         'trial'    => 'info',
                         'past_due' => 'warning',
                         'expired'  => 'danger',
                         default    => 'gray',
                     })
-                    ->formatStateUsing(fn (string $value): string => match ($value) {
+                    ->formatStateUsing(fn (?string $value): string => match ($value) {
                         'active'   => 'Actif',
                         'trial'    => 'Évaluation',
                         'past_due' => 'Paiement échoué',
                         'expired'  => 'Expiré',
+                        null       => 'Aucun',
                         default    => $value,
                     }),
                 Tables\Columns\TextColumn::make('trial_ends_at')
