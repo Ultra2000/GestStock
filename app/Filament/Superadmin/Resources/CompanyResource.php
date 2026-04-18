@@ -7,6 +7,7 @@ use App\Filament\Superadmin\Resources\CompanyResource\RelationManagers;
 use App\Models\Company;
 use Filament\Forms;
 use Filament\Forms\Form;
+use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
@@ -75,8 +76,28 @@ class CompanyResource extends Resource
                     ->searchable(),
                 Tables\Columns\TextColumn::make('email')
                     ->searchable(),
-                Tables\Columns\TextColumn::make('currency')
-                    ->searchable(),
+                Tables\Columns\TextColumn::make('subscription_status')
+                    ->label('Abonnement')
+                    ->badge()
+                    ->color(fn (string $value): string => match ($value) {
+                        'active'   => 'success',
+                        'trial'    => 'info',
+                        'past_due' => 'warning',
+                        'expired'  => 'danger',
+                        default    => 'gray',
+                    })
+                    ->formatStateUsing(fn (string $value): string => match ($value) {
+                        'active'   => 'Actif',
+                        'trial'    => 'Évaluation',
+                        'past_due' => 'Paiement échoué',
+                        'expired'  => 'Expiré',
+                        default    => $value,
+                    }),
+                Tables\Columns\TextColumn::make('trial_ends_at')
+                    ->label('Fin d\'évaluation')
+                    ->dateTime('d/m/Y')
+                    ->sortable()
+                    ->placeholder('—'),
                 Tables\Columns\IconColumn::make('is_active')
                     ->boolean()
                     ->label('Actif'),
@@ -90,6 +111,58 @@ class CompanyResource extends Resource
                     ->query(fn (Builder $query): Builder => $query->where('is_active', true)),
             ])
             ->actions([
+                Tables\Actions\Action::make('extend_trial')
+                    ->label('Prolonger')
+                    ->icon('heroicon-o-calendar-days')
+                    ->color('info')
+                    ->visible(fn (Company $record) => in_array($record->subscription_status, ['trial', 'expired']))
+                    ->form([
+                        Forms\Components\TextInput::make('days')
+                            ->label('Nombre de jours à ajouter')
+                            ->numeric()
+                            ->minValue(1)
+                            ->maxValue(365)
+                            ->default(30)
+                            ->required()
+                            ->suffix('jours'),
+                    ])
+                    ->action(function (Company $record, array $data): void {
+                        $base = ($record->trial_ends_at && $record->trial_ends_at->isFuture())
+                            ? $record->trial_ends_at
+                            : now();
+
+                        $record->forceFill([
+                            'subscription_status' => 'trial',
+                            'subscription_plan'   => 'trial',
+                            'trial_ends_at'       => $base->addDays((int) $data['days']),
+                        ])->save();
+
+                        Notification::make()
+                            ->title('Évaluation prolongée de ' . $data['days'] . ' jours')
+                            ->success()
+                            ->send();
+                    }),
+
+                Tables\Actions\Action::make('end_trial')
+                    ->label('Terminer l\'éval.')
+                    ->icon('heroicon-o-x-circle')
+                    ->color('danger')
+                    ->visible(fn (Company $record) => $record->subscription_status === 'trial')
+                    ->requiresConfirmation()
+                    ->modalHeading('Terminer la période d\'évaluation')
+                    ->modalDescription(fn (Company $record) => "L'accès de {$record->name} sera bloqué immédiatement et ils devront souscrire un abonnement.")
+                    ->modalSubmitActionLabel('Oui, terminer maintenant')
+                    ->action(function (Company $record): void {
+                        $record->forceFill([
+                            'trial_ends_at' => now()->subSecond(),
+                        ])->save();
+
+                        Notification::make()
+                            ->title('Période d\'évaluation terminée')
+                            ->warning()
+                            ->send();
+                    }),
+
                 Tables\Actions\Action::make('login_as')
                     ->label('Gérer')
                     ->icon('heroicon-o-arrow-right-end-on-rectangle')
