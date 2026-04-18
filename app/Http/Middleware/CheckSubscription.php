@@ -19,6 +19,10 @@ class CheckSubscription
 
         // Si l'accès est actif (trial en cours ou abonnement payant), on laisse passer
         if ($company->hasActiveAccess()) {
+            // Avertissement paiement en échec (past_due) — accès maintenu mais bannière
+            if ($company->isPaymentFailing()) {
+                session()->flash('payment_warning', true);
+            }
             return $next($request);
         }
 

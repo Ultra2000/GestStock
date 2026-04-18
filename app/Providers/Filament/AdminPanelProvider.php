@@ -164,6 +164,22 @@ class AdminPanelProvider extends PanelProvider
                 }
             )
             ->renderHook(
+                PanelsRenderHook::BODY_START,
+                function () {
+                    $company = \Filament\Facades\Filament::getTenant();
+                    if (!$company || !$company->isPaymentFailing()) {
+                        return '';
+                    }
+                    return new \Illuminate\Support\HtmlString("
+                        <div class='bg-red-600 text-white text-center text-sm py-2 px-4 font-medium'>
+                            <strong>Échec de paiement</strong> — Votre abonnement n'a pas pu être renouvelé.
+                            &nbsp;·&nbsp;
+                            <a href='https://billing.stripe.com' target='_blank' class='underline font-bold'>Mettre à jour mon moyen de paiement</a>
+                        </div>
+                    ");
+                }
+            )
+            ->renderHook(
                 PanelsRenderHook::HEAD_END,
                 fn () => new HtmlString('<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">')
             )

@@ -136,9 +136,14 @@ class StripeController extends Controller
             ])->save();
 
             Log::info("Stripe: abonnement activé pour company {$company->id}");
-        } elseif (in_array($status, ['past_due', 'unpaid'])) {
+        } elseif ($status === 'past_due') {
+            // Accès maintenu, bannière affichée — Stripe réessaie automatiquement
             $company->forceFill(['subscription_status' => 'past_due'])->save();
             Log::warning("Stripe: paiement en retard pour company {$company->id}");
+        } elseif ($status === 'unpaid') {
+            // Tous les essais Stripe épuisés → blocage
+            $company->expireSubscription();
+            Log::warning("Stripe: paiement impayé (accès bloqué) pour company {$company->id}");
         }
     }
 

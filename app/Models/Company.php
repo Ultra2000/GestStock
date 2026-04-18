@@ -72,7 +72,12 @@ class Company extends Model
 
     public function hasActiveAccess(): bool
     {
-        return $this->isOnTrial() || $this->isSubscriptionActive();
+        return $this->isOnTrial() || $this->isSubscriptionActive() || $this->subscription_status === 'past_due';
+    }
+
+    public function isPaymentFailing(): bool
+    {
+        return $this->subscription_status === 'past_due';
     }
 
     public function isTrialExpired(): bool
