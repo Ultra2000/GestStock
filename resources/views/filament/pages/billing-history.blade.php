@@ -1,7 +1,31 @@
 <x-filament-panels::page>
-    @php $invoices = $this->getInvoices(); @endphp
+    @php
+        $invoices      = $this->getInvoices();
+        $failedInvoice = $this->getFailedInvoice();
+    @endphp
 
     <div class="space-y-4">
+
+        {{-- Bannière échec de paiement --}}
+        @if ($failedInvoice)
+            <div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-700 rounded-2xl p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                <div class="flex items-start gap-3">
+                    <x-heroicon-o-exclamation-triangle class="w-6 h-6 text-red-500 flex-shrink-0 mt-0.5" />
+                    <div>
+                        <p class="font-semibold text-red-700 dark:text-red-400">Échec de paiement — Facture {{ $failedInvoice['number'] }}</p>
+                        <p class="text-sm text-red-600 dark:text-red-500 mt-0.5">
+                            Le prélèvement de <strong>{{ $failedInvoice['amount'] }}</strong> n'a pas pu être effectué.
+                            Cliquez sur le bouton pour régler cette facture et maintenir votre accès.
+                        </p>
+                    </div>
+                </div>
+                <a href="{{ $failedInvoice['hosted_url'] }}" target="_blank"
+                   class="flex-shrink-0 inline-flex items-center gap-2 bg-red-600 hover:bg-red-500 text-white font-bold px-5 py-2.5 rounded-xl transition text-sm">
+                    <x-heroicon-o-arrow-path class="w-4 h-4" />
+                    Relancer le paiement
+                </a>
+            </div>
+        @endif
 
         @if (empty($invoices))
             <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-10 text-center">

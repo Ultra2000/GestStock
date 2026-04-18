@@ -38,7 +38,7 @@ class BillingHistory extends Page
                 'period'      => $inv->period_start && $inv->period_end
                     ? date('d/m/Y', $inv->period_start) . ' → ' . date('d/m/Y', $inv->period_end)
                     : '—',
-                'amount'      => number_format($inv->amount_paid / 100, 2, ',', ' ') . ' €',
+                'amount'      => number_format(($inv->amount_due ?: $inv->amount_paid) / 100, 2, ',', ' ') . ' €',
                 'status'      => $inv->status,
                 'pdf_url'     => $inv->invoice_pdf,
                 'hosted_url'  => $inv->hosted_invoice_url,
@@ -47,5 +47,21 @@ class BillingHistory extends Page
         } catch (\Exception $e) {
             return [];
         }
+    }
+
+    /**
+     * Retourne la facture en échec (open) la plus récente, ou null.
+     */
+    public function getFailedInvoice(): ?array
+    {
+        $invoices = $this->getInvoices();
+
+        foreach ($invoices as $invoice) {
+            if ($invoice['status'] === 'open' && $invoice['hosted_url']) {
+                return $invoice;
+            }
+        }
+
+        return null;
     }
 }
