@@ -135,11 +135,25 @@ class CompanyResource extends Resource
                             ? $record->trial_ends_at
                             : now();
 
+                        $oldEndsAt = $record->trial_ends_at?->toDateString();
+                        $newEndsAt = $base->addDays((int) $data['days']);
+
                         $record->forceFill([
                             'subscription_status' => 'trial',
                             'subscription_plan'   => 'trial',
-                            'trial_ends_at'       => $base->addDays((int) $data['days']),
+                            'trial_ends_at'       => $newEndsAt,
                         ])->save();
+
+                        \App\Models\AuditLog::withoutGlobalScopes()->create([
+                            'company_id'     => $record->id,
+                            'user_id'        => auth()->id(),
+                            'auditable_type' => Company::class,
+                            'auditable_id'   => $record->id,
+                            'event'          => 'trial_extended',
+                            'old_values'     => ['trial_ends_at' => $oldEndsAt],
+                            'new_values'     => ['trial_ends_at' => $newEndsAt->toDateString(), 'days_added' => $data['days']],
+                            'ip_address'     => request()->ip(),
+                        ]);
 
                         Notification::make()
                             ->title('Évaluation prolongée de ' . $data['days'] . ' jours')
@@ -157,9 +171,21 @@ class CompanyResource extends Resource
                     ->modalDescription(fn (Company $record) => "L'accès de {$record->name} sera bloqué immédiatement et ils devront souscrire un abonnement.")
                     ->modalSubmitActionLabel('Oui, terminer maintenant')
                     ->action(function (Company $record): void {
+                        $oldEndsAt = $record->trial_ends_at?->toDateString();
                         $record->forceFill([
                             'trial_ends_at' => now()->subSecond(),
                         ])->save();
+
+                        \App\Models\AuditLog::withoutGlobalScopes()->create([
+                            'company_id'     => $record->id,
+                            'user_id'        => auth()->id(),
+                            'auditable_type' => Company::class,
+                            'auditable_id'   => $record->id,
+                            'event'          => 'trial_ended_by_superadmin',
+                            'old_values'     => ['trial_ends_at' => $oldEndsAt, 'subscription_status' => 'trial'],
+                            'new_values'     => ['trial_ends_at' => now()->toDateString(), 'note' => 'Terminé manuellement par le superadmin'],
+                            'ip_address'     => request()->ip(),
+                        ]);
 
                         // Notifier les admins de l'entreprise
                         $admins = $record->users()->get()->filter(fn ($u) => $u->isAdminOf($record));

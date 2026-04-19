@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\AuditLog;
 use App\Models\Company;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -128,6 +129,7 @@ class StripeController extends Controller
                 ? \Carbon\Carbon::createFromTimestamp($subscription->current_period_end)
                 : null;
 
+            $old = $company->subscription_status;
             $company->forceFill([
                 'subscription_status'      => 'active',
                 'subscription_plan'        => 'standard',
@@ -135,13 +137,29 @@ class StripeController extends Controller
                 'subscription_ends_at'     => $endsAt,
             ])->save();
 
+            AuditLog::withoutGlobalScopes()->create([
+                'company_id'     => $company->id,
+                'auditable_type' => Company::class,
+                'auditable_id'   => $company->id,
+                'event'          => 'stripe_subscription_activated',
+                'old_values'     => ['subscription_status' => $old],
+                'new_values'     => ['subscription_status' => 'active', 'stripe_subscription_id' => $subscription->id, 'ends_at' => $endsAt?->toDateString()],
+            ]);
             Log::info("Stripe: abonnement activé pour company {$company->id}");
+
         } elseif ($status === 'past_due') {
-            // Accès maintenu, bannière affichée — Stripe réessaie automatiquement
             $company->forceFill(['subscription_status' => 'past_due'])->save();
+            AuditLog::withoutGlobalScopes()->create([
+                'company_id'     => $company->id,
+                'auditable_type' => Company::class,
+                'auditable_id'   => $company->id,
+                'event'          => 'stripe_payment_past_due',
+                'old_values'     => [],
+                'new_values'     => ['subscription_status' => 'past_due'],
+            ]);
             Log::warning("Stripe: paiement en retard pour company {$company->id}");
+
         } elseif ($status === 'unpaid') {
-            // Tous les essais Stripe épuisés → blocage
             $company->expireSubscription();
             Log::warning("Stripe: paiement impayé (accès bloqué) pour company {$company->id}");
         }
@@ -153,6 +171,14 @@ class StripeController extends Controller
         if (!$company) return;
 
         $company->expireSubscription();
+        AuditLog::withoutGlobalScopes()->create([
+            'company_id'     => $company->id,
+            'auditable_type' => Company::class,
+            'auditable_id'   => $company->id,
+            'event'          => 'stripe_subscription_cancelled',
+            'old_values'     => ['subscription_status' => 'active'],
+            'new_values'     => ['subscription_status' => 'expired'],
+        ]);
         Log::info("Stripe: abonnement annulé pour company {$company->id}");
     }
 

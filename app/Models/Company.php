@@ -97,25 +97,61 @@ class Company extends Model
 
     public function startTrial(int $days = 180): void
     {
+        $old = $this->subscription_status;
         $this->forceFill([
             'subscription_status' => 'trial',
             'subscription_plan'   => 'trial',
             'trial_ends_at'       => now()->addDays($days),
         ])->save();
+
+        AuditLog::withoutGlobalScopes()->create([
+            'company_id'      => $this->id,
+            'user_id'         => auth()->id(),
+            'auditable_type'  => self::class,
+            'auditable_id'    => $this->id,
+            'event'           => 'trial_started',
+            'old_values'      => ['subscription_status' => $old],
+            'new_values'      => ['subscription_status' => 'trial', 'trial_ends_at' => $this->trial_ends_at->toDateString(), 'days' => $days],
+            'ip_address'      => request()->ip(),
+        ]);
     }
 
     public function activateSubscription(string $plan = 'standard', ?\Carbon\Carbon $endsAt = null): void
     {
+        $old = $this->subscription_status;
         $this->forceFill([
             'subscription_status'  => 'active',
             'subscription_plan'    => $plan,
             'subscription_ends_at' => $endsAt,
         ])->save();
+
+        AuditLog::withoutGlobalScopes()->create([
+            'company_id'      => $this->id,
+            'user_id'         => auth()->id(),
+            'auditable_type'  => self::class,
+            'auditable_id'    => $this->id,
+            'event'           => 'subscription_activated',
+            'old_values'      => ['subscription_status' => $old],
+            'new_values'      => ['subscription_status' => 'active', 'plan' => $plan, 'ends_at' => $endsAt?->toDateString()],
+            'ip_address'      => request()->ip(),
+        ]);
     }
 
     public function expireSubscription(): void
     {
+        $old = $this->subscription_status;
         $this->forceFill(['subscription_status' => 'expired'])->save();
+
+        AuditLog::withoutGlobalScopes()->create([
+            'company_id'      => $this->id,
+            'user_id'         => auth()->id(),
+            'auditable_type'  => self::class,
+            'auditable_id'    => $this->id,
+            'event'           => 'subscription_expired',
+            'old_values'      => ['subscription_status' => $old],
+            'new_values'      => ['subscription_status' => 'expired'],
+            'ip_address'      => request()->ip(),
+        ]);
     }
 
     protected static function boot()
