@@ -166,7 +166,7 @@ class CompanyResource extends Resource
                         foreach ($admins as $admin) {
                             Mail::to($admin->email)->queue(new TrialExpired($record));
 
-                            Notification::make()
+                            $notif = Notification::make()
                                 ->title('🔒 Période d\'évaluation terminée')
                                 ->body("L'accès de {$record->name} est suspendu. Souscrivez un abonnement pour retrouver l'accès.")
                                 ->danger()
@@ -175,8 +175,9 @@ class CompanyResource extends Resource
                                         ->label('Réactiver mon accès')
                                         ->url(url('/admin/' . $record->slug . '/subscription-expired'))
                                         ->button(),
-                                ])
-                                ->sendToDatabase($admin);
+                                ]);
+
+                            $admin->notifyNow(new \Filament\Notifications\DatabaseNotification($notif->getDatabaseMessage()));
                         }
 
                         Notification::make()

@@ -33,7 +33,7 @@ class SendTrialReminders extends Command
             foreach ($company->users->filter(fn ($u) => $u->isAdminOf($company)) as $admin) {
                 Mail::to($admin->email)->queue(new TrialExpiringSoon($company, $days));
 
-                Notification::make()
+                $notif = Notification::make()
                     ->title("⏰ Plus que {$days} jour" . ($days > 1 ? 's' : '') . " d'évaluation")
                     ->body("La période d'essai de {$company->name} se termine dans {$days} jour" . ($days > 1 ? 's' : '') . ". Choisissez votre plan pour continuer.")
                     ->warning()
@@ -42,8 +42,8 @@ class SendTrialReminders extends Command
                             ->label("S'abonner")
                             ->url(url('/admin/' . $company->slug . '/subscription-expired'))
                             ->button(),
-                    ])
-                    ->sendToDatabase($admin);
+                    ]);
+                $admin->notifyNow(new \Filament\Notifications\DatabaseNotification($notif->getDatabaseMessage()));
             }
             $this->line("Rappel {$days}j envoyé : {$company->name} ({$company->users->count()} admin(s))");
         }
@@ -60,7 +60,7 @@ class SendTrialReminders extends Command
             foreach ($company->users->filter(fn ($u) => $u->isAdminOf($company)) as $admin) {
                 Mail::to($admin->email)->queue(new TrialExpired($company));
 
-                Notification::make()
+                $notif = Notification::make()
                     ->title('🔒 Période d\'évaluation terminée')
                     ->body("L'accès de {$company->name} est suspendu. Souscrivez un abonnement pour retrouver l'accès à vos données.")
                     ->danger()
@@ -69,8 +69,8 @@ class SendTrialReminders extends Command
                             ->label('Réactiver mon accès')
                             ->url(url('/admin/' . $company->slug . '/subscription-expired'))
                             ->button(),
-                    ])
-                    ->sendToDatabase($admin);
+                    ]);
+                $admin->notifyNow(new \Filament\Notifications\DatabaseNotification($notif->getDatabaseMessage()));
             }
             $this->line("Expiration notifiée : {$company->name}");
         }
