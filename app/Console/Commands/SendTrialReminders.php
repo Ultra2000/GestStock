@@ -26,11 +26,11 @@ class SendTrialReminders extends Command
     {
         $companies = Company::where('subscription_status', 'trial')
             ->whereDate('trial_ends_at', now()->addDays($days)->toDateString())
-            ->with(['users' => fn ($q) => $q->where('users.role', 'admin')])
+            ->with('users')
             ->get();
 
         foreach ($companies as $company) {
-            foreach ($company->users as $admin) {
+            foreach ($company->users->filter(fn ($u) => $u->role === 'admin') as $admin) {
                 Mail::to($admin->email)->queue(new TrialExpiringSoon($company, $days));
 
                 Notification::make()
@@ -53,11 +53,11 @@ class SendTrialReminders extends Command
     {
         $companies = Company::where('subscription_status', 'trial')
             ->whereDate('trial_ends_at', now()->subDay()->toDateString())
-            ->with(['users' => fn ($q) => $q->where('users.role', 'admin')])
+            ->with('users')
             ->get();
 
         foreach ($companies as $company) {
-            foreach ($company->users as $admin) {
+            foreach ($company->users->filter(fn ($u) => $u->role === 'admin') as $admin) {
                 Mail::to($admin->email)->queue(new TrialExpired($company));
 
                 Notification::make()
