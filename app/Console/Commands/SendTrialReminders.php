@@ -24,28 +24,27 @@ class SendTrialReminders extends Command
     {
         $companies = Company::where('subscription_status', 'trial')
             ->whereDate('trial_ends_at', now()->addDays($days)->toDateString())
-            ->with('users')
+            ->with(['users' => fn ($q) => $q->where('role', 'admin')])
             ->get();
 
         foreach ($companies as $company) {
-            foreach ($company->users as $user) {
-                Mail::to($user->email)->queue(new TrialExpiringSoon($company, $days));
+            foreach ($company->users as $admin) {
+                Mail::to($admin->email)->queue(new TrialExpiringSoon($company, $days));
             }
-            $this->line("Rappel {$days}j envoyé : {$company->name} ({$company->users->count()} utilisateur(s))");
+            $this->line("Rappel {$days}j envoyé : {$company->name} ({$company->users->count()} admin(s))");
         }
     }
 
     private function sendExpiredNotifications(): void
     {
-        // Entreprises dont le trial vient d'expirer aujourd'hui (statut encore 'trial' mais date passée)
         $companies = Company::where('subscription_status', 'trial')
             ->whereDate('trial_ends_at', now()->subDay()->toDateString())
-            ->with('users')
+            ->with(['users' => fn ($q) => $q->where('role', 'admin')])
             ->get();
 
         foreach ($companies as $company) {
-            foreach ($company->users as $user) {
-                Mail::to($user->email)->queue(new TrialExpired($company));
+            foreach ($company->users as $admin) {
+                Mail::to($admin->email)->queue(new TrialExpired($company));
             }
             $this->line("Expiration notifiée : {$company->name}");
         }
