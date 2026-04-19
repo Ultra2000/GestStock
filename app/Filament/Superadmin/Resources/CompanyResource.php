@@ -4,11 +4,14 @@ namespace App\Filament\Superadmin\Resources;
 
 use App\Filament\Superadmin\Resources\CompanyResource\Pages;
 use App\Filament\Superadmin\Resources\CompanyResource\RelationManagers;
+use App\Mail\TrialExpired;
 use App\Models\Company;
 use Filament\Forms;
 use Filament\Forms\Form;
+use Filament\Notifications\Actions\Action as NotifAction;
 use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
+use Illuminate\Support\Facades\Mail;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
@@ -158,8 +161,26 @@ class CompanyResource extends Resource
                             'trial_ends_at' => now()->subSecond(),
                         ])->save();
 
+                        // Notifier les admins de l'entreprise
+                        $admins = $record->users()->where('role', 'admin')->get();
+                        foreach ($admins as $admin) {
+                            Mail::to($admin->email)->queue(new TrialExpired($record));
+
+                            Notification::make()
+                                ->title('🔒 Période d\'évaluation terminée')
+                                ->body("L'accès de {$record->name} est suspendu. Souscrivez un abonnement pour retrouver l'accès.")
+                                ->danger()
+                                ->actions([
+                                    NotifAction::make('subscribe')
+                                        ->label('Réactiver mon accès')
+                                        ->url(url('/admin/' . $record->slug . '/subscription-expired'))
+                                        ->button(),
+                                ])
+                                ->sendToDatabase($admin);
+                        }
+
                         Notification::make()
-                            ->title('Période d\'évaluation terminée')
+                            ->title('Période d\'évaluation terminée — ' . $admins->count() . ' admin(s) notifié(s)')
                             ->warning()
                             ->send();
                     }),
