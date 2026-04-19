@@ -26,7 +26,7 @@ class SendTrialReminders extends Command
     {
         $companies = Company::where('subscription_status', 'trial')
             ->whereDate('trial_ends_at', now()->addDays($days)->toDateString())
-            ->with(['users' => fn ($q) => $q->where('role', 'admin')])
+            ->with(['users' => fn ($q) => $q->where('users.role', 'admin')])
             ->get();
 
         foreach ($companies as $company) {
@@ -53,7 +53,7 @@ class SendTrialReminders extends Command
     {
         $companies = Company::where('subscription_status', 'trial')
             ->whereDate('trial_ends_at', now()->subDay()->toDateString())
-            ->with(['users' => fn ($q) => $q->where('role', 'admin')])
+            ->with(['users' => fn ($q) => $q->where('users.role', 'admin')])
             ->get();
 
         foreach ($companies as $company) {
