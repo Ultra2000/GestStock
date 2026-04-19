@@ -37,7 +37,9 @@ class SuperadminPanelProvider extends PanelProvider
             ->discoverWidgets(in: app_path('Filament/Superadmin/Widgets'), for: 'App\\Filament\\Superadmin\\Widgets')
             ->widgets([
                 Widgets\AccountWidget::class,
-                Widgets\FilamentInfoWidget::class,
+                \App\Filament\Superadmin\Widgets\StatsOverview::class,
+                \App\Filament\Superadmin\Widgets\SubscriptionBreakdownChart::class,
+                \App\Filament\Superadmin\Widgets\RevenueChart::class,
             ])
             ->middleware([
                 EncryptCookies::class,
