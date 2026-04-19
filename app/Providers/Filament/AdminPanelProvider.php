@@ -104,6 +104,8 @@ class AdminPanelProvider extends PanelProvider
                     ->collapsible()
                     ->collapsed(),
             ])
+            ->databaseNotifications()
+            ->databaseNotificationsPolling('30s')
             ->sidebarCollapsibleOnDesktop()
             ->sidebarWidth('280px')
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
