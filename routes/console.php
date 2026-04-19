@@ -73,3 +73,13 @@ Schedule::command('hr:calculate-commissions')
     ->name('calculate-commissions')
     ->withoutOverlapping()
     ->runInBackground();
+
+/**
+ * Rappels expiration trial
+ * Tous les jours à 09h00 — envoie les emails J-7, J-3 et J expiration
+ */
+Schedule::command('notifications:send-trial-reminders')
+    ->dailyAt('09:00')
+    ->name('send-trial-reminders')
+    ->withoutOverlapping()
+    ->runInBackground();
