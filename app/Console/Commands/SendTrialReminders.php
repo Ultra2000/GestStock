@@ -30,7 +30,7 @@ class SendTrialReminders extends Command
             ->get();
 
         foreach ($companies as $company) {
-            foreach ($company->users->filter(fn ($u) => $u->role === 'admin') as $admin) {
+            foreach ($company->users->filter(fn ($u) => $u->isAdminOf($company)) as $admin) {
                 Mail::to($admin->email)->queue(new TrialExpiringSoon($company, $days));
 
                 Notification::make()
@@ -57,7 +57,7 @@ class SendTrialReminders extends Command
             ->get();
 
         foreach ($companies as $company) {
-            foreach ($company->users->filter(fn ($u) => $u->role === 'admin') as $admin) {
+            foreach ($company->users->filter(fn ($u) => $u->isAdminOf($company)) as $admin) {
                 Mail::to($admin->email)->queue(new TrialExpired($company));
 
                 Notification::make()

@@ -162,7 +162,7 @@ class CompanyResource extends Resource
                         ])->save();
 
                         // Notifier les admins de l'entreprise
-                        $admins = $record->users()->get()->filter(fn ($u) => $u->role === 'admin');
+                        $admins = $record->users()->get()->filter(fn ($u) => $u->isAdminOf($record));
                         foreach ($admins as $admin) {
                             Mail::to($admin->email)->queue(new TrialExpired($record));
 
