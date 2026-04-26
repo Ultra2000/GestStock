@@ -113,8 +113,9 @@ class GeminiExtractor implements AiExtractorInterface
                 continue;
             }
 
-            Log::error($logContext, ['status' => $status, 'hint' => substr($response->body(), 0, 200)]);
-            throw new \Exception('Erreur Gemini API: ' . ($response->json('error.message') ?? $response->body()));
+            $errorMsg = $response->json('error.message') ?? $response->json('message') ?? substr($response->body(), 0, 300);
+            Log::error($logContext, ['status' => $status, 'error' => $errorMsg, 'model' => $this->model]);
+            throw new \Exception("Erreur Gemini API [{$status}]: {$errorMsg}");
         }
 
         throw new \Exception('Gemini API indisponible après ' . $attempts . ' tentatives');

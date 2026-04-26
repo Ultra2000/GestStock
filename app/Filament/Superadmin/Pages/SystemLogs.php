@@ -72,20 +72,29 @@ class SystemLogs extends Page
             $userId    = null;
 
             // Extraire le JSON de contexte s'il y en a
-            $jsonStart = strpos($rawBody, ' {"');
+            $jsonStart = false;
+            foreach ([' {"', ' {[', ' {'] as $needle) {
+                $pos = strpos($rawBody, $needle);
+                if ($pos !== false) { $jsonStart = $pos; break; }
+            }
+
             if ($jsonStart !== false) {
-                $message    = trim(substr($rawBody, 0, $jsonStart));
-                $jsonStr    = substr($rawBody, $jsonStart + 1);
+                $message = trim(substr($rawBody, 0, $jsonStart));
+                $jsonStr = substr($rawBody, $jsonStart + 1);
                 // Couper avant la stack trace
-                $stackStart = strpos($jsonStr, "\n[stacktrace]");
-                if ($stackStart !== false) {
-                    $jsonStr = substr($jsonStr, 0, $stackStart);
+                foreach (["\n[stacktrace]", "\n#0 "] as $marker) {
+                    $cut = strpos($jsonStr, $marker);
+                    if ($cut !== false) { $jsonStr = substr($jsonStr, 0, $cut); break; }
                 }
-                $decoded = json_decode(trim($jsonStr), true);
+                $jsonStr = trim($jsonStr);
+                $decoded = json_decode($jsonStr, true);
                 if (is_array($decoded)) {
                     $context = $decoded;
                     $url     = $decoded['url'] ?? ($decoded['request']['url'] ?? null);
                     $userId  = $decoded['userId'] ?? ($decoded['user_id'] ?? null);
+                } else {
+                    // JSON invalide : afficher brut dans le contexte
+                    $context = ['_raw' => mb_substr($jsonStr, 0, 500)];
                 }
             } else {
                 $message = $rawBody;
