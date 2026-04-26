@@ -110,9 +110,13 @@ class InvoiceConverterController extends Controller
                 $conversion->markFailed($e->getMessage());
             }
 
+            $userMessage = str_contains($e->getMessage(), 'Gemini API')
+                ? 'Le service d\'analyse est temporairement indisponible. Réessayez dans quelques minutes.'
+                : 'Une erreur est survenue lors de l\'analyse du document. Vérifiez que le fichier est lisible.';
+
             return response()->json([
                 'success' => false,
-                'message' => 'Erreur lors de l\'extraction : ' . $e->getMessage(),
+                'message' => $userMessage,
             ], 500);
         }
     }

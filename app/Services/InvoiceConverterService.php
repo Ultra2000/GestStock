@@ -175,17 +175,14 @@ class InvoiceConverterService
             throw new \Exception('Impossible de lire le fichier CSV');
         }
 
+        // Détecter le séparateur sur la première ligne
+        $firstLine = fgets($handle);
+        rewind($handle);
+        $delimiter = substr_count($firstLine, ';') >= substr_count($firstLine, ',') ? ';' : ',';
+
         $lineCount = 0;
-        while (($data = fgetcsv($handle, 0, ';')) !== false && $lineCount < 200) {
-            // Essayer aussi avec virgule si aucune données
-            if (count($data) <= 1) {
-                rewind($handle);
-                fgetcsv($handle); // skip header
-                $data = fgetcsv($handle, 0, ',');
-                if (count($data) <= 1) {
-                    break;
-                }
-            }
+        while (($data = fgetcsv($handle, 0, $delimiter)) !== false && $lineCount < 200) {
+            if (!array_filter($data)) continue;
             $rows[] = implode(' | ', array_map('trim', $data));
             $lineCount++;
         }

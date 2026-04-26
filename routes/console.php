@@ -75,6 +75,14 @@ Schedule::command('hr:calculate-commissions')
     ->runInBackground();
 
 /**
+ * Nettoyage fichiers conversions > 7 jours
+ */
+Schedule::command('conversions:clean --days=7')
+    ->dailyAt('03:00')
+    ->name('clean-old-conversions')
+    ->withoutOverlapping();
+
+/**
  * Rappels expiration trial
  * Tous les jours à 09h00 — envoie les emails J-7, J-3 et J expiration
  */
