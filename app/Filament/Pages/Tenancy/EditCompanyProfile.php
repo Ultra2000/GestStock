@@ -160,6 +160,15 @@ class EditCompanyProfile extends EditTenantProfile
                         ViewField::make('settings.invoice_template')
                             ->view('filament.forms.invoice-template-selector'),
                     ]),
+
+                Section::make('Signature numérique des factures')
+                    ->description('Appose une signature électronique sur les PDFs Factur-X générés (nécessite un certificat configuré par le superadmin).')
+                    ->schema([
+                        Toggle::make('settings.sign_invoices')
+                            ->label('Activer la signature numérique PDF')
+                            ->helperText('Les factures téléchargées en PDF seront signées numériquement. La signature est visible dans Adobe Reader.')
+                            ->default(false),
+                    ]),
             ]);
     }
 }

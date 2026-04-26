@@ -20,6 +20,7 @@
         "spatie/browsershot": "^5.2",
         "spatie/laravel-activitylog": "^4.10",
         "stripe/stripe-php": "^13.0",
+        "tecnickcom/tcpdf": "^6.8",
         "tiime/factur-x": "^0.1.0"
     },
     "require-dev": {

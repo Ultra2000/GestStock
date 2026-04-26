@@ -21,7 +21,8 @@ class SaleInvoiceController extends Controller
             'verificationCode' => $verificationCode,
         ])->setPaper('a4');
 
-        $facturxContent = $facturXService->generate($sale, $pdf->output());
+        $signPdf = (bool) ($company->settings['sign_invoices'] ?? false);
+        $facturxContent = $facturXService->generate($sale, $pdf->output(), $signPdf);
 
         return response($facturxContent)
             ->header('Content-Type', 'application/pdf')

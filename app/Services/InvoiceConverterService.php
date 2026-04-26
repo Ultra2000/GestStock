@@ -445,6 +445,12 @@ class InvoiceConverterService
         $xmlPath = str_replace('.pdf', '.xml', $path);
         Storage::disk('local')->put($xmlPath, $xml);
 
+        // Signature numérique optionnelle
+        if ($options['sign'] ?? false) {
+            $absPdfPath = Storage::disk('local')->path($path);
+            app(\App\Services\PdfSignatureService::class)->signPdf($absPdfPath);
+        }
+
         return $path;
     }
 
