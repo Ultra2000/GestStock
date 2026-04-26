@@ -93,7 +93,7 @@ class GeminiExtractor implements AiExtractorInterface
 
     private function callWithRetry(array $payload, string $logContext): \Illuminate\Http\Client\Response
     {
-        $url = "https://generativelanguage.googleapis.com/v1beta/models/{$this->model}:generateContent?key={$this->apiKey}";
+        $url      = "https://generativelanguage.googleapis.com/v1beta/models/{$this->model}:generateContent?key={$this->apiKey}";
         $attempts = 3;
 
         for ($i = 1; $i <= $attempts; $i++) {
@@ -105,20 +105,28 @@ class GeminiExtractor implements AiExtractorInterface
                 return $response;
             }
 
-            $status = $response->status();
+            $status   = $response->status();
+            $errorMsg = $response->json('error.message') ?? $response->json('message') ?? 'Unknown error';
 
-            // Retry uniquement sur surcharge temporaire
             if (in_array($status, [429, 503]) && $i < $attempts) {
-                sleep(2 * $i);
+                // Lire le délai conseillé par l'API ("Please retry in 15.6s")
+                $retryAfter = 0;
+                if (preg_match('/retry in ([\d.]+)s/i', $errorMsg, $m)) {
+                    $retryAfter = (int) ceil((float) $m[1]);
+                }
+                $delay = max($retryAfter, $status === 429 ? 20 : 5) * $i;
+                Log::warning($logContext . ' (retry ' . $i . '/' . $attempts . ')', [
+                    'status' => $status, 'delay' => $delay . 's', 'error' => mb_substr($errorMsg, 0, 150),
+                ]);
+                sleep($delay);
                 continue;
             }
 
-            $errorMsg = $response->json('error.message') ?? $response->json('message') ?? substr($response->body(), 0, 300);
-            Log::error($logContext, ['status' => $status, 'error' => $errorMsg, 'model' => $this->model]);
+            Log::error($logContext, ['status' => $status, 'error' => mb_substr($errorMsg, 0, 300), 'model' => $this->model]);
             throw new \Exception("Erreur Gemini API [{$status}]: {$errorMsg}");
         }
 
-        throw new \Exception('Gemini API indisponible après ' . $attempts . ' tentatives');
+        throw new \Exception("Gemini API indisponible après {$attempts} tentatives");
     }
 
     protected function buildPrompt(string $text): string
