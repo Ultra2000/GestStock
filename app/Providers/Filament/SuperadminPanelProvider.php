@@ -40,6 +40,8 @@ class SuperadminPanelProvider extends PanelProvider
                 \App\Filament\Superadmin\Widgets\StatsOverview::class,
                 \App\Filament\Superadmin\Widgets\SubscriptionBreakdownChart::class,
                 \App\Filament\Superadmin\Widgets\RevenueChart::class,
+                \App\Filament\Superadmin\Widgets\InvoiceConverterStatsWidget::class,
+                \App\Filament\Superadmin\Widgets\InvoiceConverterChart::class,
             ])
             ->middleware([
                 EncryptCookies::class,
