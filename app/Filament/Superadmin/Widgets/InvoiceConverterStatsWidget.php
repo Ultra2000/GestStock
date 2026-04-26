@@ -14,10 +14,7 @@ class InvoiceConverterStatsWidget extends BaseWidget
     protected function getStats(): array
     {
         $todayConversions  = InvoiceConversion::withoutGlobalScopes()->whereDate('created_at', today())->count();
-        $todayUniqueUsers  = InvoiceConversion::withoutGlobalScopes()
-            ->whereDate('created_at', today())
-            ->selectRaw('COUNT(DISTINCT COALESCE(user_id::text, ip_address)) as cnt')
-            ->value('cnt') ?? $this->countUniqueToday();
+        $todayUniqueUsers  = $this->countUniqueToday();
 
         $monthConversions  = InvoiceConversion::withoutGlobalScopes()->whereMonth('created_at', now()->month)->whereYear('created_at', now()->year)->count();
         $failureRate       = $this->failureRateToday();
