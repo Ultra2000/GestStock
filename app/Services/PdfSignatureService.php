@@ -83,14 +83,14 @@ class PdfSignatureService
             mkdir($dir, 0700, true);
         }
 
-        $dn = [
-            'commonName'             => $info['name'] ?? config('app.name', 'FRECORP ERP'),
-            'organizationName'       => $info['organization'] ?? config('app.name', 'FRECORP'),
-            'countryName'            => $info['country'] ?? 'FR',
-            'stateOrProvinceName'    => $info['state'] ?? '',
-            'localityName'           => $info['city'] ?? '',
-            'emailAddress'           => $info['email'] ?? '',
-        ];
+        $dn = array_filter([
+            'commonName'          => $info['name'] ?? config('app.name', 'FRECORP ERP'),
+            'organizationName'    => $info['organization'] ?? config('app.name', 'FRECORP'),
+            'countryName'         => $info['country'] ?? 'FR',
+            'stateOrProvinceName' => $info['state'] ?? null,
+            'localityName'        => $info['city'] ?? null,
+            'emailAddress'        => $info['email'] ?? null,
+        ], fn($v) => !empty($v));
 
         $privKey = openssl_pkey_new([
             'private_key_bits' => 2048,
