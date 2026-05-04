@@ -24,9 +24,17 @@ class CountInventory extends Page
     public string $filter = 'all';
     public array $counts = [];
 
+    public function resolveRecord(int | string $key): Inventory
+    {
+        return Inventory::withoutGlobalScope('company')
+            ->withoutGlobalScope(\Illuminate\Database\Eloquent\SoftDeletingScope::class)
+            ->findOrFail($key);
+    }
+
     public function mount(int | string $record): void
     {
-        $this->record = Inventory::with(['items.product', 'items.location', 'warehouse'])
+        $this->record = Inventory::withoutGlobalScope('company')
+            ->with(['items.product', 'items.location', 'warehouse'])
             ->findOrFail($record);
 
         if ($this->record->status !== 'in_progress') {
