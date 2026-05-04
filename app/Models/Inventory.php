@@ -107,22 +107,25 @@ class Inventory extends Model
     // Methods
     public static function generateReference(int $companyId): string
     {
-        $prefix = 'INV';
-        $year = date('Y');
-        $month = date('m');
-        
-        $lastInventory = static::where('company_id', $companyId)
-            ->whereYear('created_at', $year)
-            ->whereMonth('created_at', $month)
-            ->orderBy('id', 'desc')
-            ->first();
+        return \DB::transaction(function () use ($companyId) {
+            $prefix = 'INV';
+            $year   = date('Y');
+            $month  = date('m');
 
-        $number = 1;
-        if ($lastInventory && preg_match('/(\d+)$/', $lastInventory->reference, $matches)) {
-            $number = (int) $matches[1] + 1;
-        }
+            $lastInventory = static::where('company_id', $companyId)
+                ->whereYear('created_at', $year)
+                ->whereMonth('created_at', $month)
+                ->orderBy('id', 'desc')
+                ->lockForUpdate()
+                ->first();
 
-        return $prefix . $year . $month . '-' . str_pad($number, 4, '0', STR_PAD_LEFT);
+            $number = 1;
+            if ($lastInventory && preg_match('/(\d+)$/', $lastInventory->reference, $matches)) {
+                $number = (int) $matches[1] + 1;
+            }
+
+            return $prefix . $year . $month . '-' . str_pad($number, 4, '0', STR_PAD_LEFT);
+        });
     }
 
     public function initializeItems(?array $productIds = null, ?int $locationId = null): void
