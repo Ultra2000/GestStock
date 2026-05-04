@@ -21,6 +21,8 @@ class PurchaseItem extends Model
         'vat_amount',
         'total_price_ht',
         'total_price',
+        'discount_percent',
+        'discount_amount',
     ];
 
     protected $casts = [
@@ -31,6 +33,8 @@ class PurchaseItem extends Model
         'vat_amount' => 'decimal:2',
         'total_price_ht' => 'decimal:2',
         'total_price' => 'decimal:2',
+        'discount_percent' => 'decimal:2',
+        'discount_amount' => 'decimal:2',
     ];
 
     protected static function booted()

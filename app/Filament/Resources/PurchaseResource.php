@@ -159,12 +159,14 @@ class PurchaseResource extends Resource
                                     ->minValue(1)
                                     ->live(onBlur: true)
                                     ->afterStateUpdated(function ($state, Forms\Get $get, Forms\Set $set) {
-                                        $quantity = $state ?? 0;
-                                        $unitPrice = $get('unit_price') ?? 0;
-                                        $vatRate = $get('vat_rate') ?? 20;
-                                        $totalHt = $quantity * $unitPrice;
-                                        $vat = round($totalHt * ($vatRate / 100), 2);
-                                        $set('total_price', $totalHt + $vat);
+                                        $quantity    = (float) ($state ?? 0);
+                                        $unitPrice   = (float) ($get('unit_price') ?? 0);
+                                        $discount    = (float) ($get('discount_percent') ?? 0);
+                                        $vatRate     = (float) ($get('vat_rate') ?? 20);
+                                        $totalHt     = $quantity * $unitPrice * (1 - $discount / 100);
+                                        $vat         = round($totalHt * ($vatRate / 100), 2);
+                                        $set('discount_amount', round($quantity * $unitPrice * ($discount / 100), 2));
+                                        $set('total_price', round($totalHt + $vat, 2));
                                     })
                                     ->columnSpan(1),
                                 Forms\Components\TextInput::make('unit_price')
@@ -174,12 +176,33 @@ class PurchaseResource extends Resource
                                     ->prefix(fn () => Filament::getTenant()->currency ?? 'EUR')
                                     ->live(onBlur: true)
                                     ->afterStateUpdated(function ($state, Forms\Get $get, Forms\Set $set) {
-                                        $quantity = $get('quantity') ?? 0;
-                                        $unitPrice = $state ?? 0;
-                                        $vatRate = $get('vat_rate') ?? 20;
-                                        $totalHt = $quantity * $unitPrice;
-                                        $vat = round($totalHt * ($vatRate / 100), 2);
-                                        $set('total_price', $totalHt + $vat);
+                                        $quantity    = (float) ($get('quantity') ?? 0);
+                                        $unitPrice   = (float) ($state ?? 0);
+                                        $discount    = (float) ($get('discount_percent') ?? 0);
+                                        $vatRate     = (float) ($get('vat_rate') ?? 20);
+                                        $totalHt     = $quantity * $unitPrice * (1 - $discount / 100);
+                                        $vat         = round($totalHt * ($vatRate / 100), 2);
+                                        $set('discount_amount', round($quantity * $unitPrice * ($discount / 100), 2));
+                                        $set('total_price', round($totalHt + $vat, 2));
+                                    })
+                                    ->columnSpan(1),
+                                Forms\Components\TextInput::make('discount_percent')
+                                    ->label('Remise %')
+                                    ->numeric()
+                                    ->default(0)
+                                    ->minValue(0)
+                                    ->maxValue(100)
+                                    ->suffix('%')
+                                    ->live(onBlur: true)
+                                    ->afterStateUpdated(function ($state, Forms\Get $get, Forms\Set $set) {
+                                        $quantity    = (float) ($get('quantity') ?? 0);
+                                        $unitPrice   = (float) ($get('unit_price') ?? 0);
+                                        $discount    = (float) ($state ?? 0);
+                                        $vatRate     = (float) ($get('vat_rate') ?? 20);
+                                        $totalHt     = $quantity * $unitPrice * (1 - $discount / 100);
+                                        $vat         = round($totalHt * ($vatRate / 100), 2);
+                                        $set('discount_amount', round($quantity * $unitPrice * ($discount / 100), 2));
+                                        $set('total_price', round($totalHt + $vat, 2));
                                     })
                                     ->columnSpan(1),
                                 Forms\Components\Select::make('vat_rate')
@@ -188,12 +211,13 @@ class PurchaseResource extends Resource
                                     ->default(20.00)
                                     ->live()
                                     ->afterStateUpdated(function ($state, Forms\Get $get, Forms\Set $set) {
-                                        $quantity = $get('quantity') ?? 0;
-                                        $unitPrice = $get('unit_price') ?? 0;
-                                        $vatRate = $state ?? 20;
-                                        $totalHt = $quantity * $unitPrice;
-                                        $vat = round($totalHt * ($vatRate / 100), 2);
-                                        $set('total_price', $totalHt + $vat);
+                                        $quantity    = (float) ($get('quantity') ?? 0);
+                                        $unitPrice   = (float) ($get('unit_price') ?? 0);
+                                        $discount    = (float) ($get('discount_percent') ?? 0);
+                                        $vatRate     = (float) ($state ?? 20);
+                                        $totalHt     = $quantity * $unitPrice * (1 - $discount / 100);
+                                        $vat         = round($totalHt * ($vatRate / 100), 2);
+                                        $set('total_price', round($totalHt + $vat, 2));
                                     })
                                     ->columnSpan(1),
                                 Forms\Components\TextInput::make('total_price')
@@ -204,7 +228,7 @@ class PurchaseResource extends Resource
                                     ->dehydrated(true)
                                     ->columnSpan(1),
                             ])
-                            ->columns(6)
+                            ->columns(7)
                             ->addActionLabel('+ Ajouter un article')
                             ->defaultItems(1)
                             ->reorderable(false)
