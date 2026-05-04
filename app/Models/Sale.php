@@ -130,16 +130,16 @@ class Sale extends Model
 
         static::creating(function ($sale) {
             if (empty($sale->invoice_number)) {
-                // Numérotation séquentielle par entreprise avec Année (Format FAC-YYYY-XXXXX)
-                $year = date('Y');
-                $prefix = ($sale->type === 'credit_note' ? 'AVR-' : 'FAC-') . $year . '-';
-                
-                $lastNumber = self::where('company_id', $sale->company_id)
-                    ->where('invoice_number', 'like', $prefix . '%')
-                    ->selectRaw("MAX(CAST(SUBSTRING(invoice_number, 10) AS UNSIGNED)) as max_num")
-                    ->value('max_num') ?? 0;
-                
-                $sale->invoice_number = $prefix . str_pad($lastNumber + 1, 5, '0', STR_PAD_LEFT);
+                $sale->invoice_number = \DB::transaction(function () use ($sale) {
+                    $year   = date('Y');
+                    $prefix = ($sale->type === 'credit_note' ? 'AVR-' : 'FAC-') . $year . '-';
+                    $lastNumber = self::where('company_id', $sale->company_id)
+                        ->where('invoice_number', 'like', $prefix . '%')
+                        ->lockForUpdate()
+                        ->selectRaw("MAX(CAST(SUBSTRING(invoice_number, 10) AS UNSIGNED)) as max_num")
+                        ->value('max_num') ?? 0;
+                    return $prefix . str_pad($lastNumber + 1, 5, '0', STR_PAD_LEFT);
+                });
             }
             
             // Assigner l'entrepôt par défaut si non spécifié

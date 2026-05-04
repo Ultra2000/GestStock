@@ -65,11 +65,13 @@ class Purchase extends Model
     {
         static::creating(function ($purchase) {
             if (empty($purchase->invoice_number)) {
-                // Numérotation séquentielle par entreprise
-                $lastNumber = self::where('company_id', $purchase->company_id)
-                    ->selectRaw("MAX(CAST(SUBSTRING(invoice_number, 5) AS UNSIGNED)) as max_num")
-                    ->value('max_num') ?? 0;
-                $purchase->invoice_number = 'ACH-' . str_pad($lastNumber + 1, 6, '0', STR_PAD_LEFT);
+                $purchase->invoice_number = \DB::transaction(function () use ($purchase) {
+                    $lastNumber = self::where('company_id', $purchase->company_id)
+                        ->lockForUpdate()
+                        ->selectRaw("MAX(CAST(SUBSTRING(invoice_number, 5) AS UNSIGNED)) as max_num")
+                        ->value('max_num') ?? 0;
+                    return 'ACH-' . str_pad($lastNumber + 1, 6, '0', STR_PAD_LEFT);
+                });
             }
             
             // Assigner l'entrepôt par défaut si non spécifié
