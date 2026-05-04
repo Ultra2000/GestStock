@@ -10,6 +10,7 @@ use Filament\Actions;
 use Filament\Resources\Pages\Page;
 use Filament\Notifications\Notification;
 use Illuminate\Contracts\Support\Htmlable;
+use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Livewire\Attributes\Computed;
 
 class CountInventory extends Page
@@ -18,36 +19,42 @@ class CountInventory extends Page
 
     protected static string $view = 'filament.resources.inventory-resource.pages.count-inventory';
 
-    public ?Inventory $record = null;
+    // Stocke uniquement l'ID pour éviter le route model binding auto de Livewire v3
+    public int $recordId = 0;
 
     public string $search = '';
     public string $filter = 'all';
     public array $counts = [];
 
-    public function resolveRecord(int | string $key): Inventory
+    #[Computed]
+    public function record(): Inventory
     {
         return Inventory::withoutGlobalScope('company')
-            ->withoutGlobalScope(\Illuminate\Database\Eloquent\SoftDeletingScope::class)
-            ->findOrFail($key);
+            ->withoutGlobalScope(SoftDeletingScope::class)
+            ->with(['items.product', 'items.location', 'warehouse'])
+            ->findOrFail($this->recordId);
     }
 
     public function mount(int | string $record): void
     {
-        $this->record = Inventory::withoutGlobalScope('company')
-            ->with(['items.product', 'items.location', 'warehouse'])
+        $inventory = Inventory::withoutGlobalScope('company')
+            ->withoutGlobalScope(SoftDeletingScope::class)
+            ->with('items')
             ->findOrFail($record);
 
-        if ($this->record->status !== 'in_progress') {
+        if ($inventory->status !== 'in_progress') {
             Notification::make()
                 ->title('Cet inventaire n\'est pas en cours de comptage')
                 ->danger()
                 ->send();
 
-            $this->redirect($this->getResource()::getUrl('view', ['record' => $this->record]));
+            $this->redirect(static::getResource()::getUrl('view', ['record' => $inventory]));
             return;
         }
 
-        foreach ($this->record->items as $item) {
+        $this->recordId = $inventory->id;
+
+        foreach ($inventory->items as $item) {
             $this->counts[$item->id] = $item->quantity_counted;
         }
     }
@@ -60,7 +67,11 @@ class CountInventory extends Page
     #[Computed]
     public function filteredItems()
     {
-        $query = $this->record->items()->with(['product', 'location']);
+        $query = Inventory::withoutGlobalScope('company')
+            ->withoutGlobalScope(SoftDeletingScope::class)
+            ->findOrFail($this->recordId)
+            ->items()
+            ->with(['product', 'location']);
 
         if ($this->search) {
             $query->whereHas('product', function ($q) {
@@ -87,7 +98,7 @@ class CountInventory extends Page
 
     public function countItem(int $itemId): void
     {
-        $item = InventoryItem::find($itemId);
+        $item     = InventoryItem::find($itemId);
         $quantity = $this->counts[$itemId] ?? 0;
 
         if ($item && $quantity !== null) {
@@ -105,7 +116,7 @@ class CountInventory extends Page
     public function resetItem(int $itemId): void
     {
         $item = InventoryItem::find($itemId);
-        
+
         if ($item) {
             $item->reset();
             $this->counts[$itemId] = null;
@@ -120,7 +131,7 @@ class CountInventory extends Page
     public function copyExpected(int $itemId): void
     {
         $item = InventoryItem::find($itemId);
-        
+
         if ($item) {
             $this->counts[$itemId] = $item->quantity_expected;
         }
@@ -136,7 +147,7 @@ class CountInventory extends Page
                 ->success()
                 ->send();
 
-            $this->redirect($this->getResource()::getUrl('view', ['record' => $this->record]));
+            $this->redirect(static::getResource()::getUrl('view', ['record' => $this->record]));
         } catch (\Exception $e) {
             Notification::make()
                 ->title('Erreur')
@@ -152,7 +163,7 @@ class CountInventory extends Page
             Actions\Action::make('back')
                 ->label('Retour')
                 ->icon('heroicon-o-arrow-left')
-                ->url($this->getResource()::getUrl('view', ['record' => $this->record]))
+                ->url(static::getResource()::getUrl('view', ['record' => $this->record]))
                 ->color('gray'),
         ];
     }
