@@ -149,18 +149,26 @@ class AdminPanelProvider extends PanelProvider
                         return '';
                     }
                     $days = $company->trialDaysLeft();
-                    if ($days > 14) {
+                    if ($days > 30) {
                         return '';
                     }
-                    $color = $days <= 3 ? 'bg-red-600' : 'bg-amber-500';
+                    $color = $days <= 3 ? 'bg-red-600' : ($days <= 7 ? 'bg-amber-500' : 'bg-blue-600');
                     $msg   = $days <= 0
                         ? 'Votre période d\'essai gratuite se termine aujourd\'hui.'
                         : "Il vous reste <strong>{$days} jour" . ($days > 1 ? 's' : '') . "</strong> d'essai gratuit.";
+                    $checkoutUrl  = route('stripe.checkout');
+                    $csrf         = csrf_token();
+                    $slug         = e($company->slug);
                     return new \Illuminate\Support\HtmlString("
-                        <div class='{$color} text-white text-center text-sm py-2 px-4 font-medium'>
-                            {$msg}
-                            &nbsp;·&nbsp;
-                            <a href='mailto:contact@frecorp.fr?subject=Abonnement - {$company->name}' class='underline font-bold'>S'abonner maintenant (30€/mois)</a>
+                        <div class='{$color} text-white text-center text-sm py-2 px-4 font-medium flex items-center justify-center gap-3'>
+                            <span>{$msg}</span>
+                            <form method='POST' action='{$checkoutUrl}' style='display:inline'>
+                                <input type='hidden' name='_token' value='{$csrf}'>
+                                <input type='hidden' name='company_slug' value='{$slug}'>
+                                <button type='submit' style='background:rgba(255,255,255,0.25);border:1px solid rgba(255,255,255,0.6);color:white;padding:2px 14px;border-radius:6px;font-weight:700;cursor:pointer;font-size:13px;'>
+                                    S'abonner maintenant — 30€/mois
+                                </button>
+                            </form>
                         </div>
                     ");
                 }
