@@ -2,13 +2,16 @@
 
 namespace App\Filament\Superadmin\Pages;
 
+use App\Mail\AnnouncementBanner;
 use App\Models\AppSetting;
+use App\Models\Company;
 use Filament\Actions\Action;
-use Filament\Forms\Components\ColorPicker;
+use Illuminate\Support\Facades\Mail;
 use Filament\Forms\Components\Section;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Toggle;
 use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Forms\Contracts\HasForms;
 use Filament\Forms\Form;
@@ -91,6 +94,10 @@ class GlobalSettings extends Page implements HasForms
                             ->label('Date de publication (YYYY-MM-DD)')
                             ->helperText('Laissez vide pour utiliser aujourd\'hui au moment de la sauvegarde.')
                             ->placeholder(now()->toDateString()),
+                        Toggle::make('send_email')
+                            ->label('Envoyer aussi par email aux administrateurs')
+                            ->helperText('Envoie le message aux admins de chaque entreprise au moment de la sauvegarde. Un seul envoi.')
+                            ->default(false),
                     ]),
             ])
             ->statePath('data');
@@ -114,10 +121,33 @@ class GlobalSettings extends Page implements HasForms
         }
         AppSetting::set('banner_published_at', $publishedAt);
 
-        Notification::make()
-            ->title('Paramètres sauvegardés')
-            ->success()
-            ->send();
+        // Envoi email aux admins si demandé
+        if (!empty($this->data['send_email']) && !empty($message)) {
+            $sent = 0;
+            Company::with('users')->get()->each(function (Company $company) use ($message, &$sent) {
+                $admins = $company->users->filter(fn ($u) => $u->isAdminOf($company));
+                foreach ($admins as $admin) {
+                    if (!$admin->email) continue;
+                    try {
+                        Mail::to($admin->email)->send(new AnnouncementBanner($message, $admin->name));
+                        $sent++;
+                    } catch (\Throwable $e) {
+                        \Illuminate\Support\Facades\Log::warning("AnnouncementBanner: failed to send to {$admin->email} — " . $e->getMessage());
+                    }
+                }
+            });
+
+            Notification::make()
+                ->title('Paramètres sauvegardés')
+                ->body("Email envoyé à {$sent} administrateur(s).")
+                ->success()
+                ->send();
+        } else {
+            Notification::make()
+                ->title('Paramètres sauvegardés')
+                ->success()
+                ->send();
+        }
     }
 
     protected function getHeaderActions(): array
