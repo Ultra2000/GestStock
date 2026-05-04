@@ -32,9 +32,10 @@ class ProductResource extends Resource
     /**
      * Optimisation: Eager loading des relations pour éviter N+1
      */
-    public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
+    public static function getEloquentQuery(): Builder
     {
         return parent::getEloquentQuery()
+            ->withoutGlobalScope(SoftDeletingScope::class)
             ->with(['supplier', 'warehouses']);
     }
 
@@ -373,7 +374,11 @@ class ProductResource extends Resource
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                //
+                Tables\Filters\TrashedFilter::make()
+                    ->label('Produits archivés')
+                    ->placeholder('Actifs uniquement')
+                    ->trueLabel('Archivés uniquement')
+                    ->falseLabel('Tous (actifs + archivés)'),
             ])
             ->deferLoading() // Optimisation: Chargement différé via AJAX
             ->defaultSort('created_at', 'desc')
@@ -432,12 +437,25 @@ class ProductResource extends Resource
                         return redirect()->route('products.labels.print', $params);
                     }),
                 Tables\Actions\DeleteAction::make()
-                    ->label('Supprimer'),
+                    ->label('Archiver')
+                    ->icon('heroicon-o-archive-box')
+                    ->modalHeading('Archiver ce produit')
+                    ->modalDescription('Le produit sera masqué mais son historique (stock, ventes) sera conservé. Vous pourrez le restaurer depuis le filtre "Archivés".')
+                    ->modalSubmitActionLabel('Archiver'),
+                Tables\Actions\RestoreAction::make()
+                    ->label('Restaurer'),
+                Tables\Actions\ForceDeleteAction::make()
+                    ->label('Supprimer définitivement')
+                    ->modalHeading('Suppression définitive')
+                    ->modalDescription('ATTENTION : cette action est irréversible. Le produit et toutes ses données liées seront définitivement supprimés.')
+                    ->visible(fn ($record) => $record->trashed()),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make()
-                        ->label('Supprimer la sélection'),
+                        ->label('Archiver la sélection'),
+                    Tables\Actions\RestoreBulkAction::make()
+                        ->label('Restaurer la sélection'),
                     Tables\Actions\BulkAction::make('print_labels')
                         ->label('Imprimer étiquettes')
                         ->icon('heroicon-o-printer')
@@ -489,4 +507,5 @@ class ProductResource extends Resource
             'edit' => Pages\EditProduct::route('/{record}/edit'),
         ];
     }
+
 }
