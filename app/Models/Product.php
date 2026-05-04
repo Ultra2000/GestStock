@@ -175,6 +175,11 @@ class Product extends Model
         return $this->hasMany(SaleItem::class);
     }
 
+    public function purchaseItems(): HasMany
+    {
+        return $this->hasMany(PurchaseItem::class);
+    }
+
     // Multi-Warehouse Relations
     public function warehouses(): BelongsToMany
     {

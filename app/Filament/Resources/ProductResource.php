@@ -387,6 +387,11 @@ class ProductResource extends Resource
             ->actions([
                 Tables\Actions\EditAction::make()
                     ->label('Modifier'),
+                Action::make('purchase_history')
+                    ->label('Historique achats')
+                    ->icon('heroicon-o-shopping-bag')
+                    ->color('info')
+                    ->url(fn ($record) => static::getUrl('purchase-history', ['record' => $record->id])),
                 Action::make('regen_code')
                     ->label('Régénérer code')
                     ->icon('heroicon-o-arrow-path')
@@ -505,6 +510,7 @@ class ProductResource extends Resource
             'index' => Pages\ListProducts::route('/'),
             'create' => Pages\CreateProduct::route('/create'),
             'edit' => Pages\EditProduct::route('/{record}/edit'),
+            'purchase-history' => Pages\ProductPurchaseHistory::route('/{record}/purchase-history'),
         ];
     }
 
