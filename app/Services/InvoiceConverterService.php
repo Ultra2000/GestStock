@@ -84,23 +84,24 @@ class InvoiceConverterService
      */
     protected function processPdf(UploadedFile $file, AiExtractorInterface $extractor): array
     {
-        $parser = new PdfParser();
-        $pdf = $parser->parseFile($file->getRealPath());
-        $text = $pdf->getText();
+        $text = '';
 
-        // Si le texte est trop court, c'est probablement un scan → traiter comme image
+        try {
+            $parser = new PdfParser();
+            $pdf    = $parser->parseFile($file->getRealPath());
+            $text   = $pdf->getText();
+        } catch (\Throwable $e) {
+            Log::info('InvoiceConverter: PDF parser failed (' . $e->getMessage() . '), falling back to image extraction');
+        }
+
         if (strlen(trim($text)) < 50) {
-            Log::info('InvoiceConverter: PDF has insufficient text, trying image extraction');
-
-            // Convertir la première page en image si possible (via Imagick)
             if (extension_loaded('imagick')) {
                 return $this->processPdfAsImage($file, $extractor);
             }
 
             throw new \Exception(
-                'Ce PDF semble être un scan/image. ' .
-                'L\'extraction de texte n\'a pas fonctionné. ' .
-                'Essayez de convertir le PDF en image (JPEG/PNG) avant de l\'importer.'
+                'Ce PDF ne peut pas être lu (format non standard ou protégé). ' .
+                'Essayez de l\'ouvrir et de le réenregistrer, ou convertissez-le en JPEG/PNG avant de l\'importer.'
             );
         }
 
