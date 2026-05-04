@@ -59,6 +59,11 @@ class CountInventory extends Page
         }
     }
 
+    protected function getViewData(): array
+    {
+        return ['record' => $this->record];
+    }
+
     public function getTitle(): string | Htmlable
     {
         return 'Comptage - ' . $this->record->name;
