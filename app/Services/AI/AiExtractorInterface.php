@@ -23,6 +23,16 @@ interface AiExtractorInterface
     public function extractFromImage(string $base64Image, string $mimeType): array;
 
     /**
+     * Extrait les données d'une facture directement depuis un fichier PDF (base64)
+     * Uniquement pour les providers qui supportent les PDFs nativement (Claude).
+     * Retourne null si le provider ne supporte pas ce mode.
+     *
+     * @param string $base64Pdf PDF encodé en base64
+     * @return array|null Données structurées ou null si non supporté
+     */
+    public function extractFromPdf(string $base64Pdf): ?array;
+
+    /**
      * Retourne le nom du provider
      */
     public function getProviderName(): string;

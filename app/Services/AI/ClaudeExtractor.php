@@ -55,6 +55,52 @@ class ClaudeExtractor implements AiExtractorInterface
         return $this->parseJsonResponse($content);
     }
 
+    public function extractFromPdf(string $base64Pdf): ?array
+    {
+        $prompt = $this->buildPrompt();
+
+        $response = Http::withHeaders([
+            'x-api-key'         => $this->apiKey,
+            'anthropic-version' => '2023-06-01',
+            'Content-Type'      => 'application/json',
+        ])->timeout(90)->post('https://api.anthropic.com/v1/messages', [
+            'model'      => $this->model,
+            'max_tokens' => 4096,
+            'messages'   => [
+                [
+                    'role'    => 'user',
+                    'content' => [
+                        [
+                            'type'   => 'document',
+                            'source' => [
+                                'type'       => 'base64',
+                                'media_type' => 'application/pdf',
+                                'data'       => $base64Pdf,
+                            ],
+                        ],
+                        [
+                            'type' => 'text',
+                            'text' => $prompt . "\n\nAnalyse le document PDF ci-dessus et extrais toutes les données de la facture.",
+                        ],
+                    ],
+                ],
+            ],
+        ]);
+
+        if (!$response->successful()) {
+            Log::error('Claude PDF API error', ['status' => $response->status(), 'hint' => substr($response->body(), 0, 200)]);
+            throw new \Exception('Erreur Claude PDF: ' . ($response->json('error.message') ?? 'indisponible'));
+        }
+
+        $content = $response->json('content.0.text');
+
+        if (!$content) {
+            throw new \Exception('Réponse vide de Claude PDF');
+        }
+
+        return $this->parseJsonResponse($content);
+    }
+
     public function extractFromImage(string $base64Image, string $mimeType): array
     {
         $prompt = $this->buildPrompt();

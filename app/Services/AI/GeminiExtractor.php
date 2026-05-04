@@ -55,6 +55,11 @@ class GeminiExtractor implements AiExtractorInterface
         return $this->normalizeData($data);
     }
 
+    public function extractFromPdf(string $base64Pdf): ?array
+    {
+        return null; // Gemini ne supporte pas les PDFs natifs via cette API
+    }
+
     public function extractFromImage(string $base64Image, string $mimeType): array
     {
         $prompt = $this->buildPrompt('');

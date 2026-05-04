@@ -91,10 +91,22 @@ class InvoiceConverterService
             $pdf    = $parser->parseFile($file->getRealPath());
             $text   = $pdf->getText();
         } catch (\Throwable $e) {
-            Log::info('InvoiceConverter: PDF parser failed (' . $e->getMessage() . '), falling back to image extraction');
+            Log::info('InvoiceConverter: PDF parser failed (' . $e->getMessage() . '), trying native PDF fallback');
         }
 
         if (strlen(trim($text)) < 50) {
+            // Fallback 1 : envoyer le PDF brut à Claude (supporte les PDFs natifs)
+            $claudeFallback = config('services.ai.claude.api_key')
+                ? new \App\Services\AI\ClaudeExtractor()
+                : null;
+
+            if ($claudeFallback) {
+                Log::info('InvoiceConverter: falling back to Claude native PDF extraction');
+                $base64 = base64_encode(file_get_contents($file->getRealPath()));
+                return $claudeFallback->extractFromPdf($base64);
+            }
+
+            // Fallback 2 : Imagick (nécessite Ghostscript sur le serveur)
             if (extension_loaded('imagick')) {
                 return $this->processPdfAsImage($file, $extractor);
             }
