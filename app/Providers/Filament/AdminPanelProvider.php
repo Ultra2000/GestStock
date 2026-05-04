@@ -182,6 +182,32 @@ class AdminPanelProvider extends PanelProvider
                 }
             )
             ->renderHook(
+                PanelsRenderHook::BODY_START,
+                function () {
+                    $message = \App\Models\AppSetting::get('banner_message', '');
+                    if (empty($message)) {
+                        return '';
+                    }
+                    $publishedAt = \App\Models\AppSetting::get('banner_published_at', '');
+                    $days        = (int) \App\Models\AppSetting::get('banner_days', 7);
+                    if ($publishedAt && now()->diffInDays(\Carbon\Carbon::parse($publishedAt), false) < -$days) {
+                        return ''; // bandeau expiré
+                    }
+                    $color = match (\App\Models\AppSetting::get('banner_color', 'info')) {
+                        'success' => 'bg-emerald-600',
+                        'warning' => 'bg-amber-500',
+                        'danger'  => 'bg-red-600',
+                        default   => 'bg-sky-600',
+                    };
+                    $escaped = e($message);
+                    return new HtmlString("
+                        <div class='{$color} text-white text-center text-sm py-2 px-4 font-medium'>
+                            {$escaped}
+                        </div>
+                    ");
+                }
+            )
+            ->renderHook(
                 PanelsRenderHook::HEAD_END,
                 fn () => new HtmlString('<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">')
             )

@@ -4,7 +4,10 @@ namespace App\Filament\Superadmin\Pages;
 
 use App\Models\AppSetting;
 use Filament\Actions\Action;
+use Filament\Forms\Components\ColorPicker;
 use Filament\Forms\Components\Section;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Forms\Contracts\HasForms;
@@ -28,7 +31,11 @@ class GlobalSettings extends Page implements HasForms
     public function mount(): void
     {
         $this->form->fill([
-            'trial_days' => AppSetting::get('trial_days', 180),
+            'trial_days'      => AppSetting::get('trial_days', 180),
+            'banner_message'  => AppSetting::get('banner_message', ''),
+            'banner_days'     => AppSetting::get('banner_days', 7),
+            'banner_color'    => AppSetting::get('banner_color', 'info'),
+            'banner_published_at' => AppSetting::get('banner_published_at', ''),
         ]);
     }
 
@@ -49,6 +56,42 @@ class GlobalSettings extends Page implements HasForms
                             ->required()
                             ->suffix('jours'),
                     ]),
+
+                Section::make('Bandeau d\'annonce')
+                    ->description('Affiche un bandeau en haut de l\'interface pour tous les utilisateurs. Vide = bandeau masqué.')
+                    ->icon('heroicon-o-megaphone')
+                    ->schema([
+                        Textarea::make('banner_message')
+                            ->label('Message du bandeau')
+                            ->helperText('Laissez vide pour désactiver le bandeau.')
+                            ->rows(2)
+                            ->maxLength(300),
+                        \Filament\Forms\Components\Grid::make(2)->schema([
+                            Select::make('banner_color')
+                                ->label('Couleur')
+                                ->options([
+                                    'info'    => 'Bleu (info)',
+                                    'success' => 'Vert (succès)',
+                                    'warning' => 'Orange (avertissement)',
+                                    'danger'  => 'Rouge (urgent)',
+                                ])
+                                ->default('info')
+                                ->required(),
+                            TextInput::make('banner_days')
+                                ->label('Durée d\'affichage')
+                                ->numeric()
+                                ->minValue(1)
+                                ->maxValue(365)
+                                ->default(7)
+                                ->required()
+                                ->suffix('jours')
+                                ->helperText('À partir de la date de publication.'),
+                        ]),
+                        TextInput::make('banner_published_at')
+                            ->label('Date de publication (YYYY-MM-DD)')
+                            ->helperText('Laissez vide pour utiliser aujourd\'hui au moment de la sauvegarde.')
+                            ->placeholder(now()->toDateString()),
+                    ]),
             ])
             ->statePath('data');
     }
@@ -58,6 +101,18 @@ class GlobalSettings extends Page implements HasForms
         $this->form->validate();
 
         AppSetting::set('trial_days', (int) $this->data['trial_days']);
+
+        // Bandeau
+        $message = trim($this->data['banner_message'] ?? '');
+        AppSetting::set('banner_message', $message);
+        AppSetting::set('banner_color', $this->data['banner_color'] ?? 'info');
+        AppSetting::set('banner_days', (int) ($this->data['banner_days'] ?? 7));
+
+        $publishedAt = trim($this->data['banner_published_at'] ?? '');
+        if (empty($publishedAt)) {
+            $publishedAt = now()->toDateString();
+        }
+        AppSetting::set('banner_published_at', $publishedAt);
 
         Notification::make()
             ->title('Paramètres sauvegardés')
