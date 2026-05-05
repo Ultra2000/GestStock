@@ -3,12 +3,16 @@
 namespace App\Http\Controllers;
 
 use App\Models\Inventory;
+use Filament\Facades\Filament;
 use Illuminate\Http\Response;
 
 class InventoryExportController extends Controller
 {
     public function exportExcel(Inventory $inventory): Response
     {
+        if ($inventory->company) {
+            Filament::setTenant($inventory->company);
+        }
         $this->authorize('view', $inventory);
 
         $inventory->load([
