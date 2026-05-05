@@ -7,7 +7,7 @@ use App\Services\AI\ClaudeExtractor;
 use Filament\Actions\Action;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\Page;
-use Livewire\Attributes\Computed;
+use Illuminate\Support\Facades\Log;
 use Livewire\WithFileUploads;
 use Smalot\PdfParser\Parser as PdfParser;
 
@@ -66,8 +66,13 @@ class ImportPurchaseInvoice extends Page
             } catch (\Throwable) {}
 
             // Nettoyer les caractères UTF-8 invalides issus du parseur PDF
-            // (ISO-8859-1, Windows-1252, octets orphelins…)
             $text = $this->sanitizeUtf8($text);
+
+            Log::info('ImportPurchaseInvoice: text extracted', [
+                'length'   => strlen($text),
+                'valid_utf8' => mb_check_encoding($text, 'UTF-8'),
+                'json_ok'  => json_encode($text) !== false,
+            ]);
 
             $extractor = new ClaudeExtractor();
 
@@ -108,22 +113,39 @@ class ImportPurchaseInvoice extends Page
     }
 
     /**
-     * Supprime les séquences UTF-8 invalides et les caractères de contrôle
-     * que json_encode refuse (erreur "Malformed UTF-8 characters").
+     * Garantit une chaîne 100 % compatible json_encode.
+     *
+     * Cascade de nettoyage :
+     *   1. Détection d'encodage et conversion vers UTF-8
+     *   2. iconv //IGNORE pour retirer les octets invalides résiduels
+     *   3. str_replace des caractères de contrôle (sans flag /u pour éviter null)
+     *   4. Garantie finale via JSON_INVALID_UTF8_SUBSTITUTE
      */
     private function sanitizeUtf8(string $text): string
     {
-        // 1. iconv supprime les octets invalides (ISO-8859-1 non déclarés, etc.)
+        // 1. Détecter l'encodage réel et convertir en UTF-8
+        $detected = mb_detect_encoding($text, ['UTF-8', 'ISO-8859-1', 'Windows-1252', 'ISO-8859-15'], true);
+        if ($detected && $detected !== 'UTF-8') {
+            $text = mb_convert_encoding($text, 'UTF-8', $detected);
+        }
+
+        // 2. iconv supprime les octets invalides restants
         $clean = @iconv('UTF-8', 'UTF-8//IGNORE', $text);
         if ($clean === false) {
-            // Fallback : re-encoder depuis ISO-8859-1
             $clean = mb_convert_encoding($text, 'UTF-8', 'ISO-8859-1');
         }
 
-        // 2. Retirer les caractères de contrôle ASCII interdits en JSON
-        //    (garder \t = 0x09, \n = 0x0A, \r = 0x0D)
-        $clean = preg_replace('/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/u', '', $clean);
+        // 3. Retirer les caractères de contrôle ASCII via str_replace
+        //    (évite le flag /u de preg_replace qui renvoie null si UTF-8 encore invalide)
+        $controls = array_map('chr', array_merge(range(0, 8), [11, 12], range(14, 31), [127]));
+        $clean = str_replace($controls, '', (string) $clean);
 
-        return $clean ?? '';
+        // 4. Garantie absolue : si json_encode échoue encore, on force via SUBSTITUTE
+        if (json_encode($clean) === false) {
+            $encoded = json_encode($clean, JSON_INVALID_UTF8_SUBSTITUTE);
+            $clean   = $encoded !== false ? (string) json_decode($encoded) : '';
+        }
+
+        return $clean;
     }
 }
