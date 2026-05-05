@@ -260,17 +260,30 @@
                         <label class="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">
                             Produit du catalogue
                         </label>
-                        <select
-                            wire:change="selectProduct({{ $i }}, $event.target.value)"
-                            class="w-full rounded-lg border {{ $isMapped ? 'border-emerald-300 dark:border-emerald-700' : 'border-gray-300 dark:border-gray-600' }} bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 text-sm px-3 py-2 focus:ring-2 focus:ring-violet-500 focus:border-violet-500"
-                        >
-                            <option value="">— Sélectionner un produit —</option>
-                            @foreach($this->products as $product)
-                                <option value="{{ $product->id }}" @selected((int)($line['product_id'] ?? 0) === $product->id)>
-                                    {{ $product->name }}@if($product->code) ({{ $product->code }})@endif
-                                </option>
-                            @endforeach
-                        </select>
+                        <div class="flex gap-2">
+                            <select
+                                wire:change="selectProduct({{ $i }}, $event.target.value)"
+                                class="flex-1 rounded-lg border {{ $isMapped ? 'border-emerald-300 dark:border-emerald-700' : 'border-gray-300 dark:border-gray-600' }} bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 text-sm px-3 py-2 focus:ring-2 focus:ring-violet-500 focus:border-violet-500"
+                            >
+                                <option value="">— Sélectionner un produit —</option>
+                                @foreach($this->products as $product)
+                                    <option value="{{ $product->id }}" @selected((int)($line['product_id'] ?? 0) === $product->id)>
+                                        {{ $product->name }}@if($product->code) ({{ $product->code }})@endif
+                                    </option>
+                                @endforeach
+                            </select>
+                            @if(!$isMapped)
+                                <button
+                                    type="button"
+                                    wire:click="openCreateProductModal({{ $i }})"
+                                    class="flex-shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-lg border border-violet-300 dark:border-violet-600 bg-violet-50 dark:bg-violet-900/30 text-violet-700 dark:text-violet-300 text-xs font-semibold hover:bg-violet-100 dark:hover:bg-violet-900/50 transition-colors"
+                                    title="Créer ce produit dans le catalogue"
+                                >
+                                    <x-heroicon-o-plus-circle class="w-4 h-4" />
+                                    Créer
+                                </button>
+                            @endif
+                        </div>
                     </div>
 
                     {{-- Champs éditables --}}
@@ -369,3 +382,145 @@
     @endif
 
 </x-filament-panels::page>
+
+{{-- ===== MODAL CRÉER UN PRODUIT ===== --}}
+@if($showCreateProductModal)
+    <div
+        x-data
+        x-init="document.body.classList.add('overflow-hidden')"
+        x-destroy="document.body.classList.remove('overflow-hidden')"
+        class="fixed inset-0 z-50 flex items-center justify-center p-4"
+    >
+        {{-- Backdrop --}}
+        <div
+            class="absolute inset-0 bg-gray-900/60 backdrop-blur-sm"
+            wire:click="closeCreateProductModal"
+        ></div>
+
+        {{-- Modal panel --}}
+        <div class="relative z-10 w-full max-w-lg bg-white dark:bg-gray-900 rounded-2xl shadow-2xl overflow-hidden">
+
+            {{-- Header --}}
+            <div class="flex items-center justify-between px-6 py-4 bg-violet-600 dark:bg-violet-700">
+                <div class="flex items-center gap-3">
+                    <x-heroicon-o-cube class="w-5 h-5 text-white" />
+                    <h2 class="text-base font-semibold text-white">Créer un nouveau produit</h2>
+                </div>
+                <button wire:click="closeCreateProductModal" class="text-white/70 hover:text-white transition-colors">
+                    <x-heroicon-o-x-mark class="w-5 h-5" />
+                </button>
+            </div>
+
+            {{-- Indication ligne source --}}
+            @if($newProductLineIndex >= 0 && isset($linesMappings[$newProductLineIndex]))
+                <div class="px-6 py-3 bg-violet-50 dark:bg-violet-900/20 border-b border-violet-100 dark:border-violet-800">
+                    <p class="text-xs text-violet-600 dark:text-violet-400 font-medium">
+                        Ligne IA : <span class="font-semibold">{{ $linesMappings[$newProductLineIndex]['description'] ?? '—' }}</span>
+                    </p>
+                </div>
+            @endif
+
+            {{-- Formulaire --}}
+            <div class="px-6 py-5 space-y-4">
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                        Nom du produit <span class="text-red-500">*</span>
+                    </label>
+                    <input
+                        type="text"
+                        wire:model="newProductName"
+                        placeholder="Ex : Vis M6 inox 20mm"
+                        class="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 text-sm px-3 py-2 focus:ring-2 focus:ring-violet-500"
+                    >
+                    @error('newProductName')
+                        <p class="text-xs text-red-600 dark:text-red-400 mt-1">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                        Code / Référence interne
+                    </label>
+                    <input
+                        type="text"
+                        wire:model="newProductCode"
+                        placeholder="Ex : VIS-M6-20 (optionnel)"
+                        class="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 text-sm px-3 py-2 focus:ring-2 focus:ring-violet-500"
+                    >
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                            Prix d'achat HT <span class="text-red-500">*</span>
+                        </label>
+                        <input
+                            type="number"
+                            step="0.0001"
+                            min="0"
+                            wire:model="newProductPurchasePrice"
+                            class="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 text-sm px-3 py-2 focus:ring-2 focus:ring-violet-500"
+                        >
+                        @error('newProductPurchasePrice')
+                            <p class="text-xs text-red-600 dark:text-red-400 mt-1">{{ $message }}</p>
+                        @enderror
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                            TVA achat %
+                        </label>
+                        <input
+                            type="number"
+                            step="0.1"
+                            min="0"
+                            max="100"
+                            wire:model="newProductVatRate"
+                            class="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 text-sm px-3 py-2 focus:ring-2 focus:ring-violet-500"
+                        >
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                        Prix de vente HT
+                        <span class="text-xs text-gray-400 font-normal">(optionnel — si vide : = prix d'achat)</span>
+                    </label>
+                    <input
+                        type="number"
+                        step="0.0001"
+                        min="0"
+                        wire:model="newProductSalePrice"
+                        placeholder="0.00"
+                        class="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 text-sm px-3 py-2 focus:ring-2 focus:ring-violet-500"
+                    >
+                </div>
+
+                {{-- Aperçu prix TTC --}}
+                @php
+                    $previewTtc = round((float)$newProductPurchasePrice * (1 + (float)$newProductVatRate / 100), 2);
+                @endphp
+                @if($newProductPurchasePrice > 0)
+                    <div class="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-800 rounded-lg px-3 py-2">
+                        <x-heroicon-o-calculator class="w-4 h-4" />
+                        Prix d'achat TTC calculé :
+                        <strong class="text-gray-700 dark:text-gray-300">
+                            {{ number_format($previewTtc, 2, ',', ' ') }} {{ $extractedData['invoice']['currency'] ?? 'EUR' }}
+                        </strong>
+                    </div>
+                @endif
+            </div>
+
+            {{-- Footer --}}
+            <div class="flex justify-end gap-3 px-6 py-4 bg-gray-50 dark:bg-gray-800/50 border-t border-gray-200 dark:border-gray-700">
+                <x-filament::button color="gray" wire:click="closeCreateProductModal">
+                    Annuler
+                </x-filament::button>
+                <x-filament::button color="primary" icon="heroicon-o-check" wire:click="createProduct">
+                    Créer et associer
+                </x-filament::button>
+            </div>
+
+        </div>
+    </div>
+@endif

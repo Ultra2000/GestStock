@@ -35,6 +35,15 @@ class ImportPurchaseInvoice extends Page
     public float $globalDiscountPercent = 0.0;
     public ?float $globalDiscountAmount = null;
 
+    // Modal "Créer ce produit"
+    public bool $showCreateProductModal = false;
+    public int  $newProductLineIndex    = -1;
+    public string $newProductName         = '';
+    public string $newProductCode         = '';
+    public float  $newProductPurchasePrice = 0.0;
+    public float  $newProductVatRate       = 20.0;
+    public float  $newProductSalePrice     = 0.0;
+
     protected function getHeaderActions(): array
     {
         return [
@@ -258,6 +267,77 @@ class ImportPurchaseInvoice extends Page
         $this->supplierId            = null;
         $this->globalDiscountPercent = 0.0;
         $this->globalDiscountAmount  = null;
+    }
+
+    public function openCreateProductModal(int $lineIndex): void
+    {
+        $line = $this->linesMappings[$lineIndex] ?? null;
+        if (!$line) return;
+
+        $this->newProductLineIndex     = $lineIndex;
+        $this->newProductName          = $line['description'] ?? '';
+        $this->newProductCode          = '';
+        $this->newProductPurchasePrice = (float) ($line['unit_price'] ?? 0);
+        $this->newProductVatRate       = (float) ($line['vat_rate'] ?? 20);
+        $this->newProductSalePrice     = 0.0;
+        $this->showCreateProductModal  = true;
+        $this->resetValidation();
+    }
+
+    public function closeCreateProductModal(): void
+    {
+        $this->showCreateProductModal = false;
+    }
+
+    public function createProduct(): void
+    {
+        $this->validate([
+            'newProductName'          => ['required', 'string', 'min:2'],
+            'newProductPurchasePrice' => ['required', 'numeric', 'min:0'],
+            'newProductVatRate'       => ['required', 'numeric', 'min:0', 'max:100'],
+        ], [
+            'newProductName.required' => 'Le nom du produit est obligatoire.',
+            'newProductName.min'      => 'Le nom doit comporter au moins 2 caractères.',
+            'newProductPurchasePrice.required' => 'Le prix d\'achat est obligatoire.',
+        ]);
+
+        $priceHt  = round((float) $this->newProductPurchasePrice, 4);
+        $vatRate  = (float) $this->newProductVatRate;
+        $priceTtc = round($priceHt * (1 + $vatRate / 100), 2);
+
+        $saleHt  = (float) $this->newProductSalePrice > 0
+            ? round((float) $this->newProductSalePrice, 4)
+            : $priceHt;
+        $saleTtc = round($saleHt * (1 + $vatRate / 100), 2);
+
+        $product = Product::create([
+            'name'              => trim($this->newProductName),
+            'code'              => $this->newProductCode ?: null,
+            'purchase_price_ht' => $priceHt,
+            'purchase_price'    => $priceTtc,
+            'vat_rate_purchase' => $vatRate,
+            'sale_price_ht'     => $saleHt,
+            'price'             => $saleTtc,
+            'vat_rate_sale'     => $vatRate,
+            'supplier_id'       => $this->supplierId ?: null,
+            'stock'             => 0,
+        ]);
+
+        // Associer le nouveau produit à la ligne
+        $this->linesMappings[$this->newProductLineIndex]['product_id'] = $product->id;
+        $this->linesMappings[$this->newProductLineIndex]['unit_price']  = $priceHt;
+        $this->linesMappings[$this->newProductLineIndex]['vat_rate']    = $vatRate;
+
+        $this->showCreateProductModal = false;
+
+        // Invalider le cache du computed pour que le nouveau produit apparaisse
+        unset($this->products);
+
+        Notification::make()
+            ->title('Produit créé')
+            ->body("« {$product->name} » ajouté au catalogue et associé à la ligne.")
+            ->success()
+            ->send();
     }
 
     public function getMappedLinesCount(): int
