@@ -17,62 +17,6 @@
 }
 
 /* ============================================
-   LIGHT MODE - Topbar & Sidebar colorés
-   ============================================ */
-
-/* Le fond blanc est sur le <nav> interne, pas sur .fi-topbar */
-.fi-topbar nav {
-    background: linear-gradient(135deg, #4f46e5 0%, #6366f1 60%, #7c3aed 100%) !important;
-    border-bottom: none !important;
-    box-shadow: 0 2px 12px rgba(99, 102, 241, 0.25) !important;
-    --tw-ring-shadow: none !important;
-    --tw-ring-color: transparent !important;
-}
-
-/* Texte et icônes de la topbar en blanc */
-.fi-topbar nav *,
-.fi-topbar nav button,
-.fi-topbar nav svg,
-.fi-topbar nav a {
-    color: rgba(255, 255, 255, 0.9) !important;
-}
-
-.fi-topbar nav button:hover,
-.fi-topbar nav a:hover {
-    color: #ffffff !important;
-    background: rgba(255, 255, 255, 0.12) !important;
-    border-radius: 0.5rem;
-}
-
-/* Sidebar header (logo) */
-.fi-sidebar-header {
-    background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%) !important;
-    border-bottom: none !important;
-}
-
-/* Item actif */
-.fi-sidebar-item-button:hover {
-    background: rgba(99, 102, 241, 0.08) !important;
-}
-
-.fi-sidebar-item-active .fi-sidebar-item-button,
-.fi-sidebar-item-button[aria-current="page"] {
-    background: rgba(99, 102, 241, 0.1) !important;
-    border-left: 3px solid #6366f1 !important;
-}
-
-.fi-sidebar-item-active .fi-sidebar-item-label,
-.fi-sidebar-item-button[aria-current="page"] .fi-sidebar-item-label {
-    color: #4f46e5 !important;
-    font-weight: 600 !important;
-}
-
-.fi-sidebar-item-active .fi-sidebar-item-icon,
-.fi-sidebar-item-button[aria-current="page"] .fi-sidebar-item-icon {
-    color: #6366f1 !important;
-}
-
-/* ============================================
    DARK MODE ONLY - Landing Page Style
    ============================================ */
 
