@@ -146,37 +146,37 @@ class Quote extends Model
             'accepted_at' => now(),
         ]);
 
-        $this->load(['company', 'customer']);
+        try {
+            $this->load(['company', 'customer']);
 
-        // Email à l'entreprise
-        $companyEmail = $this->company?->email;
-        if ($companyEmail) {
-            try {
+            // Email à l'entreprise
+            $companyEmail = $this->company?->email;
+            if ($companyEmail) {
                 Mail::to($companyEmail)->send(new QuoteAcceptedMail($this));
-            } catch (\Throwable $e) {
-                \Log::error("QuoteAccepted mail failed: " . $e->getMessage());
             }
-        }
 
-        // Notification in-app pour tous les utilisateurs de l'entreprise
-        $users = $this->company?->users ?? collect();
-        $notification = Notification::make()
-            ->title('Devis accepté')
-            ->body("Le devis {$this->quote_number} a été accepté par {$this->customer?->name}.")
-            ->icon('heroicon-o-check-badge')
-            ->iconColor('success')
-            ->actions([
-                \Filament\Notifications\Actions\Action::make('voir')
-                    ->label('Voir le devis')
-                    ->url(route('filament.admin.resources.quotes.edit', [
-                        'tenant' => $this->company_id,
-                        'record' => $this->id,
-                    ]))
-                    ->button(),
-            ]);
+            // Notification in-app pour tous les utilisateurs de l'entreprise
+            $users = \App\Models\User::whereHas('companies', fn ($q) => $q->where('companies.id', $this->company_id))->get();
 
-        foreach ($users as $user) {
-            $notification->sendToDatabase($user);
+            $quoteUrl = url("/admin/{$this->company_id}/quotes/{$this->id}/edit");
+
+            $notification = Notification::make()
+                ->title('Devis accepté')
+                ->body("Le devis {$this->quote_number} a été accepté par {$this->customer?->name}.")
+                ->icon('heroicon-o-check-badge')
+                ->iconColor('success')
+                ->actions([
+                    \Filament\Notifications\Actions\Action::make('voir')
+                        ->label('Voir le devis')
+                        ->url($quoteUrl)
+                        ->button(),
+                ]);
+
+            foreach ($users as $user) {
+                $notification->sendToDatabase($user);
+            }
+        } catch (\Throwable $e) {
+            \Log::error("Quote accept notifications failed: " . $e->getMessage());
         }
     }
 
