@@ -17,7 +17,7 @@
 /public/hot
 /public/storage
 /storage/*.key
-/storage/fonts/
+# /storage/fonts/ — inclus pour que DomPDF puisse écrire le cache des polices
 /storage/pail
 /vendor
 Homestead.json
