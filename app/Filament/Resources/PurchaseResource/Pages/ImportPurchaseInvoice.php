@@ -149,7 +149,8 @@ class ImportPurchaseInvoice extends Page
 
     /**
      * Initialise les lignes de mapping.
-     * Sépare les lignes-remises globales des lignes articles normales.
+     * Sépare les lignes-remises globales, calcule les remises implicites par ligne,
+     * puis tente un auto-matching avec les produits du catalogue.
      */
     private function initMappings(array $data): void
     {
@@ -160,7 +161,6 @@ class ImportPurchaseInvoice extends Page
             if ($this->isGlobalDiscountLine($line)) {
                 $discountAmount += abs((float) ($line['total_ht'] ?? $line['unit_price_ht'] ?? 0));
             } else {
-                // Détecter la remise implicite par ligne : si total_ht < qty * unit_price
                 $qty     = (float) ($line['quantity'] ?? 1);
                 $pu      = (float) ($line['unit_price_ht'] ?? 0);
                 $totalHt = (float) ($line['total_ht'] ?? 0);
@@ -171,19 +171,20 @@ class ImportPurchaseInvoice extends Page
                     : 0.0;
 
                 $regularLines[] = [
-                    'product_id'       => null,
-                    'description'      => $line['description'] ?? '',
-                    'quantity'         => $qty,
-                    'unit_price'       => $pu,
-                    'discount_percent' => $discountPercent,
-                    'vat_rate'         => (float) ($line['vat_rate'] ?? 20),
+                    'product_id'        => null,
+                    'description'       => $line['description'] ?? '',
+                    'quantity'          => $qty,
+                    'unit_price'        => $pu,
+                    'discount_percent'  => $discountPercent,
+                    'vat_rate'          => (float) ($line['vat_rate'] ?? 20),
+                    'match_confidence'  => 0,
+                    'match_auto'        => false,
                 ];
             }
         }
 
         $this->linesMappings = $regularLines;
 
-        // Convertir le montant de remise globale en pourcentage du sous-total HT
         if ($discountAmount > 0) {
             $subtotal = collect($regularLines)->sum(
                 fn ($l) => $l['quantity'] * $l['unit_price'] * (1 - $l['discount_percent'] / 100)
@@ -193,6 +194,99 @@ class ImportPurchaseInvoice extends Page
                 ? round(($discountAmount / ($subtotal + $discountAmount)) * 100, 2)
                 : 0.0;
         }
+
+        // Auto-matching : chercher les correspondances dans le catalogue
+        $this->autoMatchProducts();
+    }
+
+    /**
+     * Pour chaque ligne, tente de trouver le produit correspondant dans le catalogue.
+     * Charge tous les produits une seule fois pour éviter les requêtes N+1.
+     */
+    private function autoMatchProducts(): void
+    {
+        $products = Product::get(['id', 'name', 'code', 'purchase_price_ht', 'vat_rate_purchase']);
+        if ($products->isEmpty()) return;
+
+        foreach ($this->linesMappings as $i => $line) {
+            $match = $this->findBestProductMatch($line['description'], $products);
+            if (!$match) continue;
+
+            $product = $match['product'];
+            $this->linesMappings[$i]['product_id']       = $product->id;
+            $this->linesMappings[$i]['match_confidence']  = $match['confidence'];
+            $this->linesMappings[$i]['match_auto']        = true;
+
+            // Remplacer les prix uniquement si la fiche produit est renseignée
+            if ($product->purchase_price_ht > 0) {
+                $this->linesMappings[$i]['unit_price'] = (float) $product->purchase_price_ht;
+            }
+            if ($product->vat_rate_purchase) {
+                $this->linesMappings[$i]['vat_rate'] = (float) $product->vat_rate_purchase;
+            }
+        }
+    }
+
+    /**
+     * Retourne le meilleur produit correspondant à une description IA.
+     * Stratégie : exact → code → contenu → similarité ≥ 78 %.
+     */
+    private function findBestProductMatch(string $description, $products): ?array
+    {
+        $desc = $this->normalizeForMatching($description);
+        if (strlen($desc) < 2) return null;
+
+        $bestScore   = 0;
+        $bestProduct = null;
+
+        foreach ($products as $product) {
+            $name = $this->normalizeForMatching($product->name ?? '');
+            $code = $this->normalizeForMatching($product->code ?? '');
+
+            // Correspondance exacte (100 %)
+            if ($name === $desc || ($code && $code === $desc)) {
+                return ['product' => $product, 'confidence' => 100];
+            }
+
+            // Le code produit est contenu dans la description (95 %)
+            if ($code && str_contains($desc, $code)) {
+                if (95 > $bestScore) { $bestScore = 95; $bestProduct = $product; }
+                continue;
+            }
+
+            // Inclusion réciproque (88 %)
+            if (str_contains($desc, $name) || str_contains($name, $desc)) {
+                if (88 > $bestScore) { $bestScore = 88; $bestProduct = $product; }
+                continue;
+            }
+
+            // Similarité caractère par caractère
+            similar_text($desc, $name, $percent);
+            if ($percent > $bestScore) {
+                $bestScore   = $percent;
+                $bestProduct = $product;
+            }
+        }
+
+        // Seuil minimum pour éviter les faux positifs
+        if ($bestScore >= 78 && $bestProduct) {
+            return ['product' => $bestProduct, 'confidence' => (int) round($bestScore)];
+        }
+
+        return null;
+    }
+
+    /**
+     * Normalise une chaîne pour la comparaison :
+     * minuscules, suppression des accents et caractères spéciaux.
+     */
+    private function normalizeForMatching(string $str): string
+    {
+        $str = mb_strtolower(trim($str));
+        $normalized = iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $str);
+        $str = ($normalized !== false && $normalized !== '') ? $normalized : $str;
+        $str = preg_replace('/[^a-z0-9\s]/', ' ', $str) ?? $str;
+        return trim(preg_replace('/\s+/', ' ', $str) ?? $str);
     }
 
     /**

@@ -240,7 +240,7 @@
 
                     {{-- Label IA --}}
                     <div class="flex items-start justify-between gap-3 mb-3">
-                        <div class="flex items-center gap-2 min-w-0">
+                        <div class="flex items-center gap-2 min-w-0 flex-1">
                             <span class="flex-shrink-0 w-6 h-6 rounded-full bg-violet-100 dark:bg-violet-900/40 text-violet-600 dark:text-violet-400 flex items-center justify-center text-xs font-bold">
                                 {{ $i + 1 }}
                             </span>
@@ -248,11 +248,20 @@
                                 {{ $line['description'] ?: '(sans description)' }}
                             </span>
                         </div>
-                        @if($isMapped)
-                            <x-heroicon-o-check-circle class="w-5 h-5 text-emerald-500 flex-shrink-0" />
-                        @else
-                            <x-heroicon-o-exclamation-circle class="w-5 h-5 text-amber-400 flex-shrink-0" />
-                        @endif
+                        <div class="flex items-center gap-2 flex-shrink-0">
+                            @if($isMapped && ($line['match_auto'] ?? false))
+                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300"
+                                      title="Correspondance automatique trouvée">
+                                    <x-heroicon-o-sparkles class="w-3 h-3" />
+                                    Auto {{ $line['match_confidence'] ?? '' }}%
+                                </span>
+                            @endif
+                            @if($isMapped)
+                                <x-heroicon-o-check-circle class="w-5 h-5 text-emerald-500" />
+                            @else
+                                <x-heroicon-o-exclamation-circle class="w-5 h-5 text-amber-400" />
+                            @endif
+                        </div>
                     </div>
 
                     {{-- Sélecteur produit --}}
