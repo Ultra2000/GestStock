@@ -6,7 +6,8 @@
     <title>Bon d'achat {{ $purchase->invoice_number }}</title>
     <style>
         @page {
-            margin: 20mm 18mm 25mm 18mm;
+            size: A4;
+            margin: 25mm 22mm 30mm 22mm;
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
