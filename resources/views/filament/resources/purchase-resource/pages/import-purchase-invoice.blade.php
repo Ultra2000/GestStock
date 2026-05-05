@@ -10,7 +10,7 @@
                 </div>
             </x-slot>
             <x-slot name="description">
-                L'intelligence artificielle (Claude) va lire votre facture PDF et en extraire automatiquement les lignes articles, quantités, prix et TVA.
+                L'intelligence artificielle (Claude) va lire votre document (PDF ou image) et en extraire automatiquement les lignes articles, quantités, prix et TVA.
             </x-slot>
 
             <form wire:submit="extract" class="space-y-6">
@@ -30,7 +30,7 @@
                         <p class="text-sm font-semibold text-gray-700 dark:text-gray-200">
                             Cliquez ou déposez votre PDF ici
                         </p>
-                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">PDF uniquement · max 10 Mo</p>
+                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">PDF, JPEG, PNG, WebP · max 10 Mo</p>
                     </div>
 
                     @if($pdfFile)
@@ -44,7 +44,7 @@
                         id="pdfInput"
                         type="file"
                         wire:model="pdfFile"
-                        accept=".pdf,application/pdf"
+                        accept=".pdf,.jpg,.jpeg,.png,.webp,.gif,application/pdf,image/*"
                         class="absolute inset-0 opacity-0 cursor-pointer"
                         onclick="event.stopPropagation()"
                     >

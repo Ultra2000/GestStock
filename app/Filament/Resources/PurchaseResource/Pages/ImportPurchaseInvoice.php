@@ -38,10 +38,10 @@ class ImportPurchaseInvoice extends Page
     public function extract(): void
     {
         $this->validate([
-            'pdfFile' => ['required', 'file', 'mimes:pdf', 'max:10240'],
+            'pdfFile' => ['required', 'file', 'mimes:pdf,jpg,jpeg,png,webp,gif', 'max:10240'],
         ], [
-            'pdfFile.required' => 'Sélectionnez un fichier PDF.',
-            'pdfFile.mimes'    => 'Le fichier doit être au format PDF.',
+            'pdfFile.required' => 'Sélectionnez un fichier.',
+            'pdfFile.mimes'    => 'Formats acceptés : PDF, JPEG, PNG, WebP.',
             'pdfFile.max'      => 'Le fichier ne doit pas dépasser 10 Mo.',
         ]);
 
@@ -56,32 +56,39 @@ class ImportPurchaseInvoice extends Page
             }
 
             $realPath = $this->pdfFile->getRealPath();
-
-            // Tenter l'extraction texte du PDF
-            $text = '';
-            try {
-                $parser = new PdfParser();
-                $pdf    = $parser->parseFile($realPath);
-                $text   = $pdf->getText();
-            } catch (\Throwable) {}
-
-            // Nettoyer les caractères UTF-8 invalides issus du parseur PDF
-            $text = $this->sanitizeUtf8($text);
-
-            Log::info('ImportPurchaseInvoice: text extracted', [
-                'length'   => strlen($text),
-                'valid_utf8' => mb_check_encoding($text, 'UTF-8'),
-                'json_ok'  => json_encode($text) !== false,
-            ]);
-
+            $mimeType = $this->pdfFile->getMimeType() ?? 'application/octet-stream';
             $extractor = new ClaudeExtractor();
 
-            if (strlen(trim($text)) >= 50) {
-                $data = $extractor->extractInvoiceData($text, 'application/pdf');
-            } else {
-                // PDF scanné / image → envoi base64 natif à Claude
+            Log::info('ImportPurchaseInvoice: processing file', ['mime' => $mimeType]);
+
+            if (str_starts_with($mimeType, 'image/')) {
+                // Fichier image (JPEG, PNG, WebP…) → envoi direct à Claude Vision
                 $base64 = base64_encode(file_get_contents($realPath));
-                $data   = $extractor->extractFromPdf($base64);
+                $data   = $extractor->extractFromImage($base64, $mimeType);
+            } else {
+                // PDF : tenter l'extraction texte d'abord
+                $text = '';
+                try {
+                    $parser = new PdfParser();
+                    $pdf    = $parser->parseFile($realPath);
+                    $text   = $pdf->getText();
+                } catch (\Throwable) {}
+
+                $text = $this->sanitizeUtf8($text);
+
+                Log::info('ImportPurchaseInvoice: text extracted', [
+                    'length'     => strlen($text),
+                    'valid_utf8' => mb_check_encoding($text, 'UTF-8'),
+                    'json_ok'    => json_encode($text) !== false,
+                ]);
+
+                if (strlen(trim($text)) >= 50) {
+                    $data = $extractor->extractInvoiceData($text, 'application/pdf');
+                } else {
+                    // PDF scanné → envoi base64 natif à Claude
+                    $base64 = base64_encode(file_get_contents($realPath));
+                    $data   = $extractor->extractFromPdf($base64);
+                }
             }
 
             $this->extractedData = $data;
