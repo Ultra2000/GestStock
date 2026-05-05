@@ -65,6 +65,10 @@ class ImportPurchaseInvoice extends Page
                 $text   = $pdf->getText();
             } catch (\Throwable) {}
 
+            // Nettoyer les caractères UTF-8 invalides issus du parseur PDF
+            // (ISO-8859-1, Windows-1252, octets orphelins…)
+            $text = $this->sanitizeUtf8($text);
+
             $extractor = new ClaudeExtractor();
 
             if (strlen(trim($text)) >= 50) {
@@ -98,8 +102,28 @@ class ImportPurchaseInvoice extends Page
 
     public function resetExtraction(): void
     {
-        $this->pdfFile      = null;
+        $this->pdfFile       = null;
         $this->extractedData = null;
-        $this->errorMessage = null;
+        $this->errorMessage  = null;
+    }
+
+    /**
+     * Supprime les séquences UTF-8 invalides et les caractères de contrôle
+     * que json_encode refuse (erreur "Malformed UTF-8 characters").
+     */
+    private function sanitizeUtf8(string $text): string
+    {
+        // 1. iconv supprime les octets invalides (ISO-8859-1 non déclarés, etc.)
+        $clean = @iconv('UTF-8', 'UTF-8//IGNORE', $text);
+        if ($clean === false) {
+            // Fallback : re-encoder depuis ISO-8859-1
+            $clean = mb_convert_encoding($text, 'UTF-8', 'ISO-8859-1');
+        }
+
+        // 2. Retirer les caractères de contrôle ASCII interdits en JSON
+        //    (garder \t = 0x09, \n = 0x0A, \r = 0x0D)
+        $clean = preg_replace('/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/u', '', $clean);
+
+        return $clean ?? '';
     }
 }
