@@ -124,15 +124,16 @@ class GlobalSettings extends Page implements HasForms
         // Envoi email aux admins si demandé
         if (!empty($this->data['send_email']) && !empty($message)) {
             $sent = 0;
-            Company::with('users')->get()->each(function (Company $company) use ($message, &$sent) {
-                $admins = $company->users->filter(fn ($u) => $u->isAdminOf($company));
-                foreach ($admins as $admin) {
-                    if (!$admin->email) continue;
+            $alreadySent = [];
+            Company::with('users')->get()->each(function (Company $company) use ($message, &$sent, &$alreadySent) {
+                foreach ($company->users as $user) {
+                    if (!$user->email || in_array($user->email, $alreadySent)) continue;
                     try {
-                        Mail::to($admin->email)->send(new AnnouncementBanner($message, $admin->name));
+                        Mail::to($user->email)->send(new AnnouncementBanner($message, $user->name));
                         $sent++;
+                        $alreadySent[] = $user->email;
                     } catch (\Throwable $e) {
-                        \Illuminate\Support\Facades\Log::warning("AnnouncementBanner: failed to send to {$admin->email} — " . $e->getMessage());
+                        \Illuminate\Support\Facades\Log::warning("AnnouncementBanner: failed to send to {$user->email} — " . $e->getMessage());
                     }
                 }
             });
