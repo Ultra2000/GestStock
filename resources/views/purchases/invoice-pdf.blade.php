@@ -7,7 +7,7 @@
     <style>
         @page {
             size: A4;
-            margin: 25mm 22mm 30mm 22mm;
+            margin: 0;
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -17,6 +17,7 @@
             font-size: 10px;
             color: #1e293b;
             line-height: 1.5;
+            padding: 20mm 18mm 25mm 18mm;
         }
 
         /* ===== BANDE TYPE DOCUMENT ===== */
