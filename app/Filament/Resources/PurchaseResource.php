@@ -352,9 +352,10 @@ class PurchaseResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListPurchases::route('/'),
-            'create' => Pages\CreatePurchase::route('/create'),
-            'edit' => Pages\EditPurchase::route('/{record}/edit'),
+            'index'      => Pages\ListPurchases::route('/'),
+            'create'     => Pages\CreatePurchase::route('/create'),
+            'edit'       => Pages\EditPurchase::route('/{record}/edit'),
+            'import-pdf' => Pages\ImportPurchaseInvoice::route('/import-pdf'),
         ];
     }
 } 
