@@ -104,15 +104,15 @@ class PurchaseItem extends Model
      */
     public function calculateVat(): void
     {
-        // Le prix unitaire est considéré comme HT
-        $this->unit_price_ht = $this->unit_price;
-        $this->total_price_ht = $this->quantity * $this->unit_price_ht;
-        
-        // Calculer la TVA déductible
-        $vatRate = $this->vat_rate ?? 20;
+        $this->unit_price_ht  = $this->unit_price;
+        $discountRate         = (float) ($this->discount_percent ?? 0);
+        $grossHt              = $this->quantity * $this->unit_price_ht;
+
+        $this->discount_amount = round($grossHt * ($discountRate / 100), 2);
+        $this->total_price_ht  = round($grossHt * (1 - $discountRate / 100), 2);
+
+        $vatRate          = (float) ($this->vat_rate ?? 20);
         $this->vat_amount = round($this->total_price_ht * ($vatRate / 100), 2);
-        
-        // Total TTC
         $this->total_price = $this->total_price_ht + $this->vat_amount;
     }
 
