@@ -4,11 +4,16 @@ namespace App\Filament\Resources\PurchaseResource\Pages;
 
 use App\Filament\Resources\PurchaseResource;
 use App\Models\Product;
+use App\Models\Purchase;
+use App\Models\PurchaseItem;
 use App\Models\Supplier;
+use App\Models\Warehouse;
 use App\Services\AI\ClaudeExtractor;
 use Filament\Actions\Action;
+use Filament\Facades\Filament;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\Page;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Livewire\Attributes\Computed;
 use Livewire\WithFileUploads;
@@ -437,6 +442,84 @@ class ImportPurchaseInvoice extends Page
     public function getMappedLinesCount(): int
     {
         return collect($this->linesMappings)->filter(fn ($l) => !empty($l['product_id']))->count();
+    }
+
+    public function createPurchaseOrder(): void
+    {
+        if (!$this->supplierId) {
+            Notification::make()->title('Fournisseur requis')->body('Choisissez un fournisseur avant de créer le bon d\'achat.')->warning()->send();
+            return;
+        }
+
+        $mappedLines = collect($this->linesMappings)->filter(fn ($l) => !empty($l['product_id']));
+        if ($mappedLines->isEmpty()) {
+            Notification::make()->title('Aucune ligne associée')->body('Associez au moins un article à un produit du catalogue.')->warning()->send();
+            return;
+        }
+
+        $companyId = Filament::getTenant()?->id;
+        if (!$companyId) {
+            Notification::make()->title('Erreur')->body('Aucune entreprise active.')->danger()->send();
+            return;
+        }
+
+        try {
+            $purchase = DB::transaction(function () use ($companyId, $mappedLines) {
+                $warehouseId = Warehouse::getDefault($companyId)?->id;
+
+                $purchase = Purchase::create([
+                    'company_id'       => $companyId,
+                    'supplier_id'      => $this->supplierId,
+                    'warehouse_id'     => $warehouseId,
+                    'status'           => 'pending',
+                    'payment_method'   => 'transfer',
+                    'discount_percent' => $this->globalDiscountPercent,
+                    'notes'            => 'Importé depuis facture fournisseur',
+                ]);
+
+                foreach ($mappedLines as $line) {
+                    $qty      = (float) ($line['quantity'] ?? 1);
+                    $puHt     = (float) ($line['unit_price'] ?? 0);
+                    $disc     = (float) ($line['discount_percent'] ?? 0);
+                    $vatRate  = (float) ($line['vat_rate'] ?? 20);
+
+                    $totalHt  = round($qty * $puHt * (1 - $disc / 100), 4);
+                    $vatAmt   = round($totalHt * ($vatRate / 100), 4);
+                    $totalTtc = round($totalHt + $vatAmt, 2);
+                    $discAmt  = round($qty * $puHt * ($disc / 100), 4);
+
+                    PurchaseItem::create([
+                        'purchase_id'      => $purchase->id,
+                        'product_id'       => $line['product_id'],
+                        'quantity'         => $qty,
+                        'unit_price_ht'    => $puHt,
+                        'unit_price'       => round($puHt * (1 + $vatRate / 100), 4),
+                        'discount_percent' => $disc,
+                        'discount_amount'  => $discAmt,
+                        'vat_rate'         => $vatRate,
+                        'vat_amount'       => $vatAmt,
+                        'total_price_ht'   => $totalHt,
+                        'total_price'      => $totalTtc,
+                    ]);
+                }
+
+                $purchase->recalculateTotals();
+
+                return $purchase;
+            });
+
+            Notification::make()
+                ->title('Bon d\'achat créé')
+                ->body("Bon d'achat {$purchase->invoice_number} créé avec succès.")
+                ->success()
+                ->send();
+
+            $this->redirect(PurchaseResource::getUrl('edit', ['record' => $purchase->id, 'tenant' => Filament::getTenant()]));
+
+        } catch (\Throwable $e) {
+            Log::error('ImportPurchaseInvoice: createPurchaseOrder failed', ['error' => $e->getMessage()]);
+            Notification::make()->title('Erreur création')->body($e->getMessage())->danger()->send();
+        }
     }
 
     /**

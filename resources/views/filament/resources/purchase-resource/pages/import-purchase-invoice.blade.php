@@ -380,6 +380,7 @@
             <x-filament::button
                 color="primary"
                 icon="heroicon-o-shopping-bag"
+                wire:click="createPurchaseOrder"
                 :disabled="$mappedCount === 0 || !$supplierId"
                 title="{{ $mappedCount === 0 ? 'Associez des produits' : (!$supplierId ? 'Choisissez un fournisseur' : 'Créer le bon d\'achat') }}"
             >
