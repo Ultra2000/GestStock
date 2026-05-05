@@ -20,40 +20,37 @@
    LIGHT MODE - Topbar & Sidebar colorés
    ============================================ */
 
-.fi-topbar {
+/* Le fond blanc est sur le <nav> interne, pas sur .fi-topbar */
+.fi-topbar nav {
     background: linear-gradient(135deg, #4f46e5 0%, #6366f1 60%, #7c3aed 100%) !important;
     border-bottom: none !important;
     box-shadow: 0 2px 12px rgba(99, 102, 241, 0.25) !important;
+    --tw-ring-shadow: none !important;
+    --tw-ring-color: transparent !important;
 }
 
 /* Texte et icônes de la topbar en blanc */
-.fi-topbar nav,
-.fi-topbar .fi-breadcrumbs,
-.fi-topbar .fi-breadcrumbs a,
-.fi-topbar .fi-breadcrumbs li,
-.fi-topbar button,
-.fi-topbar svg {
+.fi-topbar nav *,
+.fi-topbar nav button,
+.fi-topbar nav svg,
+.fi-topbar nav a {
     color: rgba(255, 255, 255, 0.9) !important;
 }
 
-.fi-topbar button:hover svg,
-.fi-topbar button:hover {
+.fi-topbar nav button:hover,
+.fi-topbar nav a:hover {
     color: #ffffff !important;
     background: rgba(255, 255, 255, 0.12) !important;
+    border-radius: 0.5rem;
 }
 
-/* Sidebar light mode */
-.fi-sidebar {
-    background: #ffffff !important;
-    border-right: 1px solid #e5e7eb !important;
-    box-shadow: 2px 0 8px rgba(99, 102, 241, 0.06) !important;
-}
-
+/* Sidebar header (logo) */
 .fi-sidebar-header {
     background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%) !important;
     border-bottom: none !important;
 }
 
+/* Item actif */
 .fi-sidebar-item-button:hover {
     background: rgba(99, 102, 241, 0.08) !important;
 }
