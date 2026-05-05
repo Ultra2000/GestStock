@@ -31,6 +31,10 @@ class ImportPurchaseInvoice extends Page
     public ?int $supplierId = null;
     public array $linesMappings = [];
 
+    // Remise globale détectée (ligne-remise dans la facture fournisseur)
+    public float $globalDiscountPercent = 0.0;
+    public ?float $globalDiscountAmount = null;
+
     protected function getHeaderActions(): array
     {
         return [
@@ -64,11 +68,13 @@ class ImportPurchaseInvoice extends Page
             'pdfFile.max'      => 'Le fichier ne doit pas dépasser 10 Mo.',
         ]);
 
-        $this->isExtracting = true;
-        $this->extractedData = null;
-        $this->errorMessage  = null;
-        $this->linesMappings = [];
-        $this->supplierId    = null;
+        $this->isExtracting          = true;
+        $this->extractedData         = null;
+        $this->errorMessage          = null;
+        $this->linesMappings         = [];
+        $this->supplierId            = null;
+        $this->globalDiscountPercent = 0.0;
+        $this->globalDiscountAmount  = null;
 
         try {
             $apiKey = config('services.ai.claude.api_key');
@@ -133,18 +139,77 @@ class ImportPurchaseInvoice extends Page
     }
 
     /**
-     * Initialise les lignes de mapping depuis les lignes extraites par l'IA.
+     * Initialise les lignes de mapping.
+     * Sépare les lignes-remises globales des lignes articles normales.
      */
     private function initMappings(array $data): void
     {
-        $this->linesMappings = collect($data['lines'] ?? [])->map(fn ($line) => [
-            'product_id'       => null,
-            'description'      => $line['description'] ?? '',
-            'quantity'         => (float) ($line['quantity'] ?? 1),
-            'unit_price'       => (float) ($line['unit_price_ht'] ?? 0),
-            'discount_percent' => 0.0,
-            'vat_rate'         => (float) ($line['vat_rate'] ?? 20),
-        ])->toArray();
+        $regularLines   = [];
+        $discountAmount = 0.0;
+
+        foreach ($data['lines'] ?? [] as $line) {
+            if ($this->isGlobalDiscountLine($line)) {
+                $discountAmount += abs((float) ($line['total_ht'] ?? $line['unit_price_ht'] ?? 0));
+            } else {
+                // Détecter la remise implicite par ligne : si total_ht < qty * unit_price
+                $qty     = (float) ($line['quantity'] ?? 1);
+                $pu      = (float) ($line['unit_price_ht'] ?? 0);
+                $totalHt = (float) ($line['total_ht'] ?? 0);
+                $gross   = $qty * $pu;
+
+                $discountPercent = ($gross > 0 && $totalHt < $gross)
+                    ? round((1 - $totalHt / $gross) * 100, 2)
+                    : 0.0;
+
+                $regularLines[] = [
+                    'product_id'       => null,
+                    'description'      => $line['description'] ?? '',
+                    'quantity'         => $qty,
+                    'unit_price'       => $pu,
+                    'discount_percent' => $discountPercent,
+                    'vat_rate'         => (float) ($line['vat_rate'] ?? 20),
+                ];
+            }
+        }
+
+        $this->linesMappings = $regularLines;
+
+        // Convertir le montant de remise globale en pourcentage du sous-total HT
+        if ($discountAmount > 0) {
+            $subtotal = collect($regularLines)->sum(
+                fn ($l) => $l['quantity'] * $l['unit_price'] * (1 - $l['discount_percent'] / 100)
+            );
+            $this->globalDiscountAmount  = $discountAmount;
+            $this->globalDiscountPercent = $subtotal > 0
+                ? round(($discountAmount / ($subtotal + $discountAmount)) * 100, 2)
+                : 0.0;
+        }
+    }
+
+    /**
+     * Détermine si une ligne de facture est une remise globale plutôt qu'un article.
+     * Critères : montant négatif OU description contenant un mot-clé de remise.
+     */
+    private function isGlobalDiscountLine(array $line): bool
+    {
+        $totalHt = (float) ($line['total_ht'] ?? 0);
+        $unitPrice = (float) ($line['unit_price_ht'] ?? 0);
+
+        if ($totalHt < 0 || $unitPrice < 0) {
+            return true;
+        }
+
+        $keywords = ['remise', 'rabais', 'escompte', 'ristourne', 'réduction', 'reduction',
+                     'discount', 'avoir', 'remise globale', 'remise commerciale'];
+        $desc = mb_strtolower($line['description'] ?? '');
+
+        foreach ($keywords as $kw) {
+            if (str_contains($desc, $kw)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**
@@ -186,11 +251,13 @@ class ImportPurchaseInvoice extends Page
 
     public function resetExtraction(): void
     {
-        $this->pdfFile       = null;
-        $this->extractedData = null;
-        $this->errorMessage  = null;
-        $this->linesMappings = [];
-        $this->supplierId    = null;
+        $this->pdfFile               = null;
+        $this->extractedData         = null;
+        $this->errorMessage          = null;
+        $this->linesMappings         = [];
+        $this->supplierId            = null;
+        $this->globalDiscountPercent = 0.0;
+        $this->globalDiscountAmount  = null;
     }
 
     public function getMappedLinesCount(): int

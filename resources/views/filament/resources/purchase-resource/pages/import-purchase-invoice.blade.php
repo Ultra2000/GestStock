@@ -150,6 +150,35 @@
 
     {{-- ===== SECTION 4b : MAPPING ===== --}}
 
+    {{-- Remise globale détectée --}}
+    @if($globalDiscountAmount !== null)
+        <div class="rounded-xl border border-amber-200 dark:border-amber-700 bg-amber-50 dark:bg-amber-900/20 p-4 flex flex-col sm:flex-row sm:items-center gap-4">
+            <div class="flex items-start gap-3 flex-1">
+                <x-heroicon-o-tag class="w-5 h-5 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" />
+                <div>
+                    <p class="text-sm font-semibold text-amber-800 dark:text-amber-200">
+                        Remise globale détectée dans la facture
+                    </p>
+                    <p class="text-xs text-amber-700 dark:text-amber-300 mt-0.5">
+                        Une ligne de remise ({{ number_format($globalDiscountAmount, 2, ',', ' ') }} {{ $currency }}) a été exclue du tableau articles et convertie en remise globale sur le bon d'achat.
+                    </p>
+                </div>
+            </div>
+            <div class="flex items-center gap-3 flex-shrink-0">
+                <label class="text-sm font-medium text-amber-800 dark:text-amber-200 whitespace-nowrap">Remise globale %</label>
+                <input
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    max="100"
+                    wire:model="globalDiscountPercent"
+                    class="w-24 rounded-lg border border-amber-300 dark:border-amber-600 bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 text-sm px-3 py-2 focus:ring-2 focus:ring-amber-500 text-center font-semibold"
+                >
+                <span class="text-sm font-bold text-amber-700 dark:text-amber-300">%</span>
+            </div>
+        </div>
+    @endif
+
     {{-- Sélecteur fournisseur --}}
     <x-filament::section>
         <x-slot name="heading">
