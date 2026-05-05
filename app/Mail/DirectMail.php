@@ -13,14 +13,14 @@ class DirectMail extends Mailable
     use Queueable, SerializesModels;
 
     public function __construct(
-        public readonly string $subject,
-        public readonly string $body,
+        public readonly string $mailSubject,
+        public readonly string $mailBody,
         public readonly string $recipientName,
     ) {}
 
     public function envelope(): Envelope
     {
-        return new Envelope(subject: $this->subject);
+        return new Envelope(subject: $this->mailSubject);
     }
 
     public function content(): Content

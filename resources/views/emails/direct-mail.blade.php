@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ $subject }}</title>
+    <title>{{ $mailSubject }}</title>
     <style>
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f8fafc; margin: 0; padding: 0; }
         .container { max-width: 580px; margin: 40px auto; background: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 24px rgba(0,0,0,0.08); }
@@ -24,7 +24,7 @@
 <div class="container">
 
     <div class="header">
-        <h1>✉️ {{ $subject }}</h1>
+        <h1>✉️ {{ $mailSubject }}</h1>
         <p>{{ now()->translatedFormat('d F Y') }}</p>
     </div>
 
@@ -32,7 +32,7 @@
         <p>Bonjour {{ $recipientName }},</p>
 
         <div class="message-box">
-            <p>{{ $body }}</p>
+            <p>{{ $mailBody }}</p>
         </div>
 
         <p style="text-align:center; margin-top: 32px;">
