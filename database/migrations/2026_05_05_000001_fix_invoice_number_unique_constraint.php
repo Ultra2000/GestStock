@@ -11,24 +11,22 @@ return new class extends Migration
     {
         // --- PURCHASES ---
         Schema::table('purchases', function (Blueprint $table) {
-            // Supprimer l'ancienne contrainte unique globale si elle existe
-            try {
+            if (Schema::hasIndex('purchases', 'purchases_invoice_number_unique')) {
                 $table->dropUnique('purchases_invoice_number_unique');
-            } catch (\Throwable $e) {
-                // Ignoré si la contrainte n'existe pas
             }
-            // Ajouter la contrainte unique par entreprise
-            $table->unique(['invoice_number', 'company_id'], 'purchases_invoice_number_company_unique');
+            if (!Schema::hasIndex('purchases', 'purchases_invoice_number_company_unique')) {
+                $table->unique(['invoice_number', 'company_id'], 'purchases_invoice_number_company_unique');
+            }
         });
 
         // --- SALES ---
         Schema::table('sales', function (Blueprint $table) {
-            try {
+            if (Schema::hasIndex('sales', 'sales_invoice_number_unique')) {
                 $table->dropUnique('sales_invoice_number_unique');
-            } catch (\Throwable $e) {
-                // Ignoré si la contrainte n'existe pas
             }
-            $table->unique(['invoice_number', 'company_id'], 'sales_invoice_number_company_unique');
+            if (!Schema::hasIndex('sales', 'sales_invoice_number_company_unique')) {
+                $table->unique(['invoice_number', 'company_id'], 'sales_invoice_number_company_unique');
+            }
         });
     }
 

@@ -7,6 +7,7 @@ use App\Models\Product;
 use App\Models\Purchase;
 use App\Models\PurchaseItem;
 use App\Models\Supplier;
+use App\Models\SupplierProductMapping;
 use App\Models\Warehouse;
 use App\Services\AI\ClaudeExtractor;
 use Filament\Actions\Action;
@@ -206,23 +207,54 @@ class ImportPurchaseInvoice extends Page
 
     /**
      * Pour chaque ligne, tente de trouver le produit correspondant dans le catalogue.
-     * Charge tous les produits une seule fois pour éviter les requêtes N+1.
+     * Priorité : mapping mémorisé → fuzzy matching texte.
      */
     private function autoMatchProducts(): void
     {
-        $products = Product::get(['id', 'name', 'code', 'purchase_price_ht', 'vat_rate_purchase']);
-        if ($products->isEmpty()) return;
+        $companyId  = Filament::getTenant()?->id;
+        $products   = Product::get(['id', 'name', 'code', 'purchase_price_ht', 'vat_rate_purchase']);
+
+        // Charger les mappings mémorisés pour ce fournisseur (si connu)
+        $savedMappings = collect();
+        if ($companyId && $this->supplierId) {
+            $savedMappings = SupplierProductMapping::where('company_id', $companyId)
+                ->where('supplier_id', $this->supplierId)
+                ->with('product:id,name,purchase_price_ht,vat_rate_purchase')
+                ->get()
+                ->keyBy('normalized_description');
+        }
 
         foreach ($this->linesMappings as $i => $line) {
+            $normalized = $this->normalizeForMatching($line['description']);
+
+            // 1. Mapping mémorisé exact
+            if ($savedMappings->has($normalized)) {
+                $mapping = $savedMappings->get($normalized);
+                $product = $mapping->product;
+                if ($product) {
+                    $this->linesMappings[$i]['product_id']      = $product->id;
+                    $this->linesMappings[$i]['match_confidence'] = 100;
+                    $this->linesMappings[$i]['match_auto']       = true;
+                    if ($product->purchase_price_ht > 0) {
+                        $this->linesMappings[$i]['unit_price'] = (float) $product->purchase_price_ht;
+                    }
+                    if ($product->vat_rate_purchase) {
+                        $this->linesMappings[$i]['vat_rate'] = (float) $product->vat_rate_purchase;
+                    }
+                    continue;
+                }
+            }
+
+            // 2. Fuzzy matching
+            if ($products->isEmpty()) continue;
             $match = $this->findBestProductMatch($line['description'], $products);
             if (!$match) continue;
 
             $product = $match['product'];
-            $this->linesMappings[$i]['product_id']       = $product->id;
-            $this->linesMappings[$i]['match_confidence']  = $match['confidence'];
-            $this->linesMappings[$i]['match_auto']        = true;
+            $this->linesMappings[$i]['product_id']      = $product->id;
+            $this->linesMappings[$i]['match_confidence'] = $match['confidence'];
+            $this->linesMappings[$i]['match_auto']       = true;
 
-            // Remplacer les prix uniquement si la fiche produit est renseignée
             if ($product->purchase_price_ht > 0) {
                 $this->linesMappings[$i]['unit_price'] = (float) $product->purchase_price_ht;
             }
@@ -504,6 +536,25 @@ class ImportPurchaseInvoice extends Page
                 }
 
                 $purchase->recalculateTotals();
+
+                // Mémoriser les associations pour les prochains imports
+                foreach ($mappedLines as $line) {
+                    $normalized = $this->normalizeForMatching($line['description'] ?? '');
+                    if (!$normalized) continue;
+
+                    SupplierProductMapping::updateOrCreate(
+                        [
+                            'company_id'             => $companyId,
+                            'supplier_id'            => $this->supplierId,
+                            'normalized_description' => $normalized,
+                        ],
+                        [
+                            'product_id'      => $line['product_id'],
+                            'raw_description' => $line['description'] ?? '',
+                            'use_count'       => \DB::raw('use_count + 1'),
+                        ]
+                    );
+                }
 
                 return $purchase;
             });
