@@ -5,7 +5,10 @@ namespace App\Filament\Superadmin\Pages;
 use App\Mail\AnnouncementBanner;
 use App\Models\AppSetting;
 use App\Models\Company;
+use App\Models\Role;
+use App\Models\User;
 use Filament\Actions\Action;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use Filament\Forms\Components\Section;
 use Filament\Forms\Components\Select;
@@ -125,18 +128,27 @@ class GlobalSettings extends Page implements HasForms
         if (!empty($this->data['send_email']) && !empty($message)) {
             $sent = 0;
             $alreadySent = [];
-            Company::with('users')->get()->each(function (Company $company) use ($message, &$sent, &$alreadySent) {
-                foreach ($company->users as $user) {
-                    if (!$user->email || in_array($user->email, $alreadySent)) continue;
-                    try {
-                        Mail::to($user->email)->send(new AnnouncementBanner($message, $user->name));
-                        $sent++;
-                        $alreadySent[] = $user->email;
-                    } catch (\Throwable $e) {
-                        \Illuminate\Support\Facades\Log::warning("AnnouncementBanner: failed to send to {$user->email} — " . $e->getMessage());
-                    }
+
+            // Trouver tous les users ayant le rôle 'admin' dans au moins une entreprise
+            // via jointure directe sur model_has_roles + roles (sans passer par Filament tenant)
+            $adminUserIds = DB::table('model_has_roles')
+                ->join('roles', 'roles.id', '=', 'model_has_roles.role_id')
+                ->where('roles.slug', 'admin')
+                ->pluck('model_has_roles.user_id')
+                ->unique();
+
+            $admins = User::whereIn('id', $adminUserIds)->whereNotNull('email')->get();
+
+            foreach ($admins as $admin) {
+                if (in_array($admin->email, $alreadySent)) continue;
+                try {
+                    Mail::to($admin->email)->send(new AnnouncementBanner($message, $admin->name));
+                    $sent++;
+                    $alreadySent[] = $admin->email;
+                } catch (\Throwable $e) {
+                    \Illuminate\Support\Facades\Log::warning("AnnouncementBanner: failed to send to {$admin->email} — " . $e->getMessage());
                 }
-            });
+            }
 
             Notification::make()
                 ->title('Paramètres sauvegardés')
