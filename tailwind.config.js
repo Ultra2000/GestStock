@@ -50,5 +50,10 @@ export default {
         },
     },
 
+    safelist: [
+        // Bandeau d'annonce — classes générées dynamiquement en PHP (non détectées par Tailwind)
+        'bg-sky-600', 'bg-emerald-600', 'bg-amber-500', 'bg-red-600', 'bg-blue-600',
+    ],
+
     plugins: [forms],
 };
