@@ -50,6 +50,12 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Traçabilité des connexions
+        \Illuminate\Support\Facades\Event::listen(
+            \Illuminate\Auth\Events\Login::class,
+            \App\Listeners\LogSuccessfulLogin::class,
+        );
+
         // Sauvegarder la dernière entreprise visitée quand le tenant change
         \Illuminate\Support\Facades\Event::listen(
             \Filament\Events\TenantSet::class,
