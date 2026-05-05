@@ -3,11 +3,14 @@
 namespace App\Filament\Resources\PurchaseResource\Pages;
 
 use App\Filament\Resources\PurchaseResource;
+use App\Models\Product;
+use App\Models\Supplier;
 use App\Services\AI\ClaudeExtractor;
 use Filament\Actions\Action;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\Page;
 use Illuminate\Support\Facades\Log;
+use Livewire\Attributes\Computed;
 use Livewire\WithFileUploads;
 use Smalot\PdfParser\Parser as PdfParser;
 
@@ -24,6 +27,10 @@ class ImportPurchaseInvoice extends Page
     public bool $isExtracting = false;
     public ?string $errorMessage = null;
 
+    // 4b — mapping
+    public ?int $supplierId = null;
+    public array $linesMappings = [];
+
     protected function getHeaderActions(): array
     {
         return [
@@ -33,6 +40,18 @@ class ImportPurchaseInvoice extends Page
                 ->color('gray')
                 ->url(static::getResource()::getUrl('index')),
         ];
+    }
+
+    #[Computed]
+    public function products(): \Illuminate\Database\Eloquent\Collection
+    {
+        return Product::orderBy('name')->get(['id', 'name', 'code', 'purchase_price_ht', 'vat_rate_purchase']);
+    }
+
+    #[Computed]
+    public function suppliers(): \Illuminate\Database\Eloquent\Collection
+    {
+        return Supplier::orderBy('name')->get(['id', 'name']);
     }
 
     public function extract(): void
@@ -47,7 +66,9 @@ class ImportPurchaseInvoice extends Page
 
         $this->isExtracting = true;
         $this->extractedData = null;
-        $this->errorMessage = null;
+        $this->errorMessage  = null;
+        $this->linesMappings = [];
+        $this->supplierId    = null;
 
         try {
             $apiKey = config('services.ai.claude.api_key');
@@ -62,11 +83,9 @@ class ImportPurchaseInvoice extends Page
             Log::info('ImportPurchaseInvoice: processing file', ['mime' => $mimeType]);
 
             if (str_starts_with($mimeType, 'image/')) {
-                // Fichier image (JPEG, PNG, WebP…) → envoi direct à Claude Vision
                 $base64 = base64_encode(file_get_contents($realPath));
                 $data   = $extractor->extractFromImage($base64, $mimeType);
             } else {
-                // PDF : tenter l'extraction texte d'abord
                 $text = '';
                 try {
                     $parser = new PdfParser();
@@ -85,13 +104,14 @@ class ImportPurchaseInvoice extends Page
                 if (strlen(trim($text)) >= 50) {
                     $data = $extractor->extractInvoiceData($text, 'application/pdf');
                 } else {
-                    // PDF scanné → envoi base64 natif à Claude
                     $base64 = base64_encode(file_get_contents($realPath));
                     $data   = $extractor->extractFromPdf($base64);
                 }
             }
 
             $this->extractedData = $data;
+            $this->initMappings($data);
+            $this->autoMatchSupplier($data['seller']['name'] ?? null);
 
             $lineCount = count($data['lines'] ?? []);
             Notification::make()
@@ -112,42 +132,90 @@ class ImportPurchaseInvoice extends Page
         }
     }
 
+    /**
+     * Initialise les lignes de mapping depuis les lignes extraites par l'IA.
+     */
+    private function initMappings(array $data): void
+    {
+        $this->linesMappings = collect($data['lines'] ?? [])->map(fn ($line) => [
+            'product_id'       => null,
+            'description'      => $line['description'] ?? '',
+            'quantity'         => (float) ($line['quantity'] ?? 1),
+            'unit_price'       => (float) ($line['unit_price_ht'] ?? 0),
+            'discount_percent' => 0.0,
+            'vat_rate'         => (float) ($line['vat_rate'] ?? 20),
+        ])->toArray();
+    }
+
+    /**
+     * Tente de pré-sélectionner le fournisseur par correspondance de nom.
+     */
+    private function autoMatchSupplier(?string $detectedName): void
+    {
+        if (!$detectedName) return;
+
+        $match = Supplier::where('name', 'like', '%' . $detectedName . '%')
+            ->orWhere(fn ($q) => $q->whereRaw('? like CONCAT(\'%\', name, \'%\')', [$detectedName]))
+            ->first();
+
+        if ($match) {
+            $this->supplierId = $match->id;
+        }
+    }
+
+    /**
+     * Quand un produit est sélectionné sur une ligne, auto-remplit prix d'achat et TVA.
+     */
+    public function selectProduct(int $lineIndex, ?string $productId): void
+    {
+        $id = $productId ? (int) $productId : null;
+        $this->linesMappings[$lineIndex]['product_id'] = $id;
+
+        if ($id) {
+            $product = Product::find($id);
+            if ($product) {
+                if ($product->purchase_price_ht > 0) {
+                    $this->linesMappings[$lineIndex]['unit_price'] = (float) $product->purchase_price_ht;
+                }
+                if ($product->vat_rate_purchase) {
+                    $this->linesMappings[$lineIndex]['vat_rate'] = (float) $product->vat_rate_purchase;
+                }
+            }
+        }
+    }
+
     public function resetExtraction(): void
     {
         $this->pdfFile       = null;
         $this->extractedData = null;
         $this->errorMessage  = null;
+        $this->linesMappings = [];
+        $this->supplierId    = null;
+    }
+
+    public function getMappedLinesCount(): int
+    {
+        return collect($this->linesMappings)->filter(fn ($l) => !empty($l['product_id']))->count();
     }
 
     /**
      * Garantit une chaîne 100 % compatible json_encode.
-     *
-     * Cascade de nettoyage :
-     *   1. Détection d'encodage et conversion vers UTF-8
-     *   2. iconv //IGNORE pour retirer les octets invalides résiduels
-     *   3. str_replace des caractères de contrôle (sans flag /u pour éviter null)
-     *   4. Garantie finale via JSON_INVALID_UTF8_SUBSTITUTE
      */
     private function sanitizeUtf8(string $text): string
     {
-        // 1. Détecter l'encodage réel et convertir en UTF-8
         $detected = mb_detect_encoding($text, ['UTF-8', 'ISO-8859-1', 'Windows-1252', 'ISO-8859-15'], true);
         if ($detected && $detected !== 'UTF-8') {
             $text = mb_convert_encoding($text, 'UTF-8', $detected);
         }
 
-        // 2. iconv supprime les octets invalides restants
         $clean = @iconv('UTF-8', 'UTF-8//IGNORE', $text);
         if ($clean === false) {
             $clean = mb_convert_encoding($text, 'UTF-8', 'ISO-8859-1');
         }
 
-        // 3. Retirer les caractères de contrôle ASCII via str_replace
-        //    (évite le flag /u de preg_replace qui renvoie null si UTF-8 encore invalide)
         $controls = array_map('chr', array_merge(range(0, 8), [11, 12], range(14, 31), [127]));
         $clean = str_replace($controls, '', (string) $clean);
 
-        // 4. Garantie absolue : si json_encode échoue encore, on force via SUBSTITUTE
         if (json_encode($clean) === false) {
             $encoded = json_encode($clean, JSON_INVALID_UTF8_SUBSTITUTE);
             $clean   = $encoded !== false ? (string) json_decode($encoded) : '';

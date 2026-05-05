@@ -6,7 +6,7 @@
             <x-slot name="heading">
                 <div class="flex items-center gap-2">
                     <x-heroicon-o-document-arrow-up class="w-5 h-5 text-violet-600" />
-                    Importer un PDF de facture fournisseur
+                    Importer une facture fournisseur
                 </div>
             </x-slot>
             <x-slot name="description">
@@ -15,7 +15,6 @@
 
             <form wire:submit="extract" class="space-y-6">
 
-                {{-- Zone drag-and-drop / file input --}}
                 <div
                     x-data="{ dragging: false }"
                     x-on:dragover.prevent="dragging = true"
@@ -27,9 +26,7 @@
                 >
                     <x-heroicon-o-document-arrow-up class="w-12 h-12 text-violet-400" />
                     <div class="text-center">
-                        <p class="text-sm font-semibold text-gray-700 dark:text-gray-200">
-                            Cliquez ou déposez votre PDF ici
-                        </p>
+                        <p class="text-sm font-semibold text-gray-700 dark:text-gray-200">Cliquez ou déposez votre fichier ici</p>
                         <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">PDF, JPEG, PNG, WebP · max 10 Mo</p>
                     </div>
 
@@ -52,8 +49,7 @@
 
                 @error('pdfFile')
                     <p class="text-sm text-red-600 dark:text-red-400 flex items-center gap-1">
-                        <x-heroicon-o-exclamation-circle class="w-4 h-4" />
-                        {{ $message }}
+                        <x-heroicon-o-exclamation-circle class="w-4 h-4" />{{ $message }}
                     </p>
                 @enderror
 
@@ -64,18 +60,9 @@
                     </div>
                 @endif
 
-                {{-- Bouton extraction --}}
                 <div class="flex justify-end">
-                    <x-filament::button
-                        type="submit"
-                        color="primary"
-                        icon="heroicon-o-sparkles"
-                        :disabled="!$pdfFile || $isExtracting"
-                        wire:loading.attr="disabled"
-                    >
-                        <span wire:loading.remove wire:target="extract">
-                            Extraire avec l'IA
-                        </span>
+                    <x-filament::button type="submit" color="primary" icon="heroicon-o-sparkles" :disabled="!$pdfFile || $isExtracting" wire:loading.attr="disabled">
+                        <span wire:loading.remove wire:target="extract">Extraire avec l'IA</span>
                         <span wire:loading wire:target="extract" class="flex items-center gap-2">
                             <svg class="animate-spin w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
@@ -85,33 +72,31 @@
                         </span>
                     </x-filament::button>
                 </div>
-
             </form>
         </x-filament::section>
 
-        {{-- Info box --}}
         <x-filament::section>
             <x-slot name="heading">Comment ça marche ?</x-slot>
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 text-sm">
                 <div class="flex gap-3">
                     <div class="flex-shrink-0 w-8 h-8 rounded-full bg-violet-100 dark:bg-violet-900/40 flex items-center justify-center text-violet-600 font-bold text-xs">1</div>
                     <div>
-                        <p class="font-semibold text-gray-700 dark:text-gray-200">Importez le PDF</p>
-                        <p class="text-gray-500 dark:text-gray-400 mt-1">Chargez la facture de votre fournisseur au format PDF.</p>
+                        <p class="font-semibold text-gray-700 dark:text-gray-200">Importez la facture</p>
+                        <p class="text-gray-500 dark:text-gray-400 mt-1">PDF ou photo de la facture fournisseur.</p>
                     </div>
                 </div>
                 <div class="flex gap-3">
                     <div class="flex-shrink-0 w-8 h-8 rounded-full bg-violet-100 dark:bg-violet-900/40 flex items-center justify-center text-violet-600 font-bold text-xs">2</div>
                     <div>
                         <p class="font-semibold text-gray-700 dark:text-gray-200">L'IA extrait les données</p>
-                        <p class="text-gray-500 dark:text-gray-400 mt-1">Claude lit et structure automatiquement : fournisseur, articles, quantités, prix, TVA.</p>
+                        <p class="text-gray-500 dark:text-gray-400 mt-1">Claude lit et structure fournisseur, articles, prix, TVA.</p>
                     </div>
                 </div>
                 <div class="flex gap-3">
                     <div class="flex-shrink-0 w-8 h-8 rounded-full bg-violet-100 dark:bg-violet-900/40 flex items-center justify-center text-violet-600 font-bold text-xs">3</div>
                     <div>
-                        <p class="font-semibold text-gray-700 dark:text-gray-200">Vérifiez et importez</p>
-                        <p class="text-gray-500 dark:text-gray-400 mt-1">Associez chaque ligne à un produit de votre catalogue, puis créez le bon d'achat.</p>
+                        <p class="font-semibold text-gray-700 dark:text-gray-200">Associez et importez</p>
+                        <p class="text-gray-500 dark:text-gray-400 mt-1">Liez chaque ligne à un produit du catalogue, puis créez le bon d'achat.</p>
                     </div>
                 </div>
             </div>
@@ -119,229 +104,238 @@
 
     @else
 
-    {{-- ===== RÉSULTATS DE L'EXTRACTION ===== --}}
+    {{-- ===== RÉSULTATS + MAPPING ===== --}}
 
-        @php
-            $seller  = $extractedData['seller']  ?? [];
-            $invoice = $extractedData['invoice'] ?? [];
-            $lines   = $extractedData['lines']   ?? [];
-            $totals  = $extractedData['totals']  ?? [];
-            $currency = $invoice['currency'] ?? 'EUR';
-        @endphp
+    @php
+        $seller   = $extractedData['seller']  ?? [];
+        $invoice  = $extractedData['invoice'] ?? [];
+        $totals   = $extractedData['totals']  ?? [];
+        $currency = $invoice['currency'] ?? 'EUR';
+        $mappedCount = $this->getMappedLinesCount();
+        $totalLines  = count($linesMappings);
+    @endphp
 
-        {{-- Bande succès --}}
-        <div class="rounded-xl bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 px-5 py-4 flex items-center justify-between gap-4">
-            <div class="flex items-center gap-3 text-emerald-700 dark:text-emerald-300">
-                <x-heroicon-o-check-circle class="w-6 h-6 flex-shrink-0" />
-                <div>
-                    <p class="font-semibold text-sm">Extraction réussie — {{ count($lines) }} ligne(s) détectée(s)</p>
-                    <p class="text-xs opacity-75 mt-0.5">Vérifiez les données extraites ci-dessous avant de créer le bon d'achat.</p>
-                </div>
+    {{-- Bande succès --}}
+    <div class="rounded-xl bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 px-5 py-4 flex items-center justify-between gap-4">
+        <div class="flex items-center gap-3 text-emerald-700 dark:text-emerald-300">
+            <x-heroicon-o-check-circle class="w-6 h-6 flex-shrink-0" />
+            <div>
+                <p class="font-semibold text-sm">Extraction réussie — {{ $totalLines }} ligne(s) détectée(s)</p>
+                <p class="text-xs opacity-75 mt-0.5">Associez chaque ligne à un produit de votre catalogue, puis créez le bon d'achat.</p>
             </div>
-            <x-filament::button
-                color="gray"
-                size="sm"
-                icon="heroicon-o-arrow-path"
-                wire:click="resetExtraction"
-            >
-                Recommencer
-            </x-filament::button>
         </div>
+        <x-filament::button color="gray" size="sm" icon="heroicon-o-arrow-path" wire:click="resetExtraction">
+            Recommencer
+        </x-filament::button>
+    </div>
 
-        {{-- Cards info fournisseur + facture --}}
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-
-            {{-- Fournisseur extrait --}}
-            <x-filament::section>
-                <x-slot name="heading">
-                    <div class="flex items-center gap-2">
-                        <x-heroicon-o-building-office class="w-4 h-4 text-violet-600" />
-                        Fournisseur détecté
-                    </div>
-                </x-slot>
-                <dl class="space-y-2 text-sm">
-                    <div class="flex justify-between">
-                        <dt class="text-gray-500 dark:text-gray-400">Nom</dt>
-                        <dd class="font-semibold text-gray-800 dark:text-gray-200">{{ $seller['name'] ?? '—' }}</dd>
-                    </div>
-                    @if(!empty($seller['address']))
-                        <div class="flex justify-between">
-                            <dt class="text-gray-500 dark:text-gray-400">Adresse</dt>
-                            <dd class="text-right text-gray-700 dark:text-gray-300">{{ $seller['address'] }}@if(!empty($seller['zip_code'])) {{ $seller['zip_code'] }}@endif @if(!empty($seller['city'])) {{ $seller['city'] }}@endif</dd>
-                        </div>
-                    @endif
-                    @if(!empty($seller['siret']))
-                        <div class="flex justify-between">
-                            <dt class="text-gray-500 dark:text-gray-400">SIRET</dt>
-                            <dd class="font-mono text-xs text-gray-700 dark:text-gray-300">{{ $seller['siret'] }}</dd>
-                        </div>
-                    @endif
-                    @if(!empty($seller['vat_number']))
-                        <div class="flex justify-between">
-                            <dt class="text-gray-500 dark:text-gray-400">N° TVA</dt>
-                            <dd class="font-mono text-xs text-gray-700 dark:text-gray-300">{{ $seller['vat_number'] }}</dd>
-                        </div>
-                    @endif
-                    @if(!empty($seller['phone']))
-                        <div class="flex justify-between">
-                            <dt class="text-gray-500 dark:text-gray-400">Téléphone</dt>
-                            <dd class="text-gray-700 dark:text-gray-300">{{ $seller['phone'] }}</dd>
-                        </div>
-                    @endif
-                    @if(!empty($seller['email']))
-                        <div class="flex justify-between">
-                            <dt class="text-gray-500 dark:text-gray-400">Email</dt>
-                            <dd class="text-gray-700 dark:text-gray-300">{{ $seller['email'] }}</dd>
-                        </div>
-                    @endif
-                </dl>
-            </x-filament::section>
-
-            {{-- Infos facture --}}
-            <x-filament::section>
-                <x-slot name="heading">
-                    <div class="flex items-center gap-2">
-                        <x-heroicon-o-document-text class="w-4 h-4 text-violet-600" />
-                        Informations facture
-                    </div>
-                </x-slot>
-                <dl class="space-y-2 text-sm">
-                    <div class="flex justify-between">
-                        <dt class="text-gray-500 dark:text-gray-400">N° Facture</dt>
-                        <dd class="font-semibold font-mono text-gray-800 dark:text-gray-200">{{ $invoice['number'] ?? '—' }}</dd>
-                    </div>
-                    <div class="flex justify-between">
-                        <dt class="text-gray-500 dark:text-gray-400">Date</dt>
-                        <dd class="text-gray-700 dark:text-gray-300">
-                            @if(!empty($invoice['date']))
-                                {{ \Carbon\Carbon::parse($invoice['date'])->format('d/m/Y') }}
-                            @else —
-                            @endif
-                        </dd>
-                    </div>
-                    @if(!empty($invoice['due_date']))
-                        <div class="flex justify-between">
-                            <dt class="text-gray-500 dark:text-gray-400">Échéance</dt>
-                            <dd class="text-gray-700 dark:text-gray-300">{{ \Carbon\Carbon::parse($invoice['due_date'])->format('d/m/Y') }}</dd>
-                        </div>
-                    @endif
-                    @if(!empty($invoice['payment_method']))
-                        <div class="flex justify-between">
-                            <dt class="text-gray-500 dark:text-gray-400">Paiement</dt>
-                            <dd class="text-gray-700 dark:text-gray-300">{{ $invoice['payment_method'] }}</dd>
-                        </div>
-                    @endif
-                    <div class="border-t border-gray-200 dark:border-gray-700 pt-2 mt-2 space-y-2">
-                        <div class="flex justify-between">
-                            <dt class="text-gray-500 dark:text-gray-400">Total HT</dt>
-                            <dd class="font-medium text-gray-800 dark:text-gray-200">{{ number_format($totals['total_ht'] ?? 0, 2, ',', ' ') }} {{ $currency }}</dd>
-                        </div>
-                        <div class="flex justify-between">
-                            <dt class="text-gray-500 dark:text-gray-400">TVA</dt>
-                            <dd class="text-gray-700 dark:text-gray-300">{{ number_format($totals['total_vat'] ?? 0, 2, ',', ' ') }} {{ $currency }}</dd>
-                        </div>
-                        <div class="flex justify-between font-semibold text-base">
-                            <dt class="text-violet-700 dark:text-violet-300">Total TTC</dt>
-                            <dd class="text-violet-700 dark:text-violet-300">{{ number_format($totals['total_ttc'] ?? 0, 2, ',', ' ') }} {{ $currency }}</dd>
-                        </div>
-                    </div>
-                </dl>
-            </x-filament::section>
+    {{-- Résumé facture --}}
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="rounded-lg bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 px-4 py-3">
+            <p class="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide font-semibold">Fournisseur détecté</p>
+            <p class="font-semibold text-gray-800 dark:text-gray-200 mt-1">{{ $seller['name'] ?? '—' }}</p>
+            @if(!empty($seller['siret']))<p class="text-xs text-gray-500 mt-0.5">SIRET : {{ $seller['siret'] }}</p>@endif
         </div>
+        <div class="rounded-lg bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 px-4 py-3">
+            <p class="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide font-semibold">N° Facture</p>
+            <p class="font-semibold font-mono text-gray-800 dark:text-gray-200 mt-1">{{ $invoice['number'] ?? '—' }}</p>
+            @if(!empty($invoice['date']))<p class="text-xs text-gray-500 mt-0.5">{{ \Carbon\Carbon::parse($invoice['date'])->format('d/m/Y') }}</p>@endif
+        </div>
+        <div class="rounded-lg bg-violet-50 dark:bg-violet-900/20 border border-violet-200 dark:border-violet-800 px-4 py-3">
+            <p class="text-xs text-violet-600 dark:text-violet-400 uppercase tracking-wide font-semibold">Total TTC</p>
+            <p class="font-bold text-violet-700 dark:text-violet-300 text-lg mt-1">{{ number_format($totals['total_ttc'] ?? 0, 2, ',', ' ') }} {{ $currency }}</p>
+            <p class="text-xs text-violet-500 mt-0.5">HT : {{ number_format($totals['total_ht'] ?? 0, 2, ',', ' ') }} · TVA : {{ number_format($totals['total_vat'] ?? 0, 2, ',', ' ') }}</p>
+        </div>
+    </div>
 
-        {{-- Tableau des lignes extraites --}}
-        <x-filament::section>
-            <x-slot name="heading">
+    {{-- ===== SECTION 4b : MAPPING ===== --}}
+
+    {{-- Sélecteur fournisseur --}}
+    <x-filament::section>
+        <x-slot name="heading">
+            <div class="flex items-center gap-2">
+                <x-heroicon-o-building-office class="w-4 h-4 text-violet-600" />
+                Fournisseur
+            </div>
+        </x-slot>
+        <x-slot name="description">
+            Associez la facture à un fournisseur existant dans votre base.
+            @if(!empty($seller['name'])) L'IA a détecté : <strong>{{ $seller['name'] }}</strong>.@endif
+        </x-slot>
+
+        <div class="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
+            <div class="flex-1">
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Fournisseur du catalogue</label>
+                <select
+                    wire:model="supplierId"
+                    class="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 text-sm px-3 py-2 focus:ring-2 focus:ring-violet-500 focus:border-violet-500"
+                >
+                    <option value="">— Sélectionner un fournisseur —</option>
+                    @foreach($this->suppliers as $supplier)
+                        <option value="{{ $supplier->id }}" @selected($supplierId === $supplier->id)>
+                            {{ $supplier->name }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+            @if($supplierId)
+                <div class="flex items-center gap-2 px-3 py-2 rounded-lg bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-300 text-sm font-medium mt-5 sm:mt-0">
+                    <x-heroicon-o-check-circle class="w-4 h-4" />
+                    Fournisseur associé
+                </div>
+            @endif
+        </div>
+    </x-filament::section>
+
+    {{-- Tableau de mapping des lignes --}}
+    <x-filament::section>
+        <x-slot name="heading">
+            <div class="flex items-center justify-between w-full">
                 <div class="flex items-center gap-2">
-                    <x-heroicon-o-table-cells class="w-4 h-4 text-violet-600" />
-                    Lignes extraites ({{ count($lines) }})
+                    <x-heroicon-o-arrows-right-left class="w-4 h-4 text-violet-600" />
+                    Association lignes → produits catalogue
                 </div>
-            </x-slot>
-            <x-slot name="description">
-                Ces lignes ont été lues automatiquement depuis la facture. L'étape suivante vous permettra d'associer chaque ligne à un produit de votre catalogue.
-            </x-slot>
+                <span class="text-xs font-medium px-2 py-1 rounded-full {{ $mappedCount === $totalLines && $totalLines > 0 ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300' : 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300' }}">
+                    {{ $mappedCount }} / {{ $totalLines }} associé(s)
+                </span>
+            </div>
+        </x-slot>
+        <x-slot name="description">
+            Pour chaque ligne extraite, sélectionnez le produit correspondant dans votre catalogue. Le prix d'achat et la TVA sont automatiquement pré-remplis depuis votre fiche produit.
+        </x-slot>
 
-            @if(count($lines) > 0)
-                <div class="overflow-x-auto -mx-6">
-                    <table class="w-full text-sm">
-                        <thead>
-                            <tr class="bg-gray-100 dark:bg-gray-800 text-left">
-                                <th class="px-4 py-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">#</th>
-                                <th class="px-4 py-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Désignation</th>
-                                <th class="px-4 py-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider text-center">Qté</th>
-                                <th class="px-4 py-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider text-right">P.U. HT</th>
-                                <th class="px-4 py-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider text-center">TVA</th>
-                                <th class="px-4 py-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider text-right">Total HT</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
-                            @foreach($lines as $i => $line)
-                                <tr class="{{ $i % 2 === 0 ? 'bg-white dark:bg-gray-900' : 'bg-gray-50 dark:bg-gray-800/50' }}">
-                                    <td class="px-4 py-3 text-gray-400 dark:text-gray-500 text-xs">{{ $i + 1 }}</td>
-                                    <td class="px-4 py-3">
-                                        <span class="font-medium text-gray-800 dark:text-gray-200">
-                                            {{ $line['description'] ?? '—' }}
-                                        </span>
-                                    </td>
-                                    <td class="px-4 py-3 text-center text-gray-700 dark:text-gray-300">
-                                        {{ rtrim(rtrim(number_format((float)($line['quantity'] ?? 0), 3, ',', ' '), '0'), ',') }}
-                                    </td>
-                                    <td class="px-4 py-3 text-right text-gray-700 dark:text-gray-300">
-                                        {{ number_format((float)($line['unit_price_ht'] ?? 0), 2, ',', ' ') }} {{ $currency }}
-                                    </td>
-                                    <td class="px-4 py-3 text-center text-gray-500 dark:text-gray-400">
-                                        {{ rtrim(rtrim(number_format((float)($line['vat_rate'] ?? 0), 2, ',', ' '), '0'), ',') }}%
-                                    </td>
-                                    <td class="px-4 py-3 text-right font-semibold text-gray-800 dark:text-gray-200">
-                                        {{ number_format((float)($line['total_ht'] ?? 0), 2, ',', ' ') }} {{ $currency }}
-                                    </td>
-                                </tr>
+        <div class="space-y-3">
+            @foreach($linesMappings as $i => $line)
+                @php $isMapped = !empty($line['product_id']); @endphp
+                <div class="rounded-xl border {{ $isMapped ? 'border-emerald-200 dark:border-emerald-800 bg-emerald-50/40 dark:bg-emerald-900/10' : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800/50' }} p-4 transition-colors">
+
+                    {{-- Label IA --}}
+                    <div class="flex items-start justify-between gap-3 mb-3">
+                        <div class="flex items-center gap-2 min-w-0">
+                            <span class="flex-shrink-0 w-6 h-6 rounded-full bg-violet-100 dark:bg-violet-900/40 text-violet-600 dark:text-violet-400 flex items-center justify-center text-xs font-bold">
+                                {{ $i + 1 }}
+                            </span>
+                            <span class="text-sm font-medium text-gray-700 dark:text-gray-300 truncate" title="{{ $line['description'] }}">
+                                {{ $line['description'] ?: '(sans description)' }}
+                            </span>
+                        </div>
+                        @if($isMapped)
+                            <x-heroicon-o-check-circle class="w-5 h-5 text-emerald-500 flex-shrink-0" />
+                        @else
+                            <x-heroicon-o-exclamation-circle class="w-5 h-5 text-amber-400 flex-shrink-0" />
+                        @endif
+                    </div>
+
+                    {{-- Sélecteur produit --}}
+                    <div class="mb-3">
+                        <label class="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">
+                            Produit du catalogue
+                        </label>
+                        <select
+                            wire:change="selectProduct({{ $i }}, $event.target.value)"
+                            class="w-full rounded-lg border {{ $isMapped ? 'border-emerald-300 dark:border-emerald-700' : 'border-gray-300 dark:border-gray-600' }} bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 text-sm px-3 py-2 focus:ring-2 focus:ring-violet-500 focus:border-violet-500"
+                        >
+                            <option value="">— Sélectionner un produit —</option>
+                            @foreach($this->products as $product)
+                                <option value="{{ $product->id }}" @selected((int)($line['product_id'] ?? 0) === $product->id)>
+                                    {{ $product->name }}@if($product->code) ({{ $product->code }})@endif
+                                </option>
                             @endforeach
-                        </tbody>
-                        <tfoot>
-                            <tr class="bg-violet-50 dark:bg-violet-900/20 border-t-2 border-violet-200 dark:border-violet-800">
-                                <td colspan="5" class="px-4 py-3 text-right text-sm font-semibold text-violet-700 dark:text-violet-300">Total HT</td>
-                                <td class="px-4 py-3 text-right font-bold text-violet-700 dark:text-violet-300">
-                                    {{ number_format((float)($totals['total_ht'] ?? 0), 2, ',', ' ') }} {{ $currency }}
-                                </td>
-                            </tr>
-                        </tfoot>
-                    </table>
-                </div>
-            @else
-                <div class="flex flex-col items-center gap-3 py-10 text-gray-400 dark:text-gray-600">
-                    <x-heroicon-o-document-magnifying-glass class="w-10 h-10" />
-                    <p class="text-sm">Aucune ligne d'article détectée dans ce PDF.</p>
-                </div>
-            @endif
-        </x-filament::section>
+                        </select>
+                    </div>
 
-        {{-- Actions --}}
-        <div class="flex justify-between items-center">
-            <x-filament::button
-                color="gray"
-                icon="heroicon-o-arrow-path"
-                wire:click="resetExtraction"
-            >
-                Recommencer avec un autre PDF
-            </x-filament::button>
+                    {{-- Champs éditables --}}
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                        <div>
+                            <label class="block text-xs text-gray-500 dark:text-gray-400 mb-1 font-medium">Quantité</label>
+                            <input
+                                type="number"
+                                step="0.001"
+                                wire:model="linesMappings.{{ $i }}.quantity"
+                                class="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 text-sm px-3 py-2 focus:ring-2 focus:ring-violet-500"
+                            >
+                        </div>
+                        <div>
+                            <label class="block text-xs text-gray-500 dark:text-gray-400 mb-1 font-medium">P.U. HT ({{ $currency }})</label>
+                            <input
+                                type="number"
+                                step="0.01"
+                                wire:model="linesMappings.{{ $i }}.unit_price"
+                                class="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 text-sm px-3 py-2 focus:ring-2 focus:ring-violet-500"
+                            >
+                        </div>
+                        <div>
+                            <label class="block text-xs text-gray-500 dark:text-gray-400 mb-1 font-medium">Remise %</label>
+                            <input
+                                type="number"
+                                step="0.1"
+                                min="0"
+                                max="100"
+                                wire:model="linesMappings.{{ $i }}.discount_percent"
+                                class="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 text-sm px-3 py-2 focus:ring-2 focus:ring-violet-500"
+                            >
+                        </div>
+                        <div>
+                            <label class="block text-xs text-gray-500 dark:text-gray-400 mb-1 font-medium">TVA %</label>
+                            <input
+                                type="number"
+                                step="0.1"
+                                wire:model="linesMappings.{{ $i }}.vat_rate"
+                                class="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 text-sm px-3 py-2 focus:ring-2 focus:ring-violet-500"
+                            >
+                        </div>
+                    </div>
 
-            @if(count($lines) > 0)
-                <div class="flex items-center gap-3">
-                    <span class="text-sm text-gray-500 dark:text-gray-400">
-                        Prochaine étape : associer les lignes à vos produits
-                    </span>
-                    <x-filament::button
-                        color="primary"
-                        icon="heroicon-o-arrow-right"
-                        disabled
-                        title="Disponible dans la prochaine version"
-                    >
-                        Créer le bon d'achat
-                    </x-filament::button>
+                    {{-- Total calculé --}}
+                    @php
+                        $qty   = (float)($line['quantity'] ?? 0);
+                        $pu    = (float)($line['unit_price'] ?? 0);
+                        $disc  = (float)($line['discount_percent'] ?? 0);
+                        $gross = $qty * $pu;
+                        $lineTotal = $gross * (1 - $disc / 100);
+                    @endphp
+                    <div class="mt-2 flex justify-end">
+                        <span class="text-xs text-gray-500 dark:text-gray-400">
+                            Total HT : <strong class="text-gray-700 dark:text-gray-300">{{ number_format($lineTotal, 2, ',', ' ') }} {{ $currency }}</strong>
+                        </span>
+                    </div>
+
                 </div>
-            @endif
+            @endforeach
         </div>
+    </x-filament::section>
+
+    {{-- Actions finales --}}
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <x-filament::button color="gray" icon="heroicon-o-arrow-path" wire:click="resetExtraction">
+            Recommencer avec un autre fichier
+        </x-filament::button>
+
+        <div class="flex items-center gap-3">
+            @if($mappedCount === 0)
+                <p class="text-sm text-amber-600 dark:text-amber-400">
+                    Associez au moins une ligne à un produit pour continuer.
+                </p>
+            @elseif(!$supplierId)
+                <p class="text-sm text-amber-600 dark:text-amber-400">
+                    Sélectionnez un fournisseur pour continuer.
+                </p>
+            @else
+                <p class="text-sm text-emerald-600 dark:text-emerald-400 font-medium">
+                    {{ $mappedCount }} ligne(s) prête(s) · fournisseur OK
+                </p>
+            @endif
+
+            <x-filament::button
+                color="primary"
+                icon="heroicon-o-shopping-bag"
+                :disabled="$mappedCount === 0 || !$supplierId"
+                title="{{ $mappedCount === 0 ? 'Associez des produits' : (!$supplierId ? 'Choisissez un fournisseur' : 'Créer le bon d\'achat') }}"
+            >
+                Créer le bon d'achat
+            </x-filament::button>
+        </div>
+    </div>
 
     @endif
 
