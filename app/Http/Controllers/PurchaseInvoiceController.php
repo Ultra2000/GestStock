@@ -27,7 +27,7 @@ class PurchaseInvoiceController extends Controller
             'company' => $company,
             'verificationUrl' => $verificationUrl,
             'verificationCode' => $verificationCode,
-        ])->setPaper('a4');
+        ])->setPaper('a4', 'portrait');
 
         return $pdf->download('facture-achat-' . $purchase->invoice_number . '.pdf');
     }
