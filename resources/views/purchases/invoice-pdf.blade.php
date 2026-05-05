@@ -5,6 +5,19 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
     <title>Bon d'achat {{ $purchase->invoice_number }}</title>
     <style>
+        @font-face {
+            font-family: 'Lato';
+            src: url('{{ public_path('fonts/Lato-Regular.ttf') }}') format('truetype');
+            font-weight: 400;
+            font-style: normal;
+        }
+        @font-face {
+            font-family: 'Lato';
+            src: url('{{ public_path('fonts/Lato-Bold.ttf') }}') format('truetype');
+            font-weight: 700;
+            font-style: normal;
+        }
+
         @page {
             size: A4;
             margin: 0;
@@ -13,7 +26,7 @@
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
-            font-family: 'DejaVu Sans', Helvetica, Arial, sans-serif;
+            font-family: 'Lato', 'DejaVu Sans', Helvetica, Arial, sans-serif;
             font-size: 10px;
             color: #1e293b;
             line-height: 1.5;
