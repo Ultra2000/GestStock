@@ -84,9 +84,10 @@ class JournalAudit extends Page
      */
     protected function auditSalesIntegrity(int $companyId): array
     {
-        // Source A (Métier) : Total des ventes validées
+        // Source A (Métier) : Total des ventes terminées (avec écritures comptables)
         $salesData = Sale::where('company_id', $companyId)
-            ->whereNotNull('invoice_number') // Factures validées uniquement
+            ->whereNotNull('invoice_number')
+            ->where('status', 'completed')
             ->selectRaw('SUM(total) as total_ttc, SUM(total_vat) as total_vat, COUNT(*) as count')
             ->first();
 
@@ -127,9 +128,10 @@ class JournalAudit extends Page
      */
     protected function auditPurchasesIntegrity(int $companyId): array
     {
-        // Source A (Métier)
+        // Source A (Métier) : Total des achats terminés (avec écritures comptables)
         $purchasesData = Purchase::where('company_id', $companyId)
             ->whereNotNull('invoice_number')
+            ->where('status', 'completed')
             ->selectRaw('SUM(total) as total_ttc, SUM(total_vat) as total_vat, COUNT(*) as count')
             ->first();
 
