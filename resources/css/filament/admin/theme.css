@@ -17,6 +17,65 @@
 }
 
 /* ============================================
+   LIGHT MODE - Topbar & Sidebar colorés
+   ============================================ */
+
+.fi-topbar {
+    background: linear-gradient(135deg, #4f46e5 0%, #6366f1 60%, #7c3aed 100%) !important;
+    border-bottom: none !important;
+    box-shadow: 0 2px 12px rgba(99, 102, 241, 0.25) !important;
+}
+
+/* Texte et icônes de la topbar en blanc */
+.fi-topbar nav,
+.fi-topbar .fi-breadcrumbs,
+.fi-topbar .fi-breadcrumbs a,
+.fi-topbar .fi-breadcrumbs li,
+.fi-topbar button,
+.fi-topbar svg {
+    color: rgba(255, 255, 255, 0.9) !important;
+}
+
+.fi-topbar button:hover svg,
+.fi-topbar button:hover {
+    color: #ffffff !important;
+    background: rgba(255, 255, 255, 0.12) !important;
+}
+
+/* Sidebar light mode */
+.fi-sidebar {
+    background: #ffffff !important;
+    border-right: 1px solid #e5e7eb !important;
+    box-shadow: 2px 0 8px rgba(99, 102, 241, 0.06) !important;
+}
+
+.fi-sidebar-header {
+    background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%) !important;
+    border-bottom: none !important;
+}
+
+.fi-sidebar-item-button:hover {
+    background: rgba(99, 102, 241, 0.08) !important;
+}
+
+.fi-sidebar-item-active .fi-sidebar-item-button,
+.fi-sidebar-item-button[aria-current="page"] {
+    background: rgba(99, 102, 241, 0.1) !important;
+    border-left: 3px solid #6366f1 !important;
+}
+
+.fi-sidebar-item-active .fi-sidebar-item-label,
+.fi-sidebar-item-button[aria-current="page"] .fi-sidebar-item-label {
+    color: #4f46e5 !important;
+    font-weight: 600 !important;
+}
+
+.fi-sidebar-item-active .fi-sidebar-item-icon,
+.fi-sidebar-item-button[aria-current="page"] .fi-sidebar-item-icon {
+    color: #6366f1 !important;
+}
+
+/* ============================================
    DARK MODE ONLY - Landing Page Style
    ============================================ */
 
