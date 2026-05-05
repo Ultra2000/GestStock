@@ -390,9 +390,8 @@
 
     @endif
 
-</x-filament-panels::page>
-
-{{-- ===== MODAL CRÉER UN PRODUIT ===== --}}
+    {{-- ===== MODAL CRÉER UN PRODUIT ===== --}}
+    {{-- Doit rester DANS </x-filament-panels::page> pour que Livewire puisse le re-rendre --}}
 @if($showCreateProductModal)
     <div
         x-data
@@ -533,3 +532,5 @@
         </div>
     </div>
 @endif
+
+</x-filament-panels::page>
