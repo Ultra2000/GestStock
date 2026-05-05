@@ -373,6 +373,9 @@ Route::middleware('auth')->group(function () {
     Route::get('/inventories/{inventory}/print', function (\App\Models\Inventory $inventory) {
         return view('prints.inventory', ['inventory' => $inventory->load(['warehouse', 'items.product', 'createdByUser', 'validatedByUser'])]);
     })->name('inventories.print');
+
+    Route::get('/inventories/{inventory}/export-excel', [\App\Http\Controllers\InventoryExportController::class, 'exportExcel'])
+        ->name('inventories.export-excel');
 });
 
 // Routes pour les rapports PDF

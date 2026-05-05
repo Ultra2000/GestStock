@@ -92,6 +92,14 @@ class ViewInventory extends ViewRecord
                 })
                 ->visible(fn () => $this->record->status === 'pending_validation'),
 
+            Actions\Action::make('export_excel')
+                ->label('Exporter Excel')
+                ->icon('heroicon-o-table-cells')
+                ->color('success')
+                ->url(fn () => route('inventories.export-excel', ['inventory' => $this->record]))
+                ->openUrlInNewTab()
+                ->visible(fn () => in_array($this->record->status, ['validated', 'pending_validation'])),
+
             Actions\Action::make('print')
                 ->label('Imprimer')
                 ->icon('heroicon-o-printer')
