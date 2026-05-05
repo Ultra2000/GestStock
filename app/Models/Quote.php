@@ -2,10 +2,13 @@
 
 namespace App\Models;
 
+use App\Mail\QuoteAcceptedMail;
 use App\Models\Traits\BelongsToCompany;
+use Filament\Notifications\Notification;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\Mail;
 
 class Quote extends Model
 {
@@ -139,9 +142,42 @@ class Quote extends Model
     public function accept(): void
     {
         $this->update([
-            'status' => 'accepted',
+            'status'      => 'accepted',
             'accepted_at' => now(),
         ]);
+
+        $this->load(['company', 'customer']);
+
+        // Email à l'entreprise
+        $companyEmail = $this->company?->email;
+        if ($companyEmail) {
+            try {
+                Mail::to($companyEmail)->send(new QuoteAcceptedMail($this));
+            } catch (\Throwable $e) {
+                \Log::error("QuoteAccepted mail failed: " . $e->getMessage());
+            }
+        }
+
+        // Notification in-app pour tous les utilisateurs de l'entreprise
+        $users = $this->company?->users ?? collect();
+        $notification = Notification::make()
+            ->title('Devis accepté')
+            ->body("Le devis {$this->quote_number} a été accepté par {$this->customer?->name}.")
+            ->icon('heroicon-o-check-badge')
+            ->iconColor('success')
+            ->actions([
+                \Filament\Notifications\Actions\Action::make('voir')
+                    ->label('Voir le devis')
+                    ->url(route('filament.admin.resources.quotes.edit', [
+                        'tenant' => $this->company_id,
+                        'record' => $this->id,
+                    ]))
+                    ->button(),
+            ]);
+
+        foreach ($users as $user) {
+            $notification->sendToDatabase($user);
+        }
     }
 
     public function reject(?string $reason = null): void
