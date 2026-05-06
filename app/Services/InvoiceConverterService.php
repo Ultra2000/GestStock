@@ -329,12 +329,23 @@ class InvoiceConverterService
 
         // Line items
         foreach ($lines as $i => $line) {
-            $lineNum = $i + 1;
-            $desc = htmlspecialchars($line['description'] ?? "Article {$lineNum}", ENT_XML1);
-            $qty = number_format((float)($line['quantity'] ?? 1), 4, '.', '');
-            $unitPrice = number_format((float)($line['unit_price_ht'] ?? 0), 2, '.', '');
-            $lineTotal = number_format((float)($line['total_ht'] ?? 0), 2, '.', '');
+            $lineNum     = $i + 1;
+            $desc        = htmlspecialchars($line['description'] ?? "Article {$lineNum}", ENT_XML1);
+            $qty         = number_format((float)($line['quantity'] ?? 1), 4, '.', '');
+            $unitPrice   = number_format((float)($line['unit_price_ht'] ?? 0), 2, '.', '');
+            $lineTotal   = number_format((float)($line['total_ht'] ?? 0), 2, '.', '');
             $lineVatRate = number_format((float)($line['vat_rate'] ?? 20), 2, '.', '');
+            $lineVatCat  = (float)($line['vat_rate'] ?? 20) === 0.0 ? 'Z' : 'S';
+            $unitCode    = match(strtolower($line['unit'] ?? '')) {
+                'h', 'heure', 'heures', 'hr', 'hour' => 'HUR',
+                'kg', 'kilo'                          => 'KGM',
+                'l', 'litre', 'litres'                => 'LTR',
+                'm', 'metre', 'mètre'                 => 'MTR',
+                'm2', 'm²'                            => 'MTK',
+                'j', 'jour', 'jours', 'day'           => 'DAY',
+                'mois', 'month'                       => 'MON',
+                default                               => 'C62', // pièce
+            };
 
             $xml .= "    <ram:IncludedSupplyChainTradeLineItem>\n";
             $xml .= "      <ram:AssociatedDocumentLineDocument><ram:LineID>{$lineNum}</ram:LineID></ram:AssociatedDocumentLineDocument>\n";
@@ -342,9 +353,9 @@ class InvoiceConverterService
             $xml .= "      <ram:SpecifiedLineTradeAgreement>\n";
             $xml .= "        <ram:NetPriceProductTradePrice><ram:ChargeAmount>{$unitPrice}</ram:ChargeAmount></ram:NetPriceProductTradePrice>\n";
             $xml .= "      </ram:SpecifiedLineTradeAgreement>\n";
-            $xml .= "      <ram:SpecifiedLineTradeDelivery><ram:BilledQuantity unitCode=\"C62\">{$qty}</ram:BilledQuantity></ram:SpecifiedLineTradeDelivery>\n";
+            $xml .= "      <ram:SpecifiedLineTradeDelivery><ram:BilledQuantity unitCode=\"{$unitCode}\">{$qty}</ram:BilledQuantity></ram:SpecifiedLineTradeDelivery>\n";
             $xml .= "      <ram:SpecifiedLineTradeSettlement>\n";
-            $xml .= "        <ram:ApplicableTradeTax><ram:TypeCode>VAT</ram:TypeCode><ram:CategoryCode>S</ram:CategoryCode><ram:RateApplicablePercent>{$lineVatRate}</ram:RateApplicablePercent></ram:ApplicableTradeTax>\n";
+            $xml .= "        <ram:ApplicableTradeTax><ram:TypeCode>VAT</ram:TypeCode><ram:CategoryCode>{$lineVatCat}</ram:CategoryCode><ram:RateApplicablePercent>{$lineVatRate}</ram:RateApplicablePercent></ram:ApplicableTradeTax>\n";
             $xml .= "        <ram:SpecifiedTradeSettlementLineMonetarySummation><ram:LineTotalAmount>{$lineTotal}</ram:LineTotalAmount></ram:SpecifiedTradeSettlementLineMonetarySummation>\n";
             $xml .= "      </ram:SpecifiedLineTradeSettlement>\n";
             $xml .= "    </ram:IncludedSupplyChainTradeLineItem>\n";
@@ -396,26 +407,50 @@ class InvoiceConverterService
         $xml .= "    <ram:ApplicableHeaderTradeSettlement>\n";
         $xml .= "      <ram:InvoiceCurrencyCode>{$currency}</ram:InvoiceCurrencyCode>\n";
 
-        // VAT Breakdown
+        // Moyen de paiement (obligatoire EN16931)
+        $paymentMeansCode = match($invoice['payment_means'] ?? 'transfer') {
+            'transfer', 'virement' => '30',
+            'check', 'cheque'      => '10',
+            'card', 'carte'        => '48',
+            'direct_debit'         => '49',
+            'cash', 'especes'      => '10',
+            default                => '30', // virement par défaut
+        };
+        $xml .= "      <ram:SpecifiedTradeSettlementPaymentMeans>\n";
+        $xml .= "        <ram:TypeCode>{$paymentMeansCode}</ram:TypeCode>\n";
+        if ($invoice['iban'] ?? null) {
+            $iban = htmlspecialchars($invoice['iban'], ENT_XML1);
+            $xml .= "        <ram:PayeePartyCreditorFinancialAccount><ram:IBANID>{$iban}</ram:IBANID></ram:PayeePartyCreditorFinancialAccount>\n";
+        }
+        $xml .= "      </ram:SpecifiedTradeSettlementPaymentMeans>\n";
+
+        // VAT Breakdown (catégorie TVA dynamique : S=standard, Z=zéro, E=exonéré)
         foreach ($vatBreakdown as $vat) {
-            $vatBase = number_format((float)($vat['base'] ?? 0), 2, '.', '');
+            $vatBase   = number_format((float)($vat['base'] ?? 0), 2, '.', '');
             $vatAmount = number_format((float)($vat['amount'] ?? 0), 2, '.', '');
-            $vatRate = number_format((float)($vat['rate'] ?? 20), 2, '.', '');
+            $vatRate   = number_format((float)($vat['rate'] ?? 20), 2, '.', '');
+            $vatCat    = (float)($vat['rate'] ?? 20) === 0.0 ? ($vat['exempt'] ?? false ? 'E' : 'Z') : 'S';
 
             $xml .= "      <ram:ApplicableTradeTax>\n";
             $xml .= "        <ram:CalculatedAmount>{$vatAmount}</ram:CalculatedAmount>\n";
             $xml .= "        <ram:TypeCode>VAT</ram:TypeCode>\n";
             $xml .= "        <ram:BasisAmount>{$vatBase}</ram:BasisAmount>\n";
-            $xml .= "        <ram:CategoryCode>S</ram:CategoryCode>\n";
+            $xml .= "        <ram:CategoryCode>{$vatCat}</ram:CategoryCode>\n";
             $xml .= "        <ram:RateApplicablePercent>{$vatRate}</ram:RateApplicablePercent>\n";
             $xml .= "      </ram:ApplicableTradeTax>\n";
         }
 
-        // Due date
-        if ($dueDate) {
-            $dueDateFormatted = str_replace('-', '', $dueDate);
+        // Due date + conditions de paiement
+        if ($dueDate || ($invoice['payment_terms'] ?? null)) {
             $xml .= "      <ram:SpecifiedTradePaymentTerms>\n";
-            $xml .= "        <ram:DueDateDateTime><udt:DateTimeString format=\"102\">{$dueDateFormatted}</udt:DateTimeString></ram:DueDateDateTime>\n";
+            if ($invoice['payment_terms'] ?? null) {
+                $terms = htmlspecialchars($invoice['payment_terms'], ENT_XML1);
+                $xml .= "        <ram:Description>{$terms}</ram:Description>\n";
+            }
+            if ($dueDate) {
+                $dueDateFormatted = str_replace('-', '', $dueDate);
+                $xml .= "        <ram:DueDateDateTime><udt:DateTimeString format=\"102\">{$dueDateFormatted}</udt:DateTimeString></ram:DueDateDateTime>\n";
+            }
             $xml .= "      </ram:SpecifiedTradePaymentTerms>\n";
         }
 
@@ -549,10 +584,30 @@ class InvoiceConverterService
         $buyerZip = htmlspecialchars($buyer['zip_code'] ?? '', ENT_QUOTES);
         $buyerCity = htmlspecialchars($buyer['city'] ?? '', ENT_QUOTES);
 
-        $dueDateHtml = $dueDate ? "<p style='margin:2px 0;'><strong>Échéance :</strong> {$dueDate}</p>" : '';
-        $sellerSiretHtml = $sellerSiret ? "<p style='margin:3px 0;font-size:10px;color:#6b7280;'>SIRET: {$sellerSiret}</p>" : '';
-        $sellerVatHtml = $sellerVat ? "<p style='margin:3px 0;font-size:10px;color:#6b7280;'>TVA: {$sellerVat}</p>" : '';
-        $vatTableHtml = $vatHtml ? "<table style='font-size:11px;'><tr><td style='padding:4px 8px;font-weight:600;'>Ventilation TVA</td><td style='padding:4px 8px;text-align:right;font-weight:600;'>Base HT</td><td style='padding:4px 8px;text-align:right;font-weight:600;'>Montant TVA</td></tr>{$vatHtml}</table>" : '';
+        $sellerLegal  = $seller['legal_form'] ?? null;
+        $sellerCapital= $seller['capital'] ?? null;
+        $sellerRcs    = $seller['rcs'] ?? null;
+        $sellerEmail  = htmlspecialchars($seller['email'] ?? '', ENT_QUOTES);
+        $sellerPhone  = htmlspecialchars($seller['phone'] ?? '', ENT_QUOTES);
+        $paymentTerms = htmlspecialchars($invoice['payment_terms'] ?? 'Net 30 jours', ENT_QUOTES);
+
+        $dueDateHtml     = $dueDate ? "<p style='margin:2px 0;'><strong>Échéance :</strong> {$dueDate}</p>" : '';
+        $sellerSiretHtml = $sellerSiret ? "<p style='margin:3px 0;font-size:10px;color:#6b7280;'>SIRET : {$sellerSiret}</p>" : '';
+        $sellerVatHtml   = $sellerVat ? "<p style='margin:3px 0;font-size:10px;color:#6b7280;'>N° TVA : {$sellerVat}</p>" : '';
+        $sellerRcsHtml   = $sellerRcs ? "<p style='margin:3px 0;font-size:10px;color:#6b7280;'>RCS : {$sellerRcs}</p>" : '';
+        $vatTableHtml    = $vatHtml ? "<table style='font-size:11px;'><tr><td style='padding:4px 8px;font-weight:600;'>Ventilation TVA</td><td style='padding:4px 8px;text-align:right;font-weight:600;'>Base HT</td><td style='padding:4px 8px;text-align:right;font-weight:600;'>Montant TVA</td></tr>{$vatHtml}</table>" : '';
+
+        // Mentions légales pied de facture (obligatoires droit français)
+        $legalLines = [];
+        $legalLines[] = "Conditions de règlement : {$paymentTerms}. Pas d'escompte pour paiement anticipé.";
+        $legalLines[] = "Pénalités de retard exigibles dès le lendemain de la date d'échéance au taux de 3 fois le taux d'intérêt légal en vigueur.";
+        $legalLines[] = "Indemnité forfaitaire pour frais de recouvrement en cas de retard de paiement : 40 € (art. L441-10 C. com.).";
+        if ($sellerLegal || $sellerCapital) {
+            $legalDetail = implode(' — ', array_filter([$sellerLegal, $sellerCapital ? "Capital : {$sellerCapital}" : null, $sellerRcs]));
+            $legalLines[] = $legalDetail;
+        }
+        $legalLines[] = "Facture électronique conforme à la norme européenne EN 16931 (Factur-X).";
+        $legalFooterHtml = implode('<br>', array_map('htmlspecialchars', $legalLines));
 
         return <<<HTML
 <!DOCTYPE html>
@@ -641,6 +696,7 @@ class InvoiceConverterService
     </tr></table>
 
     <div class="footer">
+        <p style="color:#374151;font-size:9px;text-align:left;line-height:1.6;margin-bottom:8px;">{$legalFooterHtml}</p>
         {$watermark}
     </div>
 </body>
