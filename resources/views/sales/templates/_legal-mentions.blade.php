@@ -46,14 +46,19 @@
     @endif
 </div>
 
+{{-- ESCOMPTE (obligatoire même si inapplicable) --}}
+<div class="legal-row">
+    <strong>Escompte pour paiement anticipé :</strong> Pas d'escompte.
+</div>
+
 {{-- PÉNALITÉS DE RETARD (B2B obligatoire) --}}
 <div class="legal-row">
     @if($penaltyRate)
         <strong>Pénalités de retard :</strong> {{ number_format($penaltyRate, 2, ',', '') }} % par mois de retard.
     @else
-        <strong>Pénalités de retard :</strong> Taux égal à 3 fois le taux d'intérêt légal en vigueur.
+        <strong>Pénalités de retard :</strong> Taux égal à 3 fois le taux d'intérêt légal en vigueur, exigibles dès le lendemain de la date d'échéance.
     @endif
-    <strong>Indemnité forfaitaire de recouvrement :</strong> {{ number_format($recoveryFee, 2, ',', ' ') }} €.
+    <strong>Indemnité forfaitaire de recouvrement :</strong> {{ number_format($recoveryFee, 2, ',', ' ') }} € (art. L441-10 C. com.).
 </div>
 
 {{-- IDENTIFIANTS VENDEUR --}}

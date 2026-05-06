@@ -80,6 +80,13 @@ class FacturXService
         if ($company->tax_number) {
             $document->addDocumentSellerTaxNumber($company->tax_number);
         }
+        if ($company->siret ?? $company->registration_number) {
+            $document->setDocumentSellerLegalOrganisation(
+                $company->siret ?? $company->registration_number,
+                '0002',
+                $company->name ?? ''
+            );
+        }
 
         // Buyer Information (Customer)
         if ($customer) {
@@ -119,7 +126,17 @@ class FacturXService
             );
             // Pour Factur-X, les prix doivent être positifs même pour un avoir (le code 381 suffit)
             $document->setDocumentPositionNetPrice(abs($item->unit_price_ht ?? $item->unit_price));
-            $document->setDocumentPositionQuantity($item->quantity, "H87"); // H87 = Piece
+            $unitCode = match(strtolower($item->unit ?? '')) {
+                'h', 'heure', 'heures', 'hr'     => 'HUR',
+                'kg', 'kilo'                      => 'KGM',
+                'l', 'litre', 'litres'            => 'LTR',
+                'm', 'metre', 'mètre'             => 'MTR',
+                'm2', 'm²'                        => 'MTK',
+                'j', 'jour', 'jours', 'day'       => 'DAY',
+                'mois', 'month'                   => 'MON',
+                default                           => 'H87',
+            };
+            $document->setDocumentPositionQuantity($item->quantity, $unitCode);
             $itemVatRate = $item->vat_rate ?? $sale->tax_percent ?? 0;
             $itemCategory = $item->vat_category ?? ($itemVatRate > 0 ? 'S' : 'E');
             $document->addDocumentPositionTax($itemCategory, "VAT", $itemVatRate);
@@ -141,6 +158,21 @@ class FacturXService
         }
 
         $grandTotal = abs($sale->total ?? ($basisAmount + $totalTax));
+
+        // Moyen de paiement (obligatoire EN16931)
+        $paymentMeansCode = match($sale->payment_method ?? 'transfer') {
+            'transfer', 'virement'  => '30',
+            'check', 'cheque'       => '10',
+            'card', 'carte'         => '48',
+            'direct_debit'          => '49',
+            'cash', 'especes'       => '10',
+            default                 => '30',
+        };
+        $document->addDocumentPaymentMean($paymentMeansCode);
+
+        // Échéance
+        $dueDate = $sale->due_date ?? $sale->created_at->copy()->addDays(30);
+        $document->addDocumentPaymentTerm(null, $dueDate instanceof \Carbon\Carbon ? $dueDate : \Carbon\Carbon::parse($dueDate));
 
         // Document Summation
         $document->setDocumentSummation(
