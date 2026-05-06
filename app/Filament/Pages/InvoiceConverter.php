@@ -156,7 +156,7 @@ class InvoiceConverter extends Page implements HasForms
                 'original_filename' => $this->uploadedFile->getClientOriginalName(),
                 'original_mime_type' => $mime,
                 'original_size' => $this->uploadedFile->getSize(),
-                'ai_provider' => $tier === InvoiceConverterService::TIER_PRO ? 'claude' : 'gemini',
+                'ai_provider' => $service->getExtractor($tier)->getProviderName(),
                 'tier' => $tier,
                 'status' => InvoiceConversion::STATUS_PROCESSING,
                 'ip_address' => request()->ip(),

@@ -38,11 +38,11 @@ class InvoiceConverterService
     public const FREE_MONTHLY_LIMIT = 5;
 
     /**
-     * Récupère l'extracteur IA selon le tier
+     * Retourne Claude en priorité, Gemini en fallback
      */
     public function getExtractor(string $tier = self::TIER_FREE): AiExtractorInterface
     {
-        if ($tier === self::TIER_PRO && config('services.ai.claude.api_key')) {
+        if (config('services.ai.claude.api_key')) {
             return new ClaudeExtractor();
         }
 
@@ -51,15 +51,34 @@ class InvoiceConverterService
 
     /**
      * Pipeline complet : Upload → Extraction → Données structurées
+     * Claude en premier, fallback automatique sur Gemini en cas d'erreur.
      */
     public function processFile(UploadedFile $file, string $tier = self::TIER_FREE): array
     {
-        $mimeType = $file->getMimeType();
-        $extractor = $this->getExtractor($tier);
+        $mimeType  = $file->getMimeType();
+        $primary   = $this->getExtractor($tier);
+        $fallback  = ($primary instanceof ClaudeExtractor && config('services.ai.gemini.api_key'))
+                        ? new GeminiExtractor()
+                        : null;
 
-        Log::info("InvoiceConverter: Processing {$file->getClientOriginalName()} ({$mimeType}) with {$extractor->getProviderName()}");
+        Log::info("InvoiceConverter: Processing {$file->getClientOriginalName()} ({$mimeType}) with {$primary->getProviderName()}");
 
-        // Route selon le type de fichier
+        try {
+            return $this->route($file, $mimeType, $primary);
+        } catch (\Throwable $e) {
+            if ($fallback) {
+                Log::warning("InvoiceConverter: {$primary->getProviderName()} failed ({$e->getMessage()}), retrying with {$fallback->getProviderName()}");
+                return $this->route($file, $mimeType, $fallback);
+            }
+            throw $e;
+        }
+    }
+
+    /**
+     * Dispatch vers la bonne méthode selon le type MIME
+     */
+    protected function route(UploadedFile $file, string $mimeType, AiExtractorInterface $extractor): array
+    {
         if ($mimeType === 'application/pdf') {
             return $this->processPdf($file, $extractor);
         }
@@ -95,18 +114,14 @@ class InvoiceConverterService
         }
 
         if (strlen(trim($text)) < 50) {
-            // Fallback 1 : envoyer le PDF brut à Claude (supporte les PDFs natifs)
-            $claudeFallback = config('services.ai.claude.api_key')
-                ? new \App\Services\AI\ClaudeExtractor()
-                : null;
-
-            if ($claudeFallback) {
-                Log::info('InvoiceConverter: falling back to Claude native PDF extraction');
+            // Texte insuffisant : envoyer le PDF brut en natif si l'extracteur le supporte
+            if (method_exists($extractor, 'extractFromPdf')) {
+                Log::info("InvoiceConverter: PDF text too short, using native PDF extraction with {$extractor->getProviderName()}");
                 $base64 = base64_encode(file_get_contents($file->getRealPath()));
-                return $claudeFallback->extractFromPdf($base64);
+                return $extractor->extractFromPdf($base64);
             }
 
-            // Fallback 2 : Imagick (nécessite Ghostscript sur le serveur)
+            // Fallback Imagick (nécessite Ghostscript sur le serveur)
             if (extension_loaded('imagick')) {
                 return $this->processPdfAsImage($file, $extractor);
             }
